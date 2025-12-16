@@ -4,14 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
-        <!-- SEO & META TAGS (PENTING UNTUK GOOGLE & SHARE MEDSOS) -->
+        <!-- SEO & META TAGS -->
         <title>PMB UNMARIS - Universitas Stella Maris Sumba</title>
-        <meta name="description" content="Pendaftaran Mahasiswa Baru Universitas Stella Maris Sumba. Kampus berbasis teknologi pertama di Sumba dengan 7 Program Studi Unggulan. Daftar Online Sekarang!">
-        <meta name="keywords" content="PMB UNMARIS, Kuliah di Sumba, Universitas Stella Maris, Teknik Informatika Sumba, Beasiswa Sumba">
-        <meta property="og:title" content="PMB UNMARIS - Masa Depan Cerah Dimulai Di Sini">
-        <meta property="og:description" content="Bergabunglah dengan Universitas Stella Maris Sumba. Biaya terjangkau, fasilitas modern, dan lulusan siap kerja.">
-        <meta property="og:image" content="{{ asset('images/logo.png') }}">
-        <meta property="og:url" content="{{ url('/') }}">
+        <meta name="description" content="Pendaftaran Mahasiswa Baru Universitas Stella Maris Sumba. Kampus berbasis teknologi pertama di Sumba.">
         
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,7 +16,6 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased bg-yellow-50 text-black selection:bg-unmaris-blue selection:text-white relative pb-20 md:pb-0"> 
-    <!-- Added pb-20 to body specifically for mobile to prevent content being hidden behind sticky nav -->
         
         <!-- NAVBAR -->
         <nav class="fixed top-0 w-full z-50 bg-white border-b-4 border-black px-4 md:px-8 py-4 flex justify-between items-center shadow-sm">
@@ -42,7 +36,6 @@
                         </a>
 
                         @if (Route::has('register'))
-                            <!-- Tombol Daftar di Navbar Desktop -->
                             <a href="{{ route('register') }}" class="hidden md:inline-block font-black text-sm uppercase px-4 py-2 border-2 border-black bg-unmaris-yellow text-unmaris-blue shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all rounded">
                                 Daftar Sekarang
                             </a>
@@ -54,12 +47,11 @@
 
         <!-- HERO SECTION -->
         <header class="pt-32 pb-20 px-6 max-w-7xl mx-auto text-center relative overflow-hidden">
-            <!-- Decoration Icons -->
             <div class="absolute top-24 left-4 md:left-20 text-4xl md:text-6xl animate-bounce-slight opacity-60">✨</div>
             <div class="absolute bottom-10 right-4 md:right-20 text-4xl md:text-6xl animate-bounce-slight opacity-60 animation-delay-200">🎓</div>
 
             <div class="inline-block bg-unmaris-blue text-white px-4 py-1 font-bold text-xs md:text-sm uppercase tracking-widest border-2 border-black mb-6 transform -rotate-2 shadow-[2px_2px_0px_0px_#000]">
-                Penerimaan Mahasiswa Baru 2025/2026
+                Penerimaan Mahasiswa Baru {{ date('Y') }}/{{ date('Y')+1 }}
             </div>
             
             <h1 class="text-5xl md:text-7xl font-black text-unmaris-blue mb-6 uppercase tracking-tight leading-none drop-shadow-sm" style="text-shadow: 4px 4px 0px #FACC15;">
@@ -67,7 +59,7 @@
             </h1>
             
             <p class="text-lg md:text-xl font-bold text-gray-600 max-w-2xl mx-auto mb-10 border-l-4 border-unmaris-yellow pl-4 text-left md:text-center md:border-none md:pl-0">
-                Bergabunglah dengan <strong>Universitas Stella Maris Sumba</strong>. Kampus berbasis teknologi pertama di Sumba dengan visi global dan kearifan lokal. Jadilah profesional unggul yang berkarakter!
+                Bergabunglah dengan <strong>Universitas Stella Maris Sumba</strong>. Kampus berbasis teknologi pertama di Sumba dengan visi global dan kearifan lokal.
             </p>
 
             <div class="flex flex-col md:flex-row gap-4 justify-center">
@@ -108,7 +100,7 @@
                         TERMURAH!
                     </div>
                     <h2 class="text-3xl font-black text-unmaris-blue mb-4 uppercase">💰 Biaya Pendaftaran</h2>
-                    <p class="text-gray-600 font-bold mb-6">Investasi awal untuk masa depan gemilang. Biaya pendaftaran sangat terjangkau untuk semua kalangan.</p>
+                    <p class="text-gray-600 font-bold mb-6">Investasi awal untuk masa depan gemilang. Biaya pendaftaran sangat terjangkau.</p>
                     
                     <div class="bg-green-100 border-4 border-black rounded-xl p-6 text-center mb-6">
                         <span class="block text-sm font-bold text-green-800 uppercase tracking-widest mb-1">Hanya</span>
@@ -125,59 +117,62 @@
                             <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                             Kartu Ujian Tulis & Wawancara
                         </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            Hasil Seleksi Online
-                        </li>
                     </ul>
                 </div>
 
-                <!-- JADWAL GELOMBANG -->
+                <!-- JADWAL GELOMBANG (DINAMIS DARI DB) -->
                 <div>
                     <h2 class="text-3xl font-black text-unmaris-blue mb-6 uppercase">📅 Jadwal Gelombang</h2>
+                    
                     <div class="space-y-4">
-                        <!-- Gelombang 1 -->
-                        <div class="bg-white border-4 border-unmaris-blue shadow-neo rounded-xl p-6 flex justify-between items-center transform scale-105 border-l-8 border-l-unmaris-yellow">
-                            <div>
-                                <h4 class="font-black text-xl text-unmaris-blue">GELOMBANG 1</h4>
-                                <p class="text-sm font-bold text-gray-500">Januari - Maret 2025</p>
-                            </div>
-                            <span class="bg-green-500 text-white px-3 py-1 rounded border-2 border-black font-black text-xs uppercase shadow-sm">
-                                BUKA SEKARANG
-                            </span>
-                        </div>
+                        @forelse($gelombangs as $g)
+                            @php
+                                $isActive = $g->is_active; 
+                                $isPast = \Carbon\Carbon::now()->gt($g->tgl_selesai);
+                                // Style Logic
+                                $borderColor = $isActive ? 'border-unmaris-blue' : 'border-gray-400';
+                                $bgColor = $isActive ? 'bg-white' : 'bg-gray-100 opacity-75';
+                                $scale = $isActive ? 'transform scale-105 border-l-8 border-l-unmaris-yellow' : '';
+                            @endphp
 
-                        <!-- Gelombang 2 -->
-                        <div class="bg-gray-100 border-4 border-gray-400 rounded-xl p-6 flex justify-between items-center opacity-75">
-                            <div>
-                                <h4 class="font-black text-xl text-gray-600">GELOMBANG 2</h4>
-                                <p class="text-sm font-bold text-gray-500">April - Juni 2025</p>
+                            <div class="{{ $bgColor }} border-4 {{ $borderColor }} shadow-neo rounded-xl p-6 flex justify-between items-center {{ $scale }}">
+                                <div>
+                                    <h4 class="font-black text-xl {{ $isActive ? 'text-unmaris-blue' : 'text-gray-600' }}">{{ $g->nama_gelombang }}</h4>
+                                    <p class="text-sm font-bold text-gray-500">
+                                        {{ \Carbon\Carbon::parse($g->tgl_mulai)->format('d M') }} - {{ \Carbon\Carbon::parse($g->tgl_selesai)->format('d M Y') }}
+                                    </p>
+                                </div>
+                                
+                                @if($isActive)
+                                    <span class="bg-green-500 text-white px-3 py-1 rounded border-2 border-black font-black text-xs uppercase shadow-sm animate-pulse">
+                                        BUKA SEKARANG
+                                    </span>
+                                @elseif($isPast)
+                                    <span class="bg-red-500 text-white px-3 py-1 rounded border-2 border-black font-black text-xs uppercase">
+                                        TUTUP
+                                    </span>
+                                @else
+                                    <span class="bg-gray-300 text-gray-600 px-3 py-1 rounded border-2 border-gray-500 font-black text-xs uppercase">
+                                        SEGERA
+                                    </span>
+                                @endif
                             </div>
-                            <span class="bg-gray-300 text-gray-600 px-3 py-1 rounded border-2 border-gray-500 font-black text-xs uppercase">
-                                SEGERA
-                            </span>
-                        </div>
-
-                        <!-- Gelombang 3 -->
-                        <div class="bg-gray-100 border-4 border-gray-400 rounded-xl p-6 flex justify-between items-center opacity-75">
-                            <div>
-                                <h4 class="font-black text-xl text-gray-600">GELOMBANG 3</h4>
-                                <p class="text-sm font-bold text-gray-500">Juli - Agustus 2025</p>
+                        @empty
+                            <div class="p-6 bg-yellow-100 border-2 border-yellow-400 rounded-lg text-yellow-800 text-center font-bold">
+                                Belum ada jadwal gelombang yang dirilis. Pantau terus ya!
                             </div>
-                            <span class="bg-gray-300 text-gray-600 px-3 py-1 rounded border-2 border-gray-500 font-black text-xs uppercase">
-                                SEGERA
-                            </span>
-                        </div>
+                        @endforelse
                     </div>
+
                     <div class="mt-6 p-4 bg-yellow-100 border-2 border-yellow-400 rounded-lg text-yellow-800 text-sm font-bold">
-                        💡 Tips: Daftar lebih awal di Gelombang 1 untuk peluang diterima lebih besar!
+                        💡 Tips: Daftar di Gelombang awal untuk peluang diterima lebih besar!
                     </div>
                 </div>
 
             </div>
         </section>
 
-        <!-- SYARAT & BERKAS (SECTION BARU) -->
+        <!-- SYARAT & BERKAS -->
         <section id="syarat" class="py-20 px-6 max-w-7xl mx-auto border-t-4 border-black bg-white">
             <h2 class="text-3xl md:text-4xl font-black text-center text-unmaris-blue mb-16 uppercase">
                 <span class="bg-unmaris-yellow px-2 border-2 border-black shadow-[4px_4px_0px_0px_#000]">Syarat</span> Pendaftaran
@@ -188,28 +183,25 @@
                 <div class="bg-blue-50 border-4 border-unmaris-blue rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
                     <div class="text-4xl mb-4">📄</div>
                     <h3 class="font-black text-lg text-unmaris-blue uppercase mb-2">Ijazah / SKL</h3>
-                    <p class="text-sm font-bold text-gray-500">Scan asli Ijazah SMA/SMK atau Surat Keterangan Lulus jika ijazah belum keluar.</p>
+                    <p class="text-sm font-bold text-gray-500">Scan asli Ijazah SMA/SMK atau Surat Keterangan Lulus.</p>
                 </div>
-                
                 <!-- Card 2 -->
                 <div class="bg-yellow-50 border-4 border-unmaris-yellow rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
                     <div class="text-4xl mb-4">🏠</div>
                     <h3 class="font-black text-lg text-yellow-800 uppercase mb-2">Kartu Keluarga</h3>
-                    <p class="text-sm font-bold text-gray-500">Scan Kartu Keluarga (KK) terbaru untuk validasi data kependudukan (NIK).</p>
+                    <p class="text-sm font-bold text-gray-500">Scan KK terbaru untuk validasi data NIK.</p>
                 </div>
-
                 <!-- Card 3 -->
                 <div class="bg-red-50 border-4 border-red-500 rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
                     <div class="text-4xl mb-4">📸</div>
                     <h3 class="font-black text-lg text-red-800 uppercase mb-2">Pas Foto</h3>
-                    <p class="text-sm font-bold text-gray-500">File foto resmi terbaru dengan latar belakang warna Merah atau Biru.</p>
+                    <p class="text-sm font-bold text-gray-500">Foto resmi latar merah/biru.</p>
                 </div>
-
                 <!-- Card 4 -->
                 <div class="bg-green-50 border-4 border-green-500 rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
                     <div class="text-4xl mb-4">💸</div>
                     <h3 class="font-black text-lg text-green-800 uppercase mb-2">Bukti Bayar</h3>
-                    <p class="text-sm font-bold text-gray-500">Foto/Screenshot struk transfer biaya pendaftaran (Rp 250.000).</p>
+                    <p class="text-sm font-bold text-gray-500">Struk transfer pendaftaran Rp 250.000.</p>
                 </div>
             </div>
         </section>
@@ -219,7 +211,6 @@
             <h2 class="text-3xl md:text-4xl font-black text-center text-unmaris-blue mb-16 uppercase">
                 <span class="bg-white px-2 border-2 border-black shadow-[4px_4px_0px_0px_#000]">Alur</span> Pendaftaran
             </h2>
-
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 gap-y-12">
                 <!-- Step 1 -->
                 <div class="bg-white p-6 border-4 border-black shadow-neo rounded-xl relative group hover:-translate-y-2 transition-transform">
@@ -227,94 +218,90 @@
                     <h3 class="mt-6 text-xl font-black text-center mb-2 uppercase text-unmaris-blue">Buat Akun</h3>
                     <p class="text-center text-sm font-bold text-gray-500">Klik "Daftar Sekarang", isi Nama, Email & Password.</p>
                 </div>
-
                 <!-- Step 2 -->
                 <div class="bg-white p-6 border-4 border-black shadow-neo rounded-xl relative group hover:-translate-y-2 transition-transform">
                     <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-unmaris-yellow text-black flex items-center justify-center font-black text-xl border-2 border-black rounded-full shadow-sm">2</div>
                     <h3 class="mt-6 text-xl font-black text-center mb-2 uppercase text-unmaris-blue">Isi Formulir</h3>
-                    <p class="text-center text-sm font-bold text-gray-500">Login, lalu isi formulir biodata & upload berkas persyaratan.</p>
+                    <p class="text-center text-sm font-bold text-gray-500">Isi biodata & upload berkas.</p>
                 </div>
-
                 <!-- Step 3 -->
                 <div class="bg-white p-6 border-4 border-black shadow-neo rounded-xl relative group hover:-translate-y-2 transition-transform">
                     <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-green-500 text-white flex items-center justify-center font-black text-xl border-2 border-black rounded-full shadow-sm">3</div>
                     <h3 class="mt-6 text-xl font-black text-center mb-2 uppercase text-unmaris-blue">Pembayaran</h3>
-                    <p class="text-center text-sm font-bold text-gray-500">Transfer biaya pendaftaran & tunggu validasi admin.</p>
+                    <p class="text-center text-sm font-bold text-gray-500">Transfer biaya & tunggu verifikasi.</p>
                 </div>
-
                 <!-- Step 4 -->
                 <div class="bg-white p-6 border-4 border-black shadow-neo rounded-xl relative group hover:-translate-y-2 transition-transform">
                     <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-red-500 text-white flex items-center justify-center font-black text-xl border-2 border-black rounded-full shadow-sm">4</div>
-                    <h3 class="mt-6 text-xl font-black text-center mb-2 uppercase text-unmaris-blue">Ujian & Lulus</h3>
-                    <p class="text-center text-sm font-bold text-gray-500">Cetak Kartu Ujian, Ikuti Tes, dan Lihat Pengumuman.</p>
+                    <h3 class="mt-6 text-xl font-black text-center mb-2 uppercase text-unmaris-blue">Seleksi</h3>
+                    <p class="text-center text-sm font-bold text-gray-500">Ikuti ujian & cek kelulusan.</p>
                 </div>
             </div>
         </section>
 
-        <!-- PRODI LIST (UPDATED) -->
+        <!-- PRODI LIST (UPDATED DATA) -->
         <section id="prodi" class="bg-black py-20 text-white border-t-4 border-unmaris-yellow">
             <div class="max-w-7xl mx-auto px-6">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl md:text-4xl font-black text-unmaris-yellow mb-2 uppercase">Program Studi Unggulan</h2>
-                    <p class="font-bold text-gray-400">Pilih jurusan yang sesuai dengan minat dan bakatmu di UNMARIS.</p>
+                    <p class="font-bold text-gray-400">Pilih jurusan yang sesuai dengan minat dan bakatmu.</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- FAKULTAS TEKNIK -->
+                    <!-- TEKNIK -->
                     <div class="bg-white text-black p-6 border-4 border-unmaris-blue shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all rounded-xl">
                         <div class="text-4xl mb-4 bg-blue-100 w-16 h-16 flex items-center justify-center rounded-full border-2 border-black">💻</div>
                         <h3 class="font-black text-xl uppercase mb-2 text-unmaris-blue">Teknik Informatika (S1)</h3>
-                        <p class="text-sm font-bold text-gray-500">Mencetak ahli software engineering, AI, dan profesional IT yang handal.</p>
+                        <p class="text-sm font-bold text-gray-500">Software Engineering, AI, IoT.</p>
                     </div>
                     
                     <div class="bg-white text-black p-6 border-4 border-unmaris-blue shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all rounded-xl">
                         <div class="text-4xl mb-4 bg-blue-100 w-16 h-16 flex items-center justify-center rounded-full border-2 border-black">📊</div>
                         <h3 class="font-black text-xl uppercase mb-2 text-unmaris-blue">Manajemen Informatika (D3)</h3>
-                        <p class="text-sm font-bold text-gray-500">Fokus pada aplikasi komputer, manajemen data, dan sistem informasi praktis.</p>
+                        <p class="text-sm font-bold text-gray-500">Sistem Informasi Praktis & Database.</p>
                     </div>
 
                     <div class="bg-white text-black p-6 border-4 border-unmaris-blue shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all rounded-xl">
                         <div class="text-4xl mb-4 bg-green-100 w-16 h-16 flex items-center justify-center rounded-full border-2 border-black">🌱</div>
                         <h3 class="font-black text-xl uppercase mb-2 text-unmaris-blue">Teknik Lingkungan (S1)</h3>
-                        <p class="text-sm font-bold text-gray-500">Solusi rekayasa untuk masalah lingkungan dan pembangunan berkelanjutan.</p>
+                        <p class="text-sm font-bold text-gray-500">Rekayasa Lingkungan Berkelanjutan.</p>
                     </div>
 
-                    <!-- FAKULTAS EKONOMI & BISNIS -->
+                    <!-- EKONOMI -->
                     <div class="bg-white text-black p-6 border-4 border-unmaris-blue shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all rounded-xl">
                         <div class="text-4xl mb-4 bg-yellow-100 w-16 h-16 flex items-center justify-center rounded-full border-2 border-black">📈</div>
                         <h3 class="font-black text-xl uppercase mb-2 text-unmaris-blue">Bisnis Digital (S1)</h3>
-                        <p class="text-sm font-bold text-gray-500">Menggabungkan ilmu manajemen bisnis dengan teknologi digital terkini.</p>
+                        <p class="text-sm font-bold text-gray-500">E-Commerce & Digital Marketing.</p>
                     </div>
 
-                    <!-- FAKULTAS KESEHATAN -->
+                    <!-- KESEHATAN -->
                     <div class="bg-white text-black p-6 border-4 border-unmaris-blue shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all rounded-xl">
                         <div class="text-4xl mb-4 bg-red-100 w-16 h-16 flex items-center justify-center rounded-full border-2 border-black">🏥</div>
                         <h3 class="font-black text-xl uppercase mb-2 text-unmaris-blue">Administrasi RS (S1)</h3>
-                        <p class="text-sm font-bold text-gray-500">Manajemen operasional rumah sakit dan layanan kesehatan profesional.</p>
+                        <p class="text-sm font-bold text-gray-500">Manajemen Rumah Sakit Profesional.</p>
                     </div>
 
                     <div class="bg-white text-black p-6 border-4 border-unmaris-blue shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all rounded-xl">
                         <div class="text-4xl mb-4 bg-red-100 w-16 h-16 flex items-center justify-center rounded-full border-2 border-black">⛑️</div>
                         <h3 class="font-black text-xl uppercase mb-2 text-unmaris-blue">K3 (S1)</h3>
-                        <p class="text-sm font-bold text-gray-500">Keselamatan dan Kesehatan Kerja untuk industri yang aman dan produktif.</p>
+                        <p class="text-sm font-bold text-gray-500">Keselamatan & Kesehatan Kerja.</p>
                     </div>
 
-                    <!-- FAKULTAS KEGURUAN -->
+                    <!-- PENDIDIKAN -->
                     <div class="bg-white text-black p-6 border-4 border-unmaris-blue shadow-[8px_8px_0px_0px_#FACC15] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_#FACC15] transition-all rounded-xl">
                         <div class="text-4xl mb-4 bg-purple-100 w-16 h-16 flex items-center justify-center rounded-full border-2 border-black">🎓</div>
                         <h3 class="font-black text-xl uppercase mb-2 text-unmaris-blue">Pendidikan TI (S1)</h3>
-                        <p class="text-sm font-bold text-gray-500">Mencetak tenaga pendidik TIK yang kompeten dan berkarakter.</p>
+                        <p class="text-sm font-bold text-gray-500">Guru TIK Kompeten & Berkarakter.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- FAQ SECTION -->
+        <!-- FAQ & FOOTER (SAMA SEPERTI SEBELUMNYA) -->
         <section class="py-20 px-6 max-w-4xl mx-auto">
             <h2 class="text-3xl md:text-4xl font-black text-center text-unmaris-blue mb-12 uppercase">
                 🤔 Pertanyaan Umum (FAQ)
             </h2>
-            
             <div class="space-y-4">
                 <div x-data="{ open: false }" class="bg-white border-4 border-black rounded-xl overflow-hidden shadow-neo">
                     <button @click="open = !open" class="w-full text-left p-4 font-black text-lg text-unmaris-blue flex justify-between items-center hover:bg-yellow-50">
@@ -322,34 +309,22 @@
                         <span x-show="!open">➕</span><span x-show="open">➖</span>
                     </button>
                     <div x-show="open" class="p-4 border-t-2 border-black bg-gray-50 font-medium text-gray-700">
-                        Bisa! Calon mahasiswa lulusan tahun ini yang belum menerima Ijazah asli diperbolehkan menggunakan Surat Keterangan Lulus (SKL) dari sekolah untuk mendaftar.
+                        Bisa! Gunakan Surat Keterangan Lulus (SKL) sementara dari sekolah.
                     </div>
                 </div>
-
                 <div x-data="{ open: false }" class="bg-white border-4 border-black rounded-xl overflow-hidden shadow-neo">
                     <button @click="open = !open" class="w-full text-left p-4 font-black text-lg text-unmaris-blue flex justify-between items-center hover:bg-yellow-50">
-                        <span>Bagaimana jika saya lupa password akun?</span>
+                        <span>Bagaimana cara pembayaran?</span>
                         <span x-show="!open">➕</span><span x-show="open">➖</span>
                     </button>
                     <div x-show="open" class="p-4 border-t-2 border-black bg-gray-50 font-medium text-gray-700">
-                        Silakan hubungi admin via WhatsApp atau datang langsung ke bagian PMB di kampus untuk reset password. Pastikan mengingat email yang didaftarkan.
-                    </div>
-                </div>
-
-                <div x-data="{ open: false }" class="bg-white border-4 border-black rounded-xl overflow-hidden shadow-neo">
-                    <button @click="open = !open" class="w-full text-left p-4 font-black text-lg text-unmaris-blue flex justify-between items-center hover:bg-yellow-50">
-                        <span>Apakah ada beasiswa untuk mahasiswa baru?</span>
-                        <span x-show="!open">➕</span><span x-show="open">➖</span>
-                    </button>
-                    <div x-show="open" class="p-4 border-t-2 border-black bg-gray-50 font-medium text-gray-700">
-                        Tentu ada! UNMARIS menyediakan berbagai beasiswa seperti KIP-Kuliah, Beasiswa Yayasan, dan Beasiswa Prestasi. Informasi lebih lanjut bisa ditanyakan saat daftar ulang.
+                        Transfer ke Rekening BNI/BRI Yayasan, atau bayar tunai di Bagian Keuangan Kampus.
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- FOOTER -->
-        <footer class="bg-white border-t-4 border-black py-10 px-6 pb-24 md:pb-10"> <!-- Extra padding for mobile bottom bar -->
+        <footer class="bg-white border-t-4 border-black py-10 px-6 pb-24 md:pb-10">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-3">
                     <img src="{{ asset('images/logo.png') }}" onerror="this.src='https://ui-avatars.com/api/?name=UN&background=1e3a8a&color=facc15'" class="h-12 w-12 border-2 border-black rounded-full bg-white">
@@ -358,32 +333,27 @@
                         <p class="text-xs font-bold text-gray-500">Jl. Soekarno Hatta No.05, Tambolaka, NTT</p>
                     </div>
                 </div>
-                
                 <div class="text-sm font-bold text-gray-500 text-center md:text-right">
-                    &copy; {{ date('Y') }} PMB UNMARIS. All rights reserved.<br>
-                    <span class="text-xs">Built with ❤️ & Laravel</span>
+                    &copy; {{ date('Y') }} PMB UNMARIS. All rights reserved.
                 </div>
             </div>
         </footer>
 
-        <!-- MOBILE STICKY BOTTOM NAV (PENTING UNTUK KONVERSI) -->
+        <!-- MOBILE STICKY BOTTOM -->
         <div class="fixed bottom-0 left-0 w-full bg-white border-t-4 border-black p-4 md:hidden z-40 flex justify-between items-center shadow-[0px_-4px_10px_rgba(0,0,0,0.1)]">
             <div class="text-xs font-bold text-gray-500">
                 Pendaftaran Dibuka!
-                <div class="text-unmaris-blue font-black text-sm">Gelombang 1</div>
             </div>
             <a href="{{ route('register') }}" class="bg-unmaris-yellow text-unmaris-blue font-black py-2 px-6 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all uppercase text-sm">
                 🔥 Daftar
             </a>
         </div>
 
-        <!-- FLOATING WA BUTTON -->
         <a href="https://wa.me/6281234567890" target="_blank" class="fixed bottom-24 md:bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full border-4 border-black shadow-neo-lg hover:scale-110 transition-transform flex items-center justify-center group">
             <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.017-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
             <span class="ml-2 font-black hidden group-hover:block transition-all">Chat Admin</span>
         </a>
 
-        <!-- Alpine.js untuk FAQ Toggle -->
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </body>
 </html>

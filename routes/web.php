@@ -9,8 +9,16 @@ use App\Livewire\Camaba\Pembayaran;
 // Import Livewire Components Baru
 use App\Livewire\Camaba\Dashboard as CamabaDashboard;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Models\Gelombang;
 
-Route::view('/', 'welcome');
+Route::get('/', function () {
+    // Ambil semua gelombang, urutkan dari yang terdekat
+    $gelombangs = Gelombang::orderBy('tgl_mulai', 'asc')->get();
+
+    return view('welcome', compact('gelombangs'));
+});
+
+
 
 Route::get('/verifikasi/loa/{id}/{hash}', [PengumumanController::class, 'verifikasiSurat'])
     ->name('verifikasi.surat');
