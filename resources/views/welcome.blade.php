@@ -3,7 +3,15 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <!-- SEO & META TAGS (PENTING UNTUK GOOGLE & SHARE MEDSOS) -->
         <title>PMB UNMARIS - Universitas Stella Maris Sumba</title>
+        <meta name="description" content="Pendaftaran Mahasiswa Baru Universitas Stella Maris Sumba. Kampus berbasis teknologi pertama di Sumba dengan 7 Program Studi Unggulan. Daftar Online Sekarang!">
+        <meta name="keywords" content="PMB UNMARIS, Kuliah di Sumba, Universitas Stella Maris, Teknik Informatika Sumba, Beasiswa Sumba">
+        <meta property="og:title" content="PMB UNMARIS - Masa Depan Cerah Dimulai Di Sini">
+        <meta property="og:description" content="Bergabunglah dengan Universitas Stella Maris Sumba. Biaya terjangkau, fasilitas modern, dan lulusan siap kerja.">
+        <meta property="og:image" content="{{ asset('images/logo.png') }}">
+        <meta property="og:url" content="{{ url('/') }}">
         
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -12,7 +20,8 @@
         <!-- Scripts & Styles -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased bg-yellow-50 text-black selection:bg-unmaris-blue selection:text-white relative">
+    <body class="font-sans antialiased bg-yellow-50 text-black selection:bg-unmaris-blue selection:text-white relative pb-20 md:pb-0"> 
+    <!-- Added pb-20 to body specifically for mobile to prevent content being hidden behind sticky nav -->
         
         <!-- NAVBAR -->
         <nav class="fixed top-0 w-full z-50 bg-white border-b-4 border-black px-4 md:px-8 py-4 flex justify-between items-center shadow-sm">
@@ -33,7 +42,8 @@
                         </a>
 
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="font-black text-sm uppercase px-4 py-2 border-2 border-black bg-unmaris-yellow text-unmaris-blue shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all rounded">
+                            <!-- Tombol Daftar di Navbar Desktop -->
+                            <a href="{{ route('register') }}" class="hidden md:inline-block font-black text-sm uppercase px-4 py-2 border-2 border-black bg-unmaris-yellow text-unmaris-blue shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all rounded">
                                 Daftar Sekarang
                             </a>
                         @endif
@@ -57,7 +67,7 @@
             </h1>
             
             <p class="text-lg md:text-xl font-bold text-gray-600 max-w-2xl mx-auto mb-10 border-l-4 border-unmaris-yellow pl-4 text-left md:text-center md:border-none md:pl-0">
-                Bergabunglah dengan <strong>Universitas Stella Maris Sumba</strong>. Kampus berbasis teknologi pertama di Sumba dengan visi global. Jadilah profesional unggul yang berkarakter!
+                Bergabunglah dengan <strong>Universitas Stella Maris Sumba</strong>. Kampus berbasis teknologi pertama di Sumba dengan visi global dan kearifan lokal. Jadilah profesional unggul yang berkarakter!
             </p>
 
             <div class="flex flex-col md:flex-row gap-4 justify-center">
@@ -167,10 +177,47 @@
             </div>
         </section>
 
-        <!-- ALUR PENDAFTARAN -->
-        <section id="alur" class="py-20 px-6 max-w-7xl mx-auto border-t-4 border-black bg-white">
+        <!-- SYARAT & BERKAS (SECTION BARU) -->
+        <section id="syarat" class="py-20 px-6 max-w-7xl mx-auto border-t-4 border-black bg-white">
             <h2 class="text-3xl md:text-4xl font-black text-center text-unmaris-blue mb-16 uppercase">
-                <span class="bg-unmaris-yellow px-2 border-2 border-black shadow-[4px_4px_0px_0px_#000]">Alur</span> Pendaftaran
+                <span class="bg-unmaris-yellow px-2 border-2 border-black shadow-[4px_4px_0px_0px_#000]">Syarat</span> Pendaftaran
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-blue-50 border-4 border-unmaris-blue rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
+                    <div class="text-4xl mb-4">📄</div>
+                    <h3 class="font-black text-lg text-unmaris-blue uppercase mb-2">Ijazah / SKL</h3>
+                    <p class="text-sm font-bold text-gray-500">Scan asli Ijazah SMA/SMK atau Surat Keterangan Lulus jika ijazah belum keluar.</p>
+                </div>
+                
+                <!-- Card 2 -->
+                <div class="bg-yellow-50 border-4 border-unmaris-yellow rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
+                    <div class="text-4xl mb-4">🏠</div>
+                    <h3 class="font-black text-lg text-yellow-800 uppercase mb-2">Kartu Keluarga</h3>
+                    <p class="text-sm font-bold text-gray-500">Scan Kartu Keluarga (KK) terbaru untuk validasi data kependudukan (NIK).</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-red-50 border-4 border-red-500 rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
+                    <div class="text-4xl mb-4">📸</div>
+                    <h3 class="font-black text-lg text-red-800 uppercase mb-2">Pas Foto</h3>
+                    <p class="text-sm font-bold text-gray-500">File foto resmi terbaru dengan latar belakang warna Merah atau Biru.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-green-50 border-4 border-green-500 rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
+                    <div class="text-4xl mb-4">💸</div>
+                    <h3 class="font-black text-lg text-green-800 uppercase mb-2">Bukti Bayar</h3>
+                    <p class="text-sm font-bold text-gray-500">Foto/Screenshot struk transfer biaya pendaftaran (Rp 250.000).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ALUR PENDAFTARAN -->
+        <section id="alur" class="py-20 px-6 max-w-7xl mx-auto bg-gray-50 border-t-4 border-black">
+            <h2 class="text-3xl md:text-4xl font-black text-center text-unmaris-blue mb-16 uppercase">
+                <span class="bg-white px-2 border-2 border-black shadow-[4px_4px_0px_0px_#000]">Alur</span> Pendaftaran
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 gap-y-12">
@@ -184,15 +231,15 @@
                 <!-- Step 2 -->
                 <div class="bg-white p-6 border-4 border-black shadow-neo rounded-xl relative group hover:-translate-y-2 transition-transform">
                     <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-unmaris-yellow text-black flex items-center justify-center font-black text-xl border-2 border-black rounded-full shadow-sm">2</div>
-                    <h3 class="mt-6 text-xl font-black text-center mb-2 uppercase text-unmaris-blue">Lengkapi Data</h3>
-                    <p class="text-center text-sm font-bold text-gray-500">Login, lalu isi formulir biodata & upload Ijazah/Foto.</p>
+                    <h3 class="mt-6 text-xl font-black text-center mb-2 uppercase text-unmaris-blue">Isi Formulir</h3>
+                    <p class="text-center text-sm font-bold text-gray-500">Login, lalu isi formulir biodata & upload berkas persyaratan.</p>
                 </div>
 
                 <!-- Step 3 -->
                 <div class="bg-white p-6 border-4 border-black shadow-neo rounded-xl relative group hover:-translate-y-2 transition-transform">
                     <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-green-500 text-white flex items-center justify-center font-black text-xl border-2 border-black rounded-full shadow-sm">3</div>
                     <h3 class="mt-6 text-xl font-black text-center mb-2 uppercase text-unmaris-blue">Pembayaran</h3>
-                    <p class="text-center text-sm font-bold text-gray-500">Transfer Rp 250rb ke Rekening Kampus & Upload Bukti.</p>
+                    <p class="text-center text-sm font-bold text-gray-500">Transfer biaya pendaftaran & tunggu validasi admin.</p>
                 </div>
 
                 <!-- Step 4 -->
@@ -302,7 +349,7 @@
         </section>
 
         <!-- FOOTER -->
-        <footer class="bg-white border-t-4 border-black py-10 px-6">
+        <footer class="bg-white border-t-4 border-black py-10 px-6 pb-24 md:pb-10"> <!-- Extra padding for mobile bottom bar -->
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-3">
                     <img src="{{ asset('images/logo.png') }}" onerror="this.src='https://ui-avatars.com/api/?name=UN&background=1e3a8a&color=facc15'" class="h-12 w-12 border-2 border-black rounded-full bg-white">
@@ -319,8 +366,19 @@
             </div>
         </footer>
 
+        <!-- MOBILE STICKY BOTTOM NAV (PENTING UNTUK KONVERSI) -->
+        <div class="fixed bottom-0 left-0 w-full bg-white border-t-4 border-black p-4 md:hidden z-40 flex justify-between items-center shadow-[0px_-4px_10px_rgba(0,0,0,0.1)]">
+            <div class="text-xs font-bold text-gray-500">
+                Pendaftaran Dibuka!
+                <div class="text-unmaris-blue font-black text-sm">Gelombang 1</div>
+            </div>
+            <a href="{{ route('register') }}" class="bg-unmaris-yellow text-unmaris-blue font-black py-2 px-6 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all uppercase text-sm">
+                🔥 Daftar
+            </a>
+        </div>
+
         <!-- FLOATING WA BUTTON -->
-        <a href="https://wa.me/6281234567890" target="_blank" class="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full border-4 border-black shadow-neo-lg hover:scale-110 transition-transform flex items-center justify-center group">
+        <a href="https://wa.me/6281234567890" target="_blank" class="fixed bottom-24 md:bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full border-4 border-black shadow-neo-lg hover:scale-110 transition-transform flex items-center justify-center group">
             <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.017-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
             <span class="ml-2 font-black hidden group-hover:block transition-all">Chat Admin</span>
         </a>
