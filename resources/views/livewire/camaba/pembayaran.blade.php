@@ -61,8 +61,15 @@
                     <p class="font-bold text-gray-500 text-sm mt-2">Admin sedang mengecek bukti transfer Anda.</p>
                     
                     <div class="mt-4">
-                        <img src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="h-32 mx-auto border-2 border-black rounded shadow-sm">
-                        <span class="text-xs text-gray-400 font-bold">Bukti terkirim</span>
+                        @if (str_ends_with($pendaftar->bukti_pembayaran, '.pdf'))
+                            <a href="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" target="_blank" class="flex flex-col items-center justify-center p-4 bg-gray-50 border-2 border-black rounded shadow-sm hover:bg-gray-100">
+                                <span class="text-2xl">📄</span>
+                                <span class="text-xs font-bold mt-1 text-blue-600 underline">Lihat PDF Bukti</span>
+                            </a>
+                        @else
+                            <img src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="h-32 mx-auto border-2 border-black rounded shadow-sm">
+                        @endif
+                        <span class="text-xs text-gray-400 font-bold block mt-2">Bukti terkirim</span>
                     </div>
                 </div>
 
@@ -71,22 +78,43 @@
                 <form wire:submit.prevent="save">
                     <div class="mb-4">
                         <label class="block text-sm font-bold text-unmaris-blue mb-2">Upload Bukti Transfer (Struk/Screenshot)</label>
+                        <span class="text-xs font-bold text-gray-400 mb-2 block">Format: JPG, PNG, PDF (Max 2MB)</span>
                         
-                        <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative">
+                        <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group">
                             @if ($bukti_transfer)
-                                <img src="{{ $bukti_transfer->temporaryUrl() }}" class="h-40 mx-auto rounded shadow-sm border-2 border-black">
+                                <!-- LOGIC PREVIEW FIX -->
+                                @try
+                                    @if (in_array(strtolower($bukti_transfer->extension()), ['jpg', 'jpeg', 'png']))
+                                        <img src="{{ $bukti_transfer->temporaryUrl() }}" class="h-40 mx-auto rounded shadow-sm border-2 border-black">
+                                    @else
+                                        <!-- Tampilan untuk PDF/Dokumen Lain -->
+                                        <div class="flex flex-col items-center justify-center py-4">
+                                            <span class="text-4xl">📄</span>
+                                            <p class="text-sm font-black text-unmaris-blue mt-2">File PDF Terpilih</p>
+                                            <p class="text-xs text-gray-500">{{ $bukti_transfer->getClientOriginalName() }}</p>
+                                        </div>
+                                    @endif
+                                @catch (\Exception $e)
+                                    <!-- Fallback jika error -->
+                                    <div class="flex flex-col items-center justify-center py-4">
+                                        <span class="text-4xl">📁</span>
+                                        <p class="text-sm font-black text-gray-600 mt-2">File Siap Upload</p>
+                                    </div>
+                                @endtry
                             @else
-                                <span class="text-4xl">📸</span>
-                                <p class="text-xs font-bold text-unmaris-blue mt-2">Klik untuk pilih gambar</p>
+                                <span class="text-4xl group-hover:scale-110 transition-transform block">📸</span>
+                                <p class="text-xs font-bold text-unmaris-blue mt-2">Klik untuk pilih gambar/PDF</p>
                             @endif
-                            <input type="file" wire:model="bukti_transfer" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            
+                            <!-- Input File dengan accept PDF -->
+                            <input type="file" wire:model="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                         </div>
-                        @error('bukti_transfer') <span class="text-red-600 font-bold text-xs mt-1 block">{{ $message }}</span> @enderror
+                        @error('bukti_transfer') <span class="text-red-600 font-bold text-xs mt-1 block bg-red-100 p-1 border border-red-500 rounded">{{ $message }}</span> @enderror
                     </div>
 
-                    <button type="submit" wire:loading.attr="disabled" class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-3 px-6 rounded-lg border-2 border-unmaris-blue shadow-neo hover:shadow-neo-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider">
-                        <span wire:loading.remove>KIRIM BUKTI BAYAR</span>
-                        <span wire:loading>MENGUPLOAD...</span>
+                    <button type="submit" wire:loading.attr="disabled" class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-3 px-6 rounded-lg border-2 border-unmaris-blue shadow-neo hover:shadow-neo-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider flex justify-center items-center gap-2">
+                        <span wire:loading.remove>KIRIM BUKTI BAYAR 🚀</span>
+                        <span wire:loading>MENGUPLOAD... ⏳</span>
                     </button>
                 </form>
             @endif

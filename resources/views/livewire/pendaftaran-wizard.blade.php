@@ -12,7 +12,7 @@
 
         <h1 class="text-3xl md:text-4xl font-black text-unmaris-blue tracking-tight uppercase mt-4"
             style="text-shadow: 2px 2px 0px #FACC15;">
-            Penerimaan Mahasiswa Baru 2025
+            Penerimaan Mahasiswa Baru 2026
         </h1>
         <p
             class="text-unmaris-blue font-bold mt-2 text-lg bg-unmaris-yellow inline-block px-6 py-2 transform -rotate-1 border-2 border-unmaris-blue shadow-neo rounded-lg">
