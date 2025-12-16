@@ -89,7 +89,29 @@ new class extends Component {
             Wawancara
         </a>
 
+        <div class="border-t-2 border-white/20 my-2"></div>
 
+        <!-- Manajemen User -->
+        <a href="{{ route('admin.users.index') }}"
+            class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+   {{ request()->routeIs('admin.users*')
+       ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
+       : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
+            <span class="text-xl mr-3">👥</span>
+            Akun User
+        </a>
+
+        <a href="{{ route('admin.laporan.index') }}"
+            class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+   {{ request()->routeIs('admin.laporan*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
+            <span class="text-xl mr-3">🖨️</span> Laporan
+        </a>
+
+        <a href="{{ route('admin.settings.index') }}"
+            class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+   {{ request()->routeIs('admin.settings*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
+            <span class="text-xl mr-3">⚙️</span> Settings
+        </a>
         <!-- Separator -->
         <div class="border-t-2 border-white/20 my-2"></div>
 

@@ -82,6 +82,20 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/gelombang', function () {
             return view('admin.gelombang');
         })->name('gelombang.index');
+
+        Route::get('/users', function () {
+            return view('admin.users');
+        })->name('users.index');
+
+
+        // 7. Pengaturan Website (CMS)
+        Route::get('/settings', function () {
+            return view('admin.settings');
+        })->name('settings.index');
+
+        // 8. Laporan PDF
+        Route::get('/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('/laporan/cetak', [\App\Http\Controllers\Admin\LaporanController::class, 'cetak'])->name('laporan.cetak');
     });
 
 // ====================================================
