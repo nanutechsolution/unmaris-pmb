@@ -454,7 +454,16 @@
                         </select>
                     </div>
 
-                    <div class="mt-6 flex items-center bg-yellow-50 p-4 rounded-xl border-2 border-unmaris-blue">
+                    <!-- Info Seleksi Wawancara -->
+                    <div class="bg-blue-50 border-2 border-unmaris-blue border-dashed rounded-xl p-4 mb-4 mt-6">
+                        <h4 class="font-black text-unmaris-blue text-sm uppercase mb-2">ℹ️ Informasi Tahapan Seleksi</h4>
+                        <ul class="list-disc list-inside text-sm font-bold text-gray-600 space-y-1">
+                            <li>Seleksi masuk terdiri dari <strong>Ujian Tulis</strong> dan <strong>Wawancara</strong>.</li>
+                            <li>Jadwal & Lokasi akan muncul di <strong>Dashboard</strong> setelah pembayaran lunas.</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-2 flex items-center bg-yellow-50 p-4 rounded-xl border-2 border-unmaris-blue">
                         <input type="checkbox" x-model="agreed"
                             class="w-6 h-6 text-unmaris-blue border-2 border-unmaris-blue rounded focus:ring-0 cursor-pointer flex-shrink-0">
                         <span class="ml-3 text-xs md:text-sm font-bold text-unmaris-blue">
