@@ -4,26 +4,28 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\SiteSetting;
+use App\Models\StudyProgram;
+use Illuminate\Support\Facades\Http;
 
 class SiteSettings extends Component
 {
     public $nama_kampus, $singkatan_kampus, $alamat_kampus;
     public $biaya_pendaftaran;
-    
+
     // Ganti field bank single menjadi array
-    public $bank_accounts = []; 
-    
+    public $bank_accounts = [];
+
     public $no_wa_admin, $email_admin;
 
     public function mount()
     {
         $setting = SiteSetting::first();
-        
+
         $this->nama_kampus = $setting->nama_kampus;
         $this->singkatan_kampus = $setting->singkatan_kampus;
         $this->alamat_kampus = $setting->alamat_kampus;
         $this->biaya_pendaftaran = $setting->biaya_pendaftaran;
-        
+
         // Load bank accounts
         if ($setting->bank_accounts) {
             $this->bank_accounts = $setting->bank_accounts;
@@ -37,7 +39,7 @@ class SiteSettings extends Component
                 ]
             ];
         }
-        
+
         $this->no_wa_admin = $setting->no_wa_admin;
         $this->email_admin = $setting->email_admin;
     }
@@ -81,5 +83,39 @@ class SiteSettings extends Component
     public function render()
     {
         return view('livewire.admin.site-settings');
+    }
+
+
+    public function syncProdi()
+    {
+        try {
+            // URL API SIAKAD (Sesuaikan port jika perlu)
+            $urlSiakad = 'http://localhost:8001/api/v1/ref/prodi';
+            // Panggil API
+            $response = Http::get($urlSiakad);
+
+            if ($response->successful()) {
+                $data = $response->json()['data'];
+                $count = 0;
+
+                // Loop dan update database lokal PMB
+                foreach ($data as $prodi) {
+                    StudyProgram::updateOrCreate(
+                        // Kunci unik: Nama & Jenjang
+                        ['name' => $prodi['name'], 'degree' => $prodi['degree']],
+
+                        // Data yang disimpan
+                        ['name' => $prodi['name'], 'degree' => $prodi['degree']]
+                    );
+                    $count++;
+                }
+
+                session()->flash('message', "Sukses! $count Program Studi berhasil disinkronisasi dari SIAKAD.");
+            } else {
+                session()->flash('error', 'Gagal menghubungi SIAKAD. Status: ' . $response->status());
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Koneksi Gagal: Pastikan Server SIAKAD Hidup. (' . $e->getMessage() . ')');
+        }
     }
 }

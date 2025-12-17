@@ -20,7 +20,8 @@ Route::get('/', function () {
     // Kirim variable $settings ke view
     return view('welcome', compact('gelombangs', 'settings'));
 });
-
+Route::post('/admin/pendaftar/{id}/sync', [\App\Http\Controllers\Admin\PendaftarController::class, 'pushToSiakad'])
+    ->name('admin.pendaftar.sync');
 
 
 Route::get('/verifikasi/loa/{id}/{hash}', [PengumumanController::class, 'verifikasiSurat'])
@@ -99,6 +100,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // 8. Laporan PDF
         Route::get('/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/cetak', [\App\Http\Controllers\Admin\LaporanController::class, 'cetak'])->name('laporan.cetak');
+        Route::get('/pengumuman-admin', function () {
+            return view('admin.announcements');
+        })->name('announcements.index');
     });
 
 // ====================================================
