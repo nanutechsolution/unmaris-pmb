@@ -103,6 +103,12 @@
                 Akun User
             </a>
 
+            <a href="{{ route('admin.helpdesk.index') }}"
+                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+   {{ request()->routeIs('admin.helpdesk*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
+                <span class="text-xl mr-3">💬</span> Helpdesk
+            </a>
+
             <a href="{{ route('admin.laporan.index') }}"
                 class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
        {{ request()->routeIs('admin.laporan*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">

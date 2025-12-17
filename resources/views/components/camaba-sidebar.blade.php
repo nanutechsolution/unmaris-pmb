@@ -78,6 +78,13 @@
             Pengumuman
         </a>
 
+
+        <a href="{{ route('camaba.helpdesk') }}"
+            class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+   {{ request()->routeIs('camaba.helpdesk') ? 'bg-unmaris-yellow text-unmaris-blue shadow-neo translate-x-1' : 'bg-white text-unmaris-blue hover:bg-blue-50' }}">
+            <span class="text-xl mr-3">💬</span>
+            Bantuan
+        </a>
         <!-- Separator -->
         <div class="border-t-2 border-black/10 my-2"></div>
 

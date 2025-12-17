@@ -51,6 +51,7 @@ Route::middleware(['auth', 'verified', 'role:camaba'])
         // 5. Pengumuman Kelulusan
         Route::get('/pengumuman', [PengumumanController::class, 'index'])->name('pengumuman');
         Route::get('/pengumuman/cetak', [PengumumanController::class, 'cetak'])->name('pengumuman.cetak');
+        Route::get('/bantuan', App\Livewire\Camaba\Helpdesk::class)->name('helpdesk');
     });
 
 // ====================================================
@@ -113,6 +114,10 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
         Route::get('/beasiswa', function () {
             return view('admin.beasiswa');
         })->name('beasiswa.index');
+
+        Route::get('/helpdesk', function () {
+            return view('admin.helpdesk');
+        })->name('helpdesk.index');
     });
 
 // ====================================================

@@ -9,6 +9,8 @@ use App\Models\Gelombang;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail; // Import Mail
+use App\Mail\PmbNotification; // Import Mail Class
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Exception;
@@ -17,8 +19,8 @@ class PendaftaranWizard extends Component
 {
     use WithFileUploads;
 
-    #[Layout('layouts.camaba')] 
-    
+    #[Layout('layouts.camaba')]
+
     public $currentStep = 1;
     public $totalSteps = 3;
 
@@ -61,10 +63,10 @@ class PendaftaranWizard extends Component
                 session()->flash('message', 'Formulir terkunci.');
                 return redirect()->route('camaba.dashboard');
             }
-            
+
             // Load semua data otomatis
             $this->fill($pendaftar->toArray());
-            
+
             // Pastikan nomor_hp terisi jika di pendaftar kosong tapi di user ada
             if (empty($this->nomor_hp)) {
                 $this->nomor_hp = Auth::user()->nomor_hp;
@@ -89,6 +91,47 @@ class PendaftaranWizard extends Component
         }
     }
 
+    // Fungsi Simpan Sementara (Auto-Save)
+    public function saveDraft()
+    {
+        $userId = Auth::id();
+
+        try {
+            Pendaftar::updateOrCreate(
+                ['user_id' => $userId],
+                [
+                    // Data Step 1
+                    'jalur_pendaftaran' => $this->jalur_pendaftaran,
+                    'scholarship_id' => ($this->jalur_pendaftaran == 'beasiswa') ? $this->scholarship_id : null,
+                    'nisn' => $this->nisn,
+                    'nik' => $this->nik,
+                    'tempat_lahir' => $this->tempat_lahir,
+                    'tgl_lahir' => $this->tgl_lahir,
+                    'jenis_kelamin' => $this->jenis_kelamin,
+                    'alamat' => $this->alamat,
+                    'agama' => $this->agama,
+                    'nomor_hp' => $this->nomor_hp,
+
+                    // Data Step 2
+                    'asal_sekolah' => $this->asal_sekolah,
+                    'tahun_lulus' => $this->tahun_lulus,
+                    'pilihan_prodi_1' => $this->pilihan_prodi_1,
+                    'pilihan_prodi_2' => $this->pilihan_prodi_2,
+
+                    // Data Step 3
+                    'nama_ayah' => $this->nama_ayah,
+                    'pekerjaan_ayah' => $this->pekerjaan_ayah,
+                    'nama_ibu' => $this->nama_ibu,
+                    'pekerjaan_ibu' => $this->pekerjaan_ibu,
+
+                    'status_pendaftaran' => 'draft',
+                ]
+            );
+        } catch (Exception $e) {
+            // Silent error for draft
+        }
+    }
+
     public function validateStep1()
     {
         $rules = [
@@ -100,7 +143,7 @@ class PendaftaranWizard extends Component
             'jenis_kelamin' => 'required',
             'agama' => 'required',
             'alamat' => 'required',
-            'nomor_hp' => 'required|numeric|digits_between:10,15', // Validasi HP
+            'nomor_hp' => 'required|numeric|digits_between:10,15',
         ];
 
         if ($this->jalur_pendaftaran == 'beasiswa') {
@@ -108,6 +151,7 @@ class PendaftaranWizard extends Component
         }
 
         $this->validate($rules);
+        $this->saveDraft();
         $this->currentStep = 2;
     }
 
@@ -117,7 +161,10 @@ class PendaftaranWizard extends Component
             'asal_sekolah' => 'required',
             'tahun_lulus' => 'required|digits:4',
             'pilihan_prodi_1' => 'required',
+            'pilihan_prodi_2' => 'nullable|different:pilihan_prodi_1',
         ]);
+
+        $this->saveDraft();
         $this->currentStep = 3;
     }
 
@@ -135,11 +182,12 @@ class PendaftaranWizard extends Component
         }
 
         $this->validate($rules);
-        
+
         DB::beginTransaction();
         try {
             $userId = Auth::id();
-            
+            $user = Auth::user();
+
             $fotoPath = $this->existingFotoPath;
             if ($this->foto) $fotoPath = $this->foto->store('uploads/foto', 'public');
 
@@ -165,11 +213,11 @@ class PendaftaranWizard extends Component
                     'jenis_kelamin' => $this->jenis_kelamin,
                     'alamat' => $this->alamat,
                     'agama' => $this->agama,
-                    'nomor_hp' => $this->nomor_hp, 
-                    
+                    'nomor_hp' => $this->nomor_hp,
+
                     'asal_sekolah' => $this->asal_sekolah,
                     'tahun_lulus' => $this->tahun_lulus,
-                    
+
                     'pilihan_prodi_1' => $this->pilihan_prodi_1,
                     'pilihan_prodi_2' => $this->pilihan_prodi_2,
 
@@ -180,21 +228,35 @@ class PendaftaranWizard extends Component
 
                     'foto_path' => $fotoPath,
                     'ijazah_path' => $ijazahPath,
-                    
+
                     'status_pendaftaran' => 'submit',
                 ]
             );
 
-            // Opsional: Update juga nomor HP di tabel Users agar sinkron
-            $user = Auth::user();
+            // Opsional: Update nomor HP User
             if ($user->nomor_hp !== $this->nomor_hp) {
                 $user->update(['nomor_hp' => $this->nomor_hp]);
             }
 
             DB::commit();
+
+            // --- FEATURE ADDITION: KIRIM EMAIL NOTIFIKASI ---
+            try {
+                Mail::to($user->email)->send(new PmbNotification(
+                    $user,
+                    'Pendaftaran Berhasil Dikirim', // Subject
+                    'Terima Kasih Telah Mendaftar!', // Title
+                    'Formulir pendaftaran Anda telah kami terima. Langkah selanjutnya adalah melakukan pembayaran biaya pendaftaran agar berkas dapat diverifikasi.', // Content
+                    'LAKUKAN PEMBAYARAN', // Button
+                    route('camaba.pembayaran'), // Link
+                    'info' // Type
+                ));
+            } catch (Exception $mailError) {
+                // Jangan gagalkan submit jika email gagal (misal koneksi SMTP putus)
+            }
+
             session()->flash('message', 'Pendaftaran berhasil! Silakan cek dashboard.');
             return redirect()->route('camaba.dashboard');
-
         } catch (Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
@@ -208,6 +270,22 @@ class PendaftaranWizard extends Component
 
     public function render()
     {
+        // --- FEATURE ADDITION: WAVE GUARD (Proteksi Gelombang) ---
+        // Cek apakah ada gelombang aktif saat ini
+        $gelombangAktif = Gelombang::where('is_active', true)
+            ->whereDate('tgl_mulai', '<=', now())
+            ->whereDate('tgl_selesai', '>=', now())
+            ->first();
+
+        $pendaftar = Auth::user()->pendaftar;
+        $sudahPunyaData = $pendaftar && $pendaftar->created_at;
+
+        // Jika tidak ada gelombang aktif DAN user belum pernah isi data sama sekali
+        // Maka tampilkan halaman tutup. (Jika sudah draft, boleh lanjut).
+        if (!$gelombangAktif && !$sudahPunyaData) {
+            return view('livewire.pendaftaran-tutup');
+        }
+
         return view('livewire.pendaftaran-wizard');
     }
 }

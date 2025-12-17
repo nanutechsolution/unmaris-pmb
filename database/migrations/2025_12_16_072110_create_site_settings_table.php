@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('alamat_kampus')->nullable();
             
             // Info Pendaftaran
-            $table->integer('biaya_pendaftaran')->default(250000);
+            $table->integer('biaya_pendaftaran')->default(200000);
             $table->string('nama_bank')->default('BRI');
             $table->string('nomor_rekening')->default('1234-5678-9000');
             $table->string('atas_nama_rekening')->default('Yayasan UNMARIS');
