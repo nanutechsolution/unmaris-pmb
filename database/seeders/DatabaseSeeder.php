@@ -27,5 +27,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'camaba',
             'password' => Hash::make('password'),
         ]);
+
+            $this->call([StudyProgramSeeder::class]);
     }
 }
