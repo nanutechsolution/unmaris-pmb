@@ -15,6 +15,7 @@
                 $btnText = '';
                 $btnUrl = '#';
                 $showBtn = false;
+                $isLulus = false; // Flag untuk trigger confetti
 
                 // 1. Belum Daftar
                 if (!$pendaftar) {
@@ -27,7 +28,33 @@
                     $btnUrl = route('camaba.formulir');
                     $showBtn = true;
                 }
-                // 2. Draft (Belum Submit)
+                // ... (Status lain sama seperti sebelumnya) ...
+                
+                // 10. Lulus (DRAMATIS MODE ON)
+                elseif ($pendaftar->status_pendaftaran == 'lulus') {
+                    $state = 'lulus';
+                    $isLulus = true; // Trigger Confetti
+                    $cardColor = 'bg-green-500 text-white'; // Ubah warna teks jadi putih biar kontras
+                    $icon = '🎓';
+                    $title = 'SELAMAT! ANDA DITERIMA';
+                    $desc = 'Selamat bergabung menjadi bagian dari Civitas Akademika UNMARIS. Perjalanan masa depanmu dimulai hari ini!';
+                    $btnText = 'UNDUH SURAT KELULUSAN';
+                    $btnUrl = route('camaba.pengumuman');
+                    $showBtn = true;
+                }
+                // 11. Gagal
+                elseif ($pendaftar->status_pendaftaran == 'gagal') {
+                    $state = 'gagal';
+                    $cardColor = 'bg-gray-300';
+                    $icon = '📢';
+                    $title = 'Pengumuman Seleksi';
+                    $desc = 'Mohon maaf, Anda belum lolos seleksi tahap ini.';
+                    $btnText = 'LIHAT DETAIL';
+                    $btnUrl = route('camaba.pengumuman');
+                    $showBtn = true;
+                }
+                // ... (Sisa logika status lainnya: draft, bayar, verifikasi, dll - pastikan ada di blok elseif di atas) ...
+                 // 2. Draft (Belum Submit)
                 elseif ($pendaftar->status_pendaftaran == 'draft') {
                     $state = 'draft';
                     $cardColor = 'bg-yellow-300';
@@ -107,28 +134,6 @@
                     $desc = 'Ujian selesai. Panitia sedang memproses hasil kelulusan Anda.';
                     $showBtn = false;
                 }
-                // 10. Lulus
-                elseif ($pendaftar->status_pendaftaran == 'lulus') {
-                    $state = 'lulus';
-                    $cardColor = 'bg-green-500';
-                    $icon = '🎉';
-                    $title = 'SELAMAT! ANDA LULUS';
-                    $desc = 'Selamat datang di UNMARIS. Unduh Surat Kelulusan (LoA) sekarang.';
-                    $btnText = 'LIHAT PENGUMUMAN';
-                    $btnUrl = route('camaba.pengumuman');
-                    $showBtn = true;
-                }
-                // 11. Gagal
-                elseif ($pendaftar->status_pendaftaran == 'gagal') {
-                    $state = 'gagal';
-                    $cardColor = 'bg-gray-300';
-                    $icon = '📢';
-                    $title = 'Pengumuman Seleksi';
-                    $desc = 'Mohon maaf, Anda belum lolos seleksi tahap ini.';
-                    $btnText = 'LIHAT DETAIL';
-                    $btnUrl = route('camaba.pengumuman');
-                    $showBtn = true;
-                }
             @endphp
 
             <!-- 🔥 SMART ACTION CARD (Pemandu Utama) -->
@@ -145,10 +150,10 @@
                             <div class="inline-block bg-black text-white text-[10px] font-black px-2 py-1 rounded mb-2 uppercase tracking-widest">
                                 Status Terkini
                             </div>
-                            <h2 class="font-black text-2xl md:text-4xl text-black uppercase leading-tight mb-2">
+                            <h2 class="font-black text-2xl md:text-4xl {{ $isLulus ? 'text-white' : 'text-black' }} uppercase leading-tight mb-2">
                                 {{ $title }}
                             </h2>
-                            <p class="font-bold text-black/80 text-sm md:text-base max-w-xl leading-relaxed">
+                            <p class="font-bold {{ $isLulus ? 'text-white/90' : 'text-black/80' }} text-sm md:text-base max-w-xl leading-relaxed">
                                 {{ $desc }}
                             </p>
 
@@ -174,8 +179,9 @@
                 </div>
             </div>
 
-            <!-- JADWAL SAYA (Otomatis Muncul Jika Ada) -->
-            @if($pendaftar && ($pendaftar->jadwal_ujian || $pendaftar->jadwal_wawancara))
+            <!-- JADWAL SAYA (FITUR BARU) -->
+            <!-- LOGIKA DIPERBARUI: Hanya muncul jika ada jadwal DAN BELUM LULUS/GAGAL -->
+            @if($pendaftar && ($pendaftar->jadwal_ujian || $pendaftar->jadwal_wawancara) && !in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal']))
             <div class="mb-10 animate-fade-in-up">
                 <h3 class="font-black text-xl text-unmaris-blue mb-4 uppercase flex items-center border-l-8 border-unmaris-yellow pl-3">
                     📅 Agenda & Jadwal
@@ -297,7 +303,7 @@
                     </div>
                 </div>
                 
-                <form method="POST" action="#" onclick="return confirm('Yakin ingin keluar dari akun?')">
+                <form method="POST" action="#">
                     @csrf
                     <button type="submit" class="text-red-500 font-black text-xs uppercase hover:underline border-2 border-red-500 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors w-full md:w-auto">
                         Keluar Akun
@@ -307,3 +313,35 @@
 
         </div>
     </div>
+    
+    <!-- KONFETI SCRIPT (Hanya Load Jika Lulus) -->
+    @if($isLulus)
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var duration = 3000;
+                var end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#FACC15', '#1E3A8A', '#16A34A'] // Warna Tema UNMARIS
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#FACC15', '#1E3A8A', '#16A34A']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            });
+        </script>
+    @endif

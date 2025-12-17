@@ -420,16 +420,15 @@
                     <div>
                         <label class="block text-sm font-black text-unmaris-blue mb-2 uppercase">Pilihan Utama
                             (Prioritas 1)</label>
-                        <select wire:model="pilihan_prodi_1"
+                         <select wire:model="pilihan_prodi_1"
                             class="w-full bg-white border-2 border-unmaris-blue rounded-lg py-4 px-4 focus:outline-none focus:ring-0 focus:shadow-neo transition-all font-bold text-base md:text-lg cursor-pointer hover:bg-yellow-50 text-unmaris-blue">
                             <option value="">-- SILAKAN PILIH PRODI --</option>
-                            <option value="Teknik Informatika">Teknik Informatika (S1)</option>
-                            <option value="Manajemen Informatika">Manajemen Informatika (D3)</option>
-                            <option value="Teknik Lingkungan">Teknik Lingkungan (S1)</option>
-                            <option value="Bisnis Digital">Bisnis Digital (S1)</option>
-                            <option value="Administrasi Rumah Sakit">Administrasi Rumah Sakit (S1)</option>
-                            <option value="Keselamatan dan Kesehatan Kerja">Keselamatan dan Kesehatan Kerja (K3) (S1)</option>
-                            <option value="Pendidikan Teknologi Informasi">Pendidikan Teknologi Informasi (S1)</option>
+                            <!-- Menggunakan Facade untuk Query Langsung (Lebih Ringan) -->
+                            @foreach(\App\Models\Siakad\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
+                                <option value="{{ $prodi->name }}">
+                                    {{ $prodi->degree }} - {{ $prodi->name }}
+                                </option>
+                            @endforeach
                         </select>
                         @error('pilihan_prodi_1')
                             <span
@@ -444,13 +443,11 @@
                         <select wire:model="pilihan_prodi_2"
                             class="w-full bg-gray-50 border-2 border-unmaris-blue rounded-lg py-3 px-4 focus:outline-none focus:ring-0 focus:shadow-neo transition-all font-medium cursor-pointer text-unmaris-blue text-sm md:text-base">
                             <option value="">-- Boleh Dikosongkan --</option>
-                            <option value="Teknik Informatika">Teknik Informatika (S1)</option>
-                            <option value="Manajemen Informatika">Manajemen Informatika (D3)</option>
-                            <option value="Teknik Lingkungan">Teknik Lingkungan (S1)</option>
-                            <option value="Bisnis Digital">Bisnis Digital (S1)</option>
-                            <option value="Administrasi Rumah Sakit">Administrasi Rumah Sakit (S1)</option>
-                            <option value="Keselamatan dan Kesehatan Kerja">Keselamatan dan Kesehatan Kerja (K3) (S1)</option>
-                            <option value="Pendidikan Teknologi Informasi">Pendidikan Teknologi Informasi (S1)</option>
+                             @foreach(\App\Models\Siakad\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
+                                <option value="{{ $prodi->name }}">
+                                    {{ $prodi->degree }} - {{ $prodi->name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
 
