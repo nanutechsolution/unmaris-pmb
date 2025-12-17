@@ -1,5 +1,4 @@
 <x-camaba-layout>
-    <!-- Slot Header: Cukup teks saja karena H2 sudah ada di layout -->
     <x-slot name="header">
         Formulir Pendaftaran
     </x-slot>
