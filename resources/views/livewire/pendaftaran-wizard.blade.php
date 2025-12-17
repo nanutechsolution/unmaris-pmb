@@ -424,7 +424,7 @@
                             class="w-full bg-white border-2 border-unmaris-blue rounded-lg py-4 px-4 focus:outline-none focus:ring-0 focus:shadow-neo transition-all font-bold text-base md:text-lg cursor-pointer hover:bg-yellow-50 text-unmaris-blue">
                             <option value="">-- SILAKAN PILIH PRODI --</option>
                             <!-- Menggunakan Facade untuk Query Langsung (Lebih Ringan) -->
-                            @foreach(\App\Models\Siakad\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
+                            @foreach(\App\Models\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
                                 <option value="{{ $prodi->name }}">
                                     {{ $prodi->degree }} - {{ $prodi->name }}
                                 </option>
@@ -443,7 +443,7 @@
                         <select wire:model="pilihan_prodi_2"
                             class="w-full bg-gray-50 border-2 border-unmaris-blue rounded-lg py-3 px-4 focus:outline-none focus:ring-0 focus:shadow-neo transition-all font-medium cursor-pointer text-unmaris-blue text-sm md:text-base">
                             <option value="">-- Boleh Dikosongkan --</option>
-                             @foreach(\App\Models\Siakad\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
+                             @foreach(\App\Models\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
                                 <option value="{{ $prodi->name }}">
                                     {{ $prodi->degree }} - {{ $prodi->name }}
                                 </option>
