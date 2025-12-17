@@ -12,7 +12,14 @@ class WawancaraManager extends Component
 
     public $search = '';
     
-    // Form Variables
+    // --- FITUR BULK ACTION (AKSI MASSAL) ---
+    public $selected = []; 
+    public $selectAll = false;
+    
+    public $bulk_jadwal_wawancara;
+    public $bulk_pewawancara;
+
+    // --- FITUR SINGLE EDIT ---
     public $selectedId;
     public $jadwal_wawancara;
     public $pewawancara;
@@ -20,9 +27,27 @@ class WawancaraManager extends Component
     public $catatan_wawancara;
     public $isModalOpen = false;
 
-    public function render()
+    // Reset jika pindah halaman/search
+    public function updatingPage() { $this->resetSelection(); }
+    public function updatingSearch() { $this->resetSelection(); }
+
+    public function resetSelection()
     {
-        // Tampilkan peserta yang sudah lolos tahap verifikasi berkas
+        $this->selected = [];
+        $this->selectAll = false;
+    }
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $this->selected = $this->getPendaftarQuery()->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        } else {
+            $this->selected = [];
+        }
+    }
+
+    private function getPendaftarQuery()
+    {
         $query = Pendaftar::with('user')
             ->whereIn('status_pendaftaran', ['verifikasi', 'lulus', 'gagal'])
             ->latest();
@@ -32,12 +57,38 @@ class WawancaraManager extends Component
                 $q->where('name', 'like', '%'.$this->search.'%');
             });
         }
+        return $query;
+    }
 
+    public function render()
+    {
         return view('livewire.admin.wawancara-manager', [
-            'peserta' => $query->paginate(10)
+            'peserta' => $this->getPendaftarQuery()->paginate(10)
         ]);
     }
 
+    // --- EKSEKUSI JADWAL MASSAL ---
+    public function applyBulkSchedule()
+    {
+        $this->validate([
+            'bulk_jadwal_wawancara' => 'required|date',
+            'bulk_pewawancara' => 'required|string',
+            'selected' => 'required|array|min:1'
+        ]);
+
+        Pendaftar::whereIn('id', $this->selected)->update([
+            'jadwal_wawancara' => $this->bulk_jadwal_wawancara,
+            'pewawancara' => $this->bulk_pewawancara
+        ]);
+
+        $count = count($this->selected);
+        $this->resetSelection();
+        $this->reset(['bulk_jadwal_wawancara', 'bulk_pewawancara']);
+        
+        session()->flash('message', "Berhasil menjadwalkan wawancara untuk $count peserta sekaligus!");
+    }
+
+    // --- SINGLE EDIT ---
     public function edit($id)
     {
         $p = Pendaftar::find($id);

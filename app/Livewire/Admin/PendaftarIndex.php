@@ -4,40 +4,32 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\Attributes\Url; 
+use Livewire\Attributes\Url;
 use App\Models\Pendaftar;
 
 class PendaftarIndex extends Component
 {
     use WithPagination;
 
-    // Tambahkan #[Url] agar status tersimpan di URL browser
     #[Url(history: true)]
     public $search = '';
 
     #[Url(history: true)]
-    public $filterStatus = '';
+    public $filterStatus = ''; // Filter Status Pendaftaran (Lulus/Gagal)
 
-    // Hook: Jalankan saat $search berubah
-    public function updatedSearch()
-    {
-        $this->resetPage();
-    }
+    #[Url(history: true)]
+    public $filterPembayaran = ''; // Filter Status Pembayaran (Lunas/Menunggu)
 
-    // Hook: Jalankan saat $filterStatus berubah
-    public function updatedFilterStatus()
-    {
-        $this->resetPage();
-    }
+    public function updatingSearch() { $this->resetPage(); }
+    public function updatingFilterStatus() { $this->resetPage(); }
+    public function updatingFilterPembayaran() { $this->resetPage(); }
 
     public function render()
     {
-        // Mulai Query
         $query = Pendaftar::with('user')->latest();
 
-        // 1. Logic Search
+        // 1. Search
         if ($this->search) {
-            dd($this->search);
             $query->where(function($q) {
                 $q->where('nisn', 'like', '%'.$this->search.'%')
                   ->orWhereHas('user', function($u) {
@@ -46,10 +38,14 @@ class PendaftarIndex extends Component
             });
         }
 
-        // 2. Logic Filter Status
-        // Pastikan dicek tidak kosong
+        // 2. Filter Status Pendaftaran
         if (!empty($this->filterStatus)) {
             $query->where('status_pendaftaran', $this->filterStatus);
+        }
+
+        // 3. Filter Status Pembayaran (BARU)
+        if (!empty($this->filterPembayaran)) {
+            $query->where('status_pembayaran', $this->filterPembayaran);
         }
 
         return view('livewire.admin.pendaftar-index', [
