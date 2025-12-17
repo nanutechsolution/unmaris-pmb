@@ -6,14 +6,19 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\SiteSetting; // Import Model Setting
 
 class Pembayaran extends Component
 {
     use WithFileUploads;
 
     public $bukti_transfer;
-    // Biaya Pendaftaran (Bisa diambil dari config/database nanti)
-    public $biaya_pendaftaran = 250000;
+    
+    // Variable untuk menampung data dinamis
+    public $biaya_pendaftaran;
+    public $nama_bank;
+    public $nomor_rekening;
+    public $atas_nama;
 
     public function mount()
     {
@@ -21,6 +26,15 @@ class Pembayaran extends Component
         if (!Auth::user()->pendaftar) {
             return redirect()->route('camaba.formulir');
         }
+
+        // Ambil data setting dari database
+        $settings = SiteSetting::first();
+        
+        // Isi properti public dengan data dari DB (atau default jika null)
+        $this->biaya_pendaftaran = $settings->biaya_pendaftaran ?? 250000;
+        $this->nama_bank = $settings->nama_bank ?? 'Bank Kampus';
+        $this->nomor_rekening = $settings->nomor_rekening ?? '0000-0000-0000';
+        $this->atas_nama = $settings->atas_nama_rekening ?? 'Yayasan';
     }
 
     public function save()
@@ -55,6 +69,6 @@ class Pembayaran extends Component
     {
         return view('livewire.camaba.pembayaran', [
             'pendaftar' => Auth::user()->pendaftar
-        ])->layout('layouts.camaba');
+        ])->layout('layouts.camaba'); 
     }
 }

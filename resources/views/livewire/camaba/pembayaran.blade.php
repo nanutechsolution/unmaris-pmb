@@ -18,12 +18,19 @@
                 </div>
                 
                 <h3 class="font-bold text-unmaris-yellow uppercase tracking-widest text-sm mb-1">Total Tagihan</h3>
-                <div class="text-4xl font-black mb-6">Rp {{ number_format(250000, 0, ',', '.') }}</div>
+                
+                <!-- NOMINAL DINAMIS (Dari Database Setting) -->
+                <div class="text-4xl font-black mb-6">Rp {{ number_format($biaya_pendaftaran, 0, ',', '.') }}</div>
                 
                 <div class="bg-white/10 p-4 rounded-lg border border-white/20 mb-4 backdrop-blur-sm">
                     <p class="text-xs uppercase font-bold text-gray-300">Bank Transfer</p>
-                    <div class="text-2xl font-black tracking-wider font-mono mt-1">BRI 1234-5678-9000</div>
-                    <p class="text-sm font-bold mt-1">a.n Yayasan UNMARIS</p>
+                    
+                    <!-- BANK & REKENING DINAMIS (Dari Database Setting) -->
+                    <div class="text-2xl font-black tracking-wider font-mono mt-1 uppercase">
+                        {{ $nama_bank }} {{ $nomor_rekening }}
+                    </div>
+                    
+                    <p class="text-sm font-bold mt-1">a.n {{ $atas_nama }}</p>
                 </div>
 
                 <div class="flex items-center text-xs font-bold text-yellow-300 bg-black/20 p-2 rounded">

@@ -20,7 +20,7 @@
         <!-- NAVBAR -->
         <nav class="fixed top-0 w-full z-50 bg-white border-b-4 border-black px-4 md:px-8 py-4 flex justify-between items-center shadow-sm">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/logo.png') }}" onerror="this.src='https://ui-avatars.com/api/?name=UN&background=1e3a8a&color=facc15'" class="h-10 w-10 border-2 border-black rounded-full bg-white">
+                <img src="{{ asset('images/logo.png') }}" onerror="this.src='https://ui-avatars.com/api/?name=UN&background=1e3a8a&color=facc15'" class="h-10 w-10  rounded-full bg-white">
                 <span class="font-black text-xl tracking-tighter uppercase text-unmaris-blue hidden md:block">PMB UNMARIS</span>
             </div>
             
@@ -104,7 +104,7 @@
                     
                     <div class="bg-green-100 border-4 border-black rounded-xl p-6 text-center mb-6">
                         <span class="block text-sm font-bold text-green-800 uppercase tracking-widest mb-1">Hanya</span>
-                        <span class="block text-5xl font-black text-green-600">Rp 250.000</span>
+                        <span class="block text-5xl font-black text-green-600"> Rp {{ number_format($settings->biaya_pendaftaran ?? 250000, 0, ',', '.') }}</span>
                         <span class="block text-xs font-bold text-green-800 mt-2">*Sudah termasuk biaya ujian seleksi</span>
                     </div>
 
@@ -201,7 +201,7 @@
                 <div class="bg-green-50 border-4 border-green-500 rounded-xl p-6 text-center group hover:-translate-y-2 transition-transform">
                     <div class="text-4xl mb-4">💸</div>
                     <h3 class="font-black text-lg text-green-800 uppercase mb-2">Bukti Bayar</h3>
-                    <p class="text-sm font-bold text-gray-500">Struk transfer pendaftaran Rp 250.000.</p>
+                    <p class="text-sm font-bold text-gray-500">Struk transfer pendaftaran  Rp {{ number_format($settings->biaya_pendaftaran ?? 250000, 0, ',', '.') }}</p>
                 </div>
             </div>
         </section>

@@ -10,12 +10,15 @@ use App\Livewire\Camaba\Pembayaran;
 use App\Livewire\Camaba\Dashboard as CamabaDashboard;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Models\Gelombang;
+use App\Models\SiteSetting;
 
 Route::get('/', function () {
     // Ambil semua gelombang, urutkan dari yang terdekat
     $gelombangs = Gelombang::orderBy('tgl_mulai', 'asc')->get();
+    $settings = SiteSetting::first();
 
-    return view('welcome', compact('gelombangs'));
+    // Kirim variable $settings ke view
+    return view('welcome', compact('gelombangs', 'settings'));
 });
 
 
