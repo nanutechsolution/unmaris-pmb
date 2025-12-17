@@ -6,7 +6,6 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Pendaftar;
 use App\Models\Gelombang;
-use App\Models\Scholarship; // Import Model Beasiswa
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -23,10 +22,11 @@ class PendaftaranWizard extends Component
     public $currentStep = 1;
     public $totalSteps = 3;
 
-    // STEP 1: Biodata & Jalur
+    // STEP 1: Biodata
     public $jalur_pendaftaran = 'reguler';
-    public $scholarship_id; // Tambahan: ID Beasiswa
-    public $nisn, $nik, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $alamat, $agama;
+    public $scholarship_id;
+    // Tambahkan $nomor_hp di sini
+    public $nisn, $nik, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $alamat, $agama, $nomor_hp;
 
     // STEP 2: Akademik
     public $asal_sekolah, $tahun_lulus;
@@ -34,9 +34,7 @@ class PendaftaranWizard extends Component
 
     // STEP 3: Berkas & Ortu
     public $nama_ayah, $pekerjaan_ayah, $nama_ibu, $pekerjaan_ibu;
-    public $foto, $ijazah;
-    public $file_beasiswa; // Tambahan: File Syarat Beasiswa
-    
+    public $foto, $ijazah, $file_beasiswa;
     public $existingFotoPath, $existingIjazahPath, $existingFileBeasiswaPath;
 
     public function getWarnaLatarProperty()
@@ -64,23 +62,27 @@ class PendaftaranWizard extends Component
                 return redirect()->route('camaba.dashboard');
             }
             
+            // Load semua data otomatis
             $this->fill($pendaftar->toArray());
             
-            // Load Relasi/Kolom Tambahan
-            $this->scholarship_id = $pendaftar->scholarship_id;
-            
+            // Pastikan nomor_hp terisi jika di pendaftar kosong tapi di user ada
+            if (empty($this->nomor_hp)) {
+                $this->nomor_hp = Auth::user()->nomor_hp;
+            }
+
             $this->existingFotoPath = $pendaftar->foto_path;
             $this->existingIjazahPath = $pendaftar->ijazah_path;
             $this->existingFileBeasiswaPath = $pendaftar->file_beasiswa;
+        } else {
+            // Jika pendaftar baru, ambil no hp dari akun user sebagai default
+            $this->nomor_hp = Auth::user()->nomor_hp;
         }
     }
 
-    // Hook: Reset jika jalur berubah
     public function updatedJalurPendaftaran($value)
     {
         if ($value !== 'reguler') {
             $this->resetErrorBag('nisn');
-            // $this->nisn = null; // Opsional: reset nisn
         }
         if ($value !== 'beasiswa') {
             $this->scholarship_id = null;
@@ -98,9 +100,9 @@ class PendaftaranWizard extends Component
             'jenis_kelamin' => 'required',
             'agama' => 'required',
             'alamat' => 'required',
+            'nomor_hp' => 'required|numeric|digits_between:10,15', // Validasi HP
         ];
 
-        // Validasi Tambahan jika Jalur Beasiswa
         if ($this->jalur_pendaftaran == 'beasiswa') {
             $rules['scholarship_id'] = 'required|exists:scholarships,id';
         }
@@ -128,10 +130,8 @@ class PendaftaranWizard extends Component
 
         if (!$this->existingFotoPath) $rules['foto'] = 'required|image|max:2048';
         if (!$this->existingIjazahPath) $rules['ijazah'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
-
-        // Validasi File Beasiswa
         if ($this->jalur_pendaftaran == 'beasiswa' && !$this->existingFileBeasiswaPath) {
-            $rules['file_beasiswa'] = 'required|mimes:pdf,jpg,png|max:5120'; // Max 5MB
+            $rules['file_beasiswa'] = 'required|mimes:pdf,jpg,png|max:5120';
         }
 
         $this->validate($rules);
@@ -146,7 +146,6 @@ class PendaftaranWizard extends Component
             $ijazahPath = $this->existingIjazahPath;
             if ($this->ijazah) $ijazahPath = $this->ijazah->store('uploads/ijazah', 'public');
 
-            // Upload File Beasiswa
             $beasiswaPath = $this->existingFileBeasiswaPath;
             if ($this->file_beasiswa && $this->jalur_pendaftaran == 'beasiswa') {
                 $beasiswaPath = $this->file_beasiswa->store('uploads/beasiswa', 'public');
@@ -156,7 +155,6 @@ class PendaftaranWizard extends Component
                 ['user_id' => $userId],
                 [
                     'jalur_pendaftaran' => $this->jalur_pendaftaran,
-                    // Simpan ID Beasiswa (hanya jika jalur beasiswa)
                     'scholarship_id' => ($this->jalur_pendaftaran == 'beasiswa') ? $this->scholarship_id : null,
                     'file_beasiswa' => ($this->jalur_pendaftaran == 'beasiswa') ? $beasiswaPath : null,
 
@@ -167,6 +165,7 @@ class PendaftaranWizard extends Component
                     'jenis_kelamin' => $this->jenis_kelamin,
                     'alamat' => $this->alamat,
                     'agama' => $this->agama,
+                    'nomor_hp' => $this->nomor_hp, 
                     
                     'asal_sekolah' => $this->asal_sekolah,
                     'tahun_lulus' => $this->tahun_lulus,
@@ -186,13 +185,19 @@ class PendaftaranWizard extends Component
                 ]
             );
 
+            // Opsional: Update juga nomor HP di tabel Users agar sinkron
+            $user = Auth::user();
+            if ($user->nomor_hp !== $this->nomor_hp) {
+                $user->update(['nomor_hp' => $this->nomor_hp]);
+            }
+
             DB::commit();
             session()->flash('message', 'Pendaftaran berhasil! Silakan cek dashboard.');
             return redirect()->route('camaba.dashboard');
 
         } catch (Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Terjadi kesalahan sistem. Silakan coba lagi.');
+            session()->flash('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
 

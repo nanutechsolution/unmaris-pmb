@@ -187,6 +187,15 @@
                         </select>
                         @error('agama') <span class="text-red-600 font-bold text-xs mt-1 block bg-red-100 p-1 border border-red-500 rounded">⚠️ {{ $message }}</span> @enderror
                     </div>
+                    
+                    <!-- Nomor HP (BARU) -->
+                    <div class="md:col-span-2">
+                         <label class="block text-sm font-bold text-unmaris-blue mb-1">
+                            No. HP / WhatsApp <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" wire:model="nomor_hp" placeholder="08xxxxxxxxxx" class="w-full bg-gray-50 border-2 border-unmaris-blue rounded-lg py-3 px-4 focus:bg-white focus:outline-none focus:shadow-neo transition-all font-medium text-unmaris-blue text-sm md:text-base">
+                        @error('nomor_hp') <span class="text-red-600 font-bold text-xs mt-1 block bg-red-100 p-1 border border-red-500 rounded">⚠️ {{ $message }}</span> @enderror
+                    </div>
 
                     <!-- Alamat -->
                     <div class="md:col-span-2">
