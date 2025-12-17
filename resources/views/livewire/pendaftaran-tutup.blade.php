@@ -8,7 +8,8 @@
             Mohon maaf, saat ini tidak ada gelombang pendaftaran yang aktif.<br>
             Silakan hubungi admin atau tunggu jadwal selanjutnya.
         </p>
-        <a href="{{ route('dashboard') }}" class="bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-lg border-2 border-gray-400 hover:bg-gray-300">
+        <a href="{{ route('dashboard') }}"
+            class="bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-lg border-2 border-gray-400 hover:bg-gray-300">
             Kembali ke Dashboard
         </a>
     </div>

@@ -1,20 +1,3 @@
-<?php
-
-use App\Livewire\Actions\Logout;
-use Livewire\Volt\Component;
-
-new class extends Component {
-    /**
-     * Log the current user out of the application.
-     */
-    public function logout(Logout $logout): void
-    {
-        $logout();
-
-        $this->redirect('/', navigate: true);
-    }
-}; ?>
-
 <!-- Sidebar Camaba: Menggunakan tema Putih-Kuning agar beda dengan Admin (Biru) -->
 <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     class="fixed left-0 top-0 h-screen w-64 bg-white text-unmaris-blue border-r-4 border-black overflow-y-auto z-50 flex flex-col shadow-[4px_0px_0px_0px_rgba(0,0,0,1)] transition-transform duration-300 ease-in-out transform md:translate-x-0">
@@ -99,11 +82,14 @@ new class extends Component {
         <div class="border-t-2 border-black/10 my-2"></div>
 
         <!-- Logout -->
-        <button wire:click="logout"
-            class="w-full flex items-center px-4 py-3 font-black border-2 border-black rounded-lg bg-red-500 text-white hover:bg-red-600 hover:shadow-neo transition-all transform hover:-translate-y-1">
-            <span class="text-xl mr-3">🚪</span>
-            Keluar
-        </button>
+        <form method="POST" action="{{ url('/logout') }}">
+            @csrf
+            <button type="submit"
+                class="w-full flex items-center px-4 py-3 font-black border-2 border-black rounded-lg bg-red-500 text-white hover:bg-red-600 hover:shadow-neo transition-all transform hover:-translate-y-1">
+                <span class="text-xl mr-3">🚪</span>
+                Keluar
+            </button>
+        </form>
 
     </nav>
 

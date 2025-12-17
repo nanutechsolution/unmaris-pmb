@@ -420,7 +420,7 @@
                     </div>
                 </div>
                 
-                <form method="POST" action="#">
+                <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="text-red-500 font-black text-xs uppercase hover:underline border-2 border-red-500 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors w-full md:w-auto">
                         Keluar Akun

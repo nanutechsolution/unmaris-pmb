@@ -92,11 +92,24 @@ new #[Layout('layouts.guest')] class extends Component
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
 
-        <!-- Tombol Aksi -->
+        <!-- Tombol Aksi dengan Loading State -->
         <div class="pt-4">
-            <button type="submit" class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-4 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg flex justify-center items-center gap-2 group">
-                <span>DAFTAR SEKARANG</span>
-                <span class="group-hover:translate-x-1 transition-transform">👉</span>
+            <button type="submit" 
+                    wire:loading.attr="disabled"
+                    class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-4 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg flex justify-center items-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-x-[2px] disabled:translate-y-[2px]">
+                
+                <!-- Tampil Saat Normal -->
+                <span wire:loading.remove>DAFTAR SEKARANG</span>
+                <span wire:loading.remove class="group-hover:translate-x-1 transition-transform">👉</span>
+
+                <!-- Tampil Saat Loading -->
+                <span wire:loading class="flex items-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-unmaris-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    MENDAFTAR...
+                </span>
             </button>
         </div>
 

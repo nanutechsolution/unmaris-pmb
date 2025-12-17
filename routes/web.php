@@ -11,6 +11,7 @@ use App\Livewire\Camaba\Dashboard as CamabaDashboard;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Models\Gelombang;
 use App\Models\SiteSetting;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     // Ambil semua gelombang, urutkan dari yang terdekat
@@ -55,22 +56,22 @@ Route::middleware(['auth', 'verified', 'role:camaba'])
 // ====================================================
 // AREA ADMIN KAMPUS
 // ====================================================
-Route::middleware(['auth', 'verified', 'role:admin'])
+Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
         // 1. Command Center (Livewire)
         Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
-
         // 2. Export Data Excel
         Route::get('/export', [PendaftarController::class, 'export'])->name('export');
-
+        Route::middleware(['role:keuangan'])->group(function () {
+            Route::patch('/pendaftar/{id}/verify-payment', [PendaftarController::class, 'verifyPayment'])->name('pendaftar.verify-payment');
+        });
         // 3. Manajemen Pendaftar
         Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar.index');
         Route::get('/pendaftar/{id}', [PendaftarController::class, 'show'])->name('pendaftar.show');
         Route::patch('/pendaftar/{id}/status', [PendaftarController::class, 'updateStatus'])->name('pendaftar.update-status');
-        Route::patch('/pendaftar/{id}/verify-payment', [PendaftarController::class, 'verifyPayment'])->name('pendaftar.verify-payment');
 
         // 4. Manajemen Seleksi
         Route::get('/seleksi', function () {
@@ -122,4 +123,11 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
+
+Route::post('/logout', function () {
+    Auth::guard('web')->logout();
+    session()->invalidate();
+    session()->regenerateToken();
+    return redirect('/');
+})->name('logout');
 require __DIR__ . '/auth.php';

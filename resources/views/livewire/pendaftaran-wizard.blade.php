@@ -420,11 +420,11 @@
                     <div>
                         <label class="block text-sm font-black text-unmaris-blue mb-2 uppercase">Pilihan Utama
                             (Prioritas 1)</label>
-                         <select wire:model="pilihan_prodi_1"
+                        <select wire:model="pilihan_prodi_1"
                             class="w-full bg-white border-2 border-unmaris-blue rounded-lg py-4 px-4 focus:outline-none focus:ring-0 focus:shadow-neo transition-all font-bold text-base md:text-lg cursor-pointer hover:bg-yellow-50 text-unmaris-blue">
                             <option value="">-- SILAKAN PILIH PRODI --</option>
                             <!-- Menggunakan Facade untuk Query Langsung (Lebih Ringan) -->
-                            @foreach(\App\Models\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
+                            @foreach (\App\Models\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
                                 <option value="{{ $prodi->name }}">
                                     {{ $prodi->degree }} - {{ $prodi->name }}
                                 </option>
@@ -443,7 +443,7 @@
                         <select wire:model="pilihan_prodi_2"
                             class="w-full bg-gray-50 border-2 border-unmaris-blue rounded-lg py-3 px-4 focus:outline-none focus:ring-0 focus:shadow-neo transition-all font-medium cursor-pointer text-unmaris-blue text-sm md:text-base">
                             <option value="">-- Boleh Dikosongkan --</option>
-                             @foreach(\App\Models\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
+                            @foreach (\App\Models\StudyProgram::orderBy('degree')->orderBy('name')->get() as $prodi)
                                 <option value="{{ $prodi->name }}">
                                     {{ $prodi->degree }} - {{ $prodi->name }}
                                 </option>
@@ -453,9 +453,11 @@
 
                     <!-- Info Seleksi Wawancara -->
                     <div class="bg-blue-50 border-2 border-unmaris-blue border-dashed rounded-xl p-4 mb-4 mt-6">
-                        <h4 class="font-black text-unmaris-blue text-sm uppercase mb-2">ℹ️ Informasi Tahapan Seleksi</h4>
+                        <h4 class="font-black text-unmaris-blue text-sm uppercase mb-2">ℹ️ Informasi Tahapan Seleksi
+                        </h4>
                         <ul class="list-disc list-inside text-sm font-bold text-gray-600 space-y-1">
-                            <li>Seleksi masuk terdiri dari <strong>Ujian Tulis</strong> dan <strong>Wawancara</strong>.</li>
+                            <li>Seleksi masuk terdiri dari <strong>Ujian Tulis</strong> dan <strong>Wawancara</strong>.
+                            </li>
                             <li>Jadwal & Lokasi akan muncul di <strong>Dashboard</strong> setelah pembayaran lunas.</li>
                         </ul>
                     </div>
@@ -476,8 +478,11 @@
                     </button>
 
                     <button wire:click="submit" :disabled="!agreed"
-                        :class="{ 'opacity-50 cursor-not-allowed bg-gray-300': !
-                            agreed, 'bg-unmaris-green hover:bg-green-600 hover:shadow-neo-hover hover:translate-x-[4px] hover:translate-y-[4px]': agreed }"
+                        :class="{
+                            'opacity-50 cursor-not-allowed bg-gray-300': !
+                                agreed,
+                            'bg-unmaris-green hover:bg-green-600 hover:shadow-neo-hover hover:translate-x-[4px] hover:translate-y-[4px]': agreed
+                        }"
                         wire:loading.attr="disabled"
                         class="w-full md:w-auto text-white font-black py-3 px-8 rounded-lg border-2 border-unmaris-blue shadow-neo transition-all transform uppercase tracking-wider text-base md:text-lg flex justify-center items-center">
                         <span wire:loading.remove>KIRIM PENDAFTARAN</span>

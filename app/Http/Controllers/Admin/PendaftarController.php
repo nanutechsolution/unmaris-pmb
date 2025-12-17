@@ -7,10 +7,12 @@ use App\Models\Pendaftar;
 use Illuminate\Http\Request;
 use App\Exports\PendaftarExport;
 use App\Exports\SiakadExport;
+use App\Mail\PmbNotification;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use App\Services\Logger; // <--- PERBAIKAN: Import ini wajib ada!
+use Illuminate\Support\Facades\Mail;
 
 class PendaftarController extends Controller
 {
@@ -19,7 +21,7 @@ class PendaftarController extends Controller
         $totalPendaftar = Pendaftar::count();
         $menungguVerifikasi = Pendaftar::where('status_pendaftaran', 'submit')->count();
         $sudahLulus = Pendaftar::where('status_pendaftaran', 'lulus')->count();
-        
+
         $statsProdi = Pendaftar::select('pilihan_prodi_1', DB::raw('count(*) as total'))
             ->groupBy('pilihan_prodi_1')
             ->orderByDesc('total')
@@ -28,10 +30,10 @@ class PendaftarController extends Controller
         $terbaru = Pendaftar::with('user')->latest()->take(5)->get();
 
         return view('livewire.admin.dashboard', compact(
-            'totalPendaftar', 
-            'menungguVerifikasi', 
-            'sudahLulus', 
-            'statsProdi', 
+            'totalPendaftar',
+            'menungguVerifikasi',
+            'sudahLulus',
+            'statsProdi',
             'terbaru'
         ));
     }
@@ -67,11 +69,22 @@ class PendaftarController extends Controller
 
         $oldStatus = $pendaftar->status_pendaftaran;
         $pendaftar->update(['status_pendaftaran' => $request->status]);
+        if ($request->status == 'lulus') {
+            Mail::to($pendaftar->user->email)->send(new PmbNotification(
+                $pendaftar->user,
+                'Hasil Seleksi PMB',
+                'SELAMAT! ANDA LULUS 🎉',
+                'Selamat bergabung dengan UNMARIS. Anda dinyatakan lulus seleksi. Silakan unduh Surat Kelulusan (LoA) di Dashboard.',
+                'UNDUH SURAT',
+                route('camaba.pengumuman'),
+                'success'
+            ));
+        }
 
         // LOGGING
         Logger::record(
-            'UPDATE', 
-            'Pendaftar #' . $pendaftar->id . ' (' . $pendaftar->user->name . ')', 
+            'UPDATE',
+            'Pendaftar #' . $pendaftar->id . ' (' . $pendaftar->user->name . ')',
             "Mengubah status pendaftaran dari $oldStatus menjadi " . $request->status
         );
 
@@ -85,15 +98,15 @@ class PendaftarController extends Controller
 
         // LOGGING
         Logger::record(
-            'UPDATE', 
-            'Keuangan #' . $pendaftar->id, 
+            'UPDATE',
+            'Keuangan #' . $pendaftar->id,
             "Memverifikasi pembayaran menjadi: " . $request->status_bayar
         );
 
         return back()->with('success', 'Status pembayaran diperbarui.');
     }
 
-    public function export() 
+    public function export()
     {
         return Excel::download(new PendaftarExport, 'data_pendaftar_unmaris_' . date('Y-m-d') . '.xlsx');
     }
@@ -125,7 +138,7 @@ class PendaftarController extends Controller
 
         try {
             $urlEndpoint = rtrim($urlBase, '/') . '/api/v1/pmb/sync';
-            
+
             $response = Http::timeout(10)->post($urlEndpoint, [
                 'secret_key'      => $secretKey,
                 'name'            => $pendaftar->user->name,
@@ -137,7 +150,7 @@ class PendaftarController extends Controller
                 'tahun_lulus'     => (int) $pendaftar->tahun_lulus,
                 'nama_ayah'       => $pendaftar->nama_ayah,
                 'nama_ibu'        => $pendaftar->nama_ibu,
-                'pilihan_prodi_1' => $pendaftar->pilihan_prodi_1, 
+                'pilihan_prodi_1' => $pendaftar->pilihan_prodi_1,
                 'pilihan_prodi_2' => $pendaftar->pilihan_prodi_2,
                 'jalur_masuk'     => $pendaftar->jalur_pendaftaran,
             ]);
@@ -145,25 +158,24 @@ class PendaftarController extends Controller
             $result = $response->json();
 
             if ($response->successful() && isset($result['status']) && $result['status'] == 'success') {
-                
+
                 $pendaftar->update(['is_synced' => true]);
 
                 // LOGGING (Sekarang aman karena class Logger sudah di-import)
                 Logger::record(
-                    'SYNC', 
-                    'SIAKAD Integration', 
+                    'SYNC',
+                    'SIAKAD Integration',
                     "Mengirim data mahasiswa {$pendaftar->user->name} ke SIAKAD. NIM Sementara: " . ($result['data']['nim_sementara'] ?? '-')
                 );
 
                 return back()->with('success', 'Berhasil! Data terkirim ke SIAKAD. NIM Sementara: ' . ($result['data']['nim_sementara'] ?? '-'));
             } else {
                 $errorMessage = $result['message'] ?? 'Terjadi kesalahan tidak diketahui pada SIAKAD.';
-                if(isset($result['errors'])) {
+                if (isset($result['errors'])) {
                     $errorMessage .= ' Detail: ' . json_encode($result['errors']);
                 }
                 return back()->with('error', 'Gagal kirim ke SIAKAD: ' . $errorMessage);
             }
-
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             return back()->with('error', 'Koneksi Gagal: Server SIAKAD tidak dapat dijangkau. Pastikan server SIAKAD menyala.');
         } catch (\Exception $e) {

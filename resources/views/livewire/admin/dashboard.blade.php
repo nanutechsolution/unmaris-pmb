@@ -1,3 +1,4 @@
+
 <div class="py-4 font-sans" wire:poll.30s> <!-- Auto refresh setiap 30 detik -->
     <div class="max-w-7xl mx-auto">
         
