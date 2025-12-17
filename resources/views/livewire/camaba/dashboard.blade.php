@@ -1,164 +1,210 @@
     <x-slot name="header">
-        Dashboard Utama
+        Beranda Mahasiswa
     </x-slot>
 
-    <div class="py-4 font-sans">
-        <div class="max-w-7xl mx-auto">
+    <div class="py-6 font-sans">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <!-- LOGIKA PENUNTUN (NEXT STEP INTELLIGENCE) -->
+            <!-- LOGIKA INTELEGENSIA DASHBOARD -->
             @php
-                $nextStepTitle = '';
-                $nextStepDesc = '';
-                $nextStepRoute = '';
-                $nextStepBtn = '';
-                $showNextStep = false;
-                $cardColor = 'bg-yellow-400'; // Default warna peringatan
+                $state = 'unknown';
+                $cardColor = 'bg-gray-100';
+                $icon = '🤔';
+                $title = 'Memuat Data...';
+                $desc = 'Sedang menyinkronkan data Anda.';
+                $btnText = '';
+                $btnUrl = '#';
+                $showBtn = false;
 
+                // 1. Belum Daftar
                 if (!$pendaftar) {
-                    // Tahap 1: Belum Daftar
-                    $showNextStep = true;
-                    $nextStepTitle = 'Langkah 1: Lengkapi Formulir';
-                    $nextStepDesc =
-                        'Anda belum mengisi biodata. Silakan isi formulir pendaftaran untuk memulai proses seleksi.';
-                    $nextStepRoute = route('camaba.formulir');
-                    $nextStepBtn = '📝 ISI FORMULIR SEKARANG';
-                } elseif (
-                    $pendaftar->status_pendaftaran == 'submit' &&
-                    $pendaftar->status_pembayaran == 'belum_bayar'
-                ) {
-                    // Tahap 2: Sudah Daftar, Belum Bayar
-                    $showNextStep = true;
-                    $nextStepTitle = 'Langkah 2: Pembayaran';
-                    $nextStepDesc =
-                        'Data tersimpan! Segera lakukan pembayaran biaya pendaftaran agar berkas Anda diproses admin.';
-                    $nextStepRoute = route('camaba.pembayaran');
-                    $nextStepBtn = '💸 BAYAR SEKARANG';
-                    $cardColor = 'bg-orange-400';
-                } elseif ($pendaftar->status_pembayaran == 'menunggu_verifikasi') {
-                    // Tahap 3: Menunggu Verifikasi Admin
-                    $showNextStep = true;
-                    $nextStepTitle = '⏳ Sedang Diverifikasi';
-                    $nextStepDesc =
-                        'Bukti pembayaran Anda sudah diterima. Mohon tunggu 1x24 jam untuk verifikasi Admin.';
-                    $nextStepRoute = '#';
-                    $nextStepBtn = '';
-                    $cardColor = 'bg-blue-300';
-                } elseif ($pendaftar->status_pembayaran == 'lunas' && !$pendaftar->jadwal_ujian) {
-                    // Tahap 4: Menunggu Jadwal
-                    $showNextStep = true;
-                    $nextStepTitle = '✅ Pembayaran Lunas';
-                    $nextStepDesc =
-                        'Terima kasih! Saat ini Panitia sedang mengatur jadwal ujian seleksi untuk Anda. Cek berkala.';
-                    $nextStepRoute = '#';
-                    $nextStepBtn = '';
-                    $cardColor = 'bg-green-300';
-                } elseif ($pendaftar->jadwal_ujian && $pendaftar->nilai_ujian == 0) {
-                    // Tahap 5: Cetak Kartu & Ujian
-                    $showNextStep = true;
-                    $nextStepTitle = 'Langkah 3: Cetak Kartu Ujian';
-                    $nextStepDesc =
-                        'Jadwal ujian telah keluar! Silakan cetak kartu ujian dan bawa saat pelaksanaan tes.';
-                    $nextStepRoute = route('camaba.cetak-kartu');
-                    $nextStepBtn = '🎫 CETAK KARTU';
+                    $state = 'daftar';
                     $cardColor = 'bg-unmaris-yellow';
-                } elseif ($pendaftar->status_pendaftaran == 'lulus') {
-                    // Tahap Akhir: Lulus
-                    $showNextStep = true;
-                    $nextStepTitle = '🎉 SELAMAT! ANDA LULUS';
-                    $nextStepDesc =
-                        'Selamat bergabung di UNMARIS. Silakan unduh Surat Keterangan Lulus (LoA) di menu Pengumuman.';
-                    $nextStepRoute = route('camaba.pengumuman');
-                    $nextStepBtn = '📢 LIHAT PENGUMUMAN';
-                    $cardColor = 'bg-green-400';
+                    $icon = '📝';
+                    $title = 'Langkah 1: Isi Formulir';
+                    $desc = 'Anda belum terdaftar sebagai calon mahasiswa. Silakan lengkapi biodata untuk memulai.';
+                    $btnText = 'ISI FORMULIR SEKARANG';
+                    $btnUrl = route('camaba.formulir');
+                    $showBtn = true;
+                }
+                // 2. Draft (Belum Submit)
+                elseif ($pendaftar->status_pendaftaran == 'draft') {
+                    $state = 'draft';
+                    $cardColor = 'bg-yellow-300';
+                    $icon = '✍️';
+                    $title = 'Lanjutkan Pengisian';
+                    $desc = 'Data Anda belum lengkap/belum dikirim. Lanjutkan pengisian formulir.';
+                    $btnText = 'LANJUTKAN FORMULIR';
+                    $btnUrl = route('camaba.formulir');
+                    $showBtn = true;
+                }
+                // 3. Sudah Submit, Belum Bayar
+                elseif ($pendaftar->status_pendaftaran == 'submit' && $pendaftar->status_pembayaran == 'belum_bayar') {
+                    $state = 'bayar';
+                    $cardColor = 'bg-orange-400';
+                    $icon = '💸';
+                    $title = 'Langkah 2: Pembayaran';
+                    $desc = 'Formulir diterima! Segera lakukan pembayaran agar berkas dapat diverifikasi.';
+                    $btnText = 'LAKUKAN PEMBAYARAN';
+                    $btnUrl = route('camaba.pembayaran');
+                    $showBtn = true;
+                }
+                // 4. Sudah Upload, Tunggu Verifikasi Pembayaran
+                elseif ($pendaftar->status_pembayaran == 'menunggu_verifikasi') {
+                    $state = 'tunggu_bayar';
+                    $cardColor = 'bg-blue-200';
+                    $icon = '⏳';
+                    $title = 'Verifikasi Pembayaran';
+                    $desc = 'Bukti pembayaran sedang dicek oleh Bagian Keuangan. Estimasi 1x24 Jam.';
+                    $showBtn = false;
+                }
+                // 5. Pembayaran Ditolak
+                elseif ($pendaftar->status_pembayaran == 'ditolak') {
+                    $state = 'bayar_tolak';
+                    $cardColor = 'bg-red-400';
+                    $icon = '❌';
+                    $title = 'Pembayaran Ditolak';
+                    $desc = 'Bukti pembayaran tidak valid. Silakan upload ulang bukti yang benar.';
+                    $btnText = 'UPLOAD ULANG';
+                    $btnUrl = route('camaba.pembayaran');
+                    $showBtn = true;
+                }
+                // 6. Lunas, Tunggu Verifikasi Berkas (Akademik)
+                elseif ($pendaftar->status_pembayaran == 'lunas' && $pendaftar->status_pendaftaran == 'submit') {
+                    $state = 'tunggu_berkas';
+                    $cardColor = 'bg-blue-300';
+                    $icon = '📂';
+                    $title = 'Verifikasi Berkas';
+                    $desc = 'Pembayaran Lunas! Admin Akademik sedang memvalidasi Ijazah & Nilai Anda.';
+                    $showBtn = false;
+                }
+                // 7. Berkas OK, Tunggu Jadwal
+                elseif ($pendaftar->status_pendaftaran == 'verifikasi' && !$pendaftar->jadwal_ujian) {
+                    $state = 'tunggu_jadwal';
+                    $cardColor = 'bg-purple-200';
+                    $icon = '📅';
+                    $title = 'Menunggu Jadwal Ujian';
+                    $desc = 'Berkas valid! Panitia sedang menyusun jadwal ujian untuk Anda. Cek berkala.';
+                    $showBtn = false;
+                }
+                // 8. Sudah Jadwal, Belum Ujian (Nilai 0)
+                elseif ($pendaftar->jadwal_ujian && $pendaftar->nilai_ujian == 0) {
+                    $state = 'siap_ujian';
+                    $cardColor = 'bg-green-300';
+                    $icon = '🎫';
+                    $title = 'Siap Ujian Seleksi';
+                    $desc = 'Jadwal telah keluar! Cetak Kartu Ujian dan bawa saat pelaksanaan tes.';
+                    $btnText = 'CETAK KARTU UJIAN';
+                    $btnUrl = route('camaba.cetak-kartu');
+                    $showBtn = true;
+                }
+                // 9. Sudah Ujian, Tunggu Hasil
+                elseif ($pendaftar->nilai_ujian > 0 && $pendaftar->status_pendaftaran == 'verifikasi') {
+                    $state = 'tunggu_hasil';
+                    $cardColor = 'bg-indigo-200';
+                    $icon = '🤞';
+                    $title = 'Menunggu Hasil Seleksi';
+                    $desc = 'Ujian selesai. Panitia sedang memproses hasil kelulusan Anda.';
+                    $showBtn = false;
+                }
+                // 10. Lulus
+                elseif ($pendaftar->status_pendaftaran == 'lulus') {
+                    $state = 'lulus';
+                    $cardColor = 'bg-green-500';
+                    $icon = '🎉';
+                    $title = 'SELAMAT! ANDA LULUS';
+                    $desc = 'Selamat datang di UNMARIS. Unduh Surat Kelulusan (LoA) sekarang.';
+                    $btnText = 'LIHAT PENGUMUMAN';
+                    $btnUrl = route('camaba.pengumuman');
+                    $showBtn = true;
+                }
+                // 11. Gagal
+                elseif ($pendaftar->status_pendaftaran == 'gagal') {
+                    $state = 'gagal';
+                    $cardColor = 'bg-gray-300';
+                    $icon = '📢';
+                    $title = 'Pengumuman Seleksi';
+                    $desc = 'Mohon maaf, Anda belum lolos seleksi tahap ini.';
+                    $btnText = 'LIHAT DETAIL';
+                    $btnUrl = route('camaba.pengumuman');
+                    $showBtn = true;
                 }
             @endphp
 
-            <!-- 🔥 ACTION CARD (INI SOLUSINYA BIAR GAK BINGUNG) -->
-            @if ($showNextStep)
-                <div
-                    class="{{ $cardColor }} border-4 border-black p-6 rounded-2xl shadow-neo-lg mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in-up relative overflow-hidden">
-                    <!-- Dekorasi Background -->
-                    <div
-                        class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10">
-                    </div>
+            <!-- 🔥 SMART ACTION CARD (Pemandu Utama) -->
+            <div
+                class="{{ $cardColor }} border-4 border-black p-6 md:p-8 rounded-3xl shadow-neo-lg mb-10 relative overflow-hidden transition-all hover:-translate-y-1">
+                <!-- Background Decoration -->
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-20 rounded-full blur-2xl">
+                </div>
 
-                    <div class="flex items-center gap-4 relative z-10">
-                        <div
-                            class="bg-white p-3 rounded-full border-2 border-black text-3xl shadow-sm animate-bounce-slight hidden md:block">
-                            👇
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                    <div class="flex items-center gap-6 text-center md:text-left">
+                        <div class="text-6xl md:text-7xl animate-bounce-slight filter drop-shadow-md">
+                            {{ $icon }}
                         </div>
                         <div>
                             <div
-                                class="inline-block bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded mb-1 uppercase tracking-wider">
-                                Prioritas Utama
+                                class="inline-block bg-black text-white text-[10px] font-black px-2 py-1 rounded mb-2 uppercase tracking-widest">
+                                Status Terkini
                             </div>
-                            <h3 class="font-black text-2xl text-black uppercase leading-none mb-1">{{ $nextStepTitle }}
-                            </h3>
-                            <p class="font-bold text-black/70 text-sm md:text-base leading-snug">{{ $nextStepDesc }}</p>
+                            <h2 class="font-black text-2xl md:text-4xl text-black uppercase leading-none mb-2">
+                                {{ $title }}
+                            </h2>
+                            <p class="font-bold text-black/80 text-base md:text-lg max-w-xl">
+                                {{ $desc }}
+                            </p>
+
+                            <!-- Jika sedang menunggu, beri saran aktivitas -->
+                            @if (!$showBtn)
+                                <div class="mt-4 flex gap-2 justify-center md:justify-start">
+                                    <a href="https://wa.me/6281234567890" target="_blank"
+                                        class="text-xs font-black text-black underline hover:text-white">
+                                        Butuh Bantuan? Chat Admin
+                                    </a>
+                                    <span class="text-black/50">|</span>
+                                    <span class="text-xs font-bold text-black">Pantau terus halaman ini.</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
-                    @if ($nextStepBtn)
-                        <a href="{{ $nextStepRoute }}"
-                            class="w-full md:w-auto bg-white text-black font-black py-3 px-8 rounded-xl border-4 border-black shadow-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg whitespace-nowrap text-center relative z-10 flex items-center justify-center gap-2">
-                            {{ $nextStepBtn }}
-                            <span>👉</span>
+                    @if ($showBtn)
+                        <a href="{{ $btnUrl }}"
+                            class="w-full md:w-auto bg-white text-black font-black py-4 px-8 rounded-xl border-4 border-black shadow-sm hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all uppercase tracking-wider text-lg whitespace-nowrap flex justify-center items-center gap-2 group">
+                            <span>{{ $btnText }}</span>
+                            <span class="group-hover:translate-x-1 transition-transform">👉</span>
                         </a>
                     @endif
                 </div>
-            @endif
-
-            <!-- HERO WELCOME (Status Sekunder) -->
-            <div
-                class="bg-unmaris-blue text-white rounded-3xl p-6 mb-8 border-4 border-black shadow-neo relative overflow-hidden">
-                <div class="absolute top-0 right-0 opacity-10 transform translate-x-10 -translate-y-10">
-                    <svg class="w-64 h-64" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z" />
-                    </svg>
-                </div>
-
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div
-                            class="inline-block bg-unmaris-yellow text-unmaris-blue font-black px-3 py-1 rounded border-2 border-black shadow-sm transform -rotate-2 mb-2 text-xs uppercase tracking-widest">
-                            Student Portal v2.0
-                        </div>
-                        <h1 class="text-2xl md:text-3xl font-black uppercase tracking-tight">
-                            Halo, {{ explode(' ', $user->name)[0] }}! 👋
-                        </h1>
-                        <p class="text-blue-200 text-sm font-medium mt-1">
-                            Progress Pendaftaran: <span
-                                class="text-white font-bold bg-white/20 px-2 py-0.5 rounded">{{ $progress }}%
-                                Selesai</span>
-                        </p>
-                    </div>
-                </div>
             </div>
 
-            <!-- JADWAL SAYA (Hanya muncul jika sudah ada jadwal) -->
+            <!-- JADWAL SAYA (Otomatis Muncul Jika Ada) -->
             @if ($pendaftar && ($pendaftar->jadwal_ujian || $pendaftar->jadwal_wawancara))
-                <div class="mb-10">
-                    <h3 class="font-black text-xl text-unmaris-blue mb-4 uppercase flex items-center">
-                        📅 Jadwal Saya
+                <div class="mb-10 animate-fade-in-up">
+                    <h3
+                        class="font-black text-xl text-unmaris-blue mb-4 uppercase flex items-center border-l-8 border-unmaris-yellow pl-3">
+                        📅 Agenda & Jadwal
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @if ($pendaftar->jadwal_ujian)
                             <div
-                                class="bg-white border-4 border-unmaris-blue shadow-neo rounded-xl p-5 relative overflow-hidden group hover:bg-blue-50 transition">
-                                <div
-                                    class="absolute top-0 right-0 bg-blue-100 px-3 py-1 rounded-bl-lg font-bold text-xs text-unmaris-blue border-b-2 border-l-2 border-unmaris-blue">
-                                    UJIAN TULIS</div>
+                                class="bg-white border-4 border-unmaris-blue shadow-neo rounded-xl p-6 relative overflow-hidden group hover:bg-blue-50 transition">
                                 <div class="flex items-start gap-4">
-                                    <div class="bg-blue-100 p-2 rounded-lg border-2 border-unmaris-blue text-xl">📝
+                                    <div class="bg-blue-100 p-3 rounded-lg border-2 border-unmaris-blue text-2xl">📝
                                     </div>
                                     <div>
-                                        <h4 class="text-lg font-black text-unmaris-blue">
-                                            {{ $pendaftar->jadwal_ujian->format('l, d F Y') }}</h4>
-                                        <p class="text-sm font-bold text-blue-600">Jam
-                                            {{ $pendaftar->jadwal_ujian->format('H:i') }} WITA</p>
-                                        <p class="text-xs font-bold text-gray-500 mt-1">📍
-                                            {{ $pendaftar->lokasi_ujian }}</p>
+                                        <p class="text-xs font-bold text-gray-500 uppercase">Ujian Tulis</p>
+                                        <h4 class="text-xl font-black text-unmaris-blue">
+                                            {{ $pendaftar->jadwal_ujian->format('l, d F Y') }}
+                                        </h4>
+                                        <p class="text-lg font-bold text-blue-600">
+                                            {{ $pendaftar->jadwal_ujian->format('H:i') }} WITA
+                                        </p>
+                                        <div
+                                            class="mt-2 text-xs font-bold bg-gray-100 px-2 py-1 rounded inline-block border border-gray-300">
+                                            📍 {{ $pendaftar->lokasi_ujian }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -166,20 +212,22 @@
 
                         @if ($pendaftar->jadwal_wawancara)
                             <div
-                                class="bg-white border-4 border-orange-500 shadow-neo rounded-xl p-5 relative overflow-hidden group hover:bg-orange-50 transition">
-                                <div
-                                    class="absolute top-0 right-0 bg-orange-100 px-3 py-1 rounded-bl-lg font-bold text-xs text-orange-800 border-b-2 border-l-2 border-orange-500">
-                                    WAWANCARA</div>
+                                class="bg-white border-4 border-orange-500 shadow-neo rounded-xl p-6 relative overflow-hidden group hover:bg-orange-50 transition">
                                 <div class="flex items-start gap-4">
-                                    <div class="bg-orange-100 p-2 rounded-lg border-2 border-orange-500 text-xl">🎤
+                                    <div class="bg-orange-100 p-3 rounded-lg border-2 border-orange-500 text-2xl">🎤
                                     </div>
                                     <div>
-                                        <h4 class="text-lg font-black text-orange-900">
-                                            {{ $pendaftar->jadwal_wawancara->format('l, d F Y') }}</h4>
-                                        <p class="text-sm font-bold text-orange-600">Jam
-                                            {{ $pendaftar->jadwal_wawancara->format('H:i') }} WITA</p>
-                                        <p class="text-xs font-bold text-gray-500 mt-1">👨‍🏫
-                                            {{ $pendaftar->pewawancara ?? 'Dosen Penguji' }}</p>
+                                        <p class="text-xs font-bold text-gray-500 uppercase">Wawancara</p>
+                                        <h4 class="text-xl font-black text-orange-900">
+                                            {{ $pendaftar->jadwal_wawancara->format('l, d F Y') }}
+                                        </h4>
+                                        <p class="text-lg font-bold text-orange-600">
+                                            {{ $pendaftar->jadwal_wawancara->format('H:i') }} WITA
+                                        </p>
+                                        <div
+                                            class="mt-2 text-xs font-bold bg-gray-100 px-2 py-1 rounded inline-block border border-gray-300">
+                                            👨‍🏫 {{ $pendaftar->pewawancara ?? 'Dosen Penguji' }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -188,94 +236,60 @@
                 </div>
             @endif
 
-            <!-- MAIN MENU GRID (SHORTCUTS) -->
-            <h3 class="font-black text-lg text-unmaris-blue mb-4 uppercase">📂 Menu Akses Cepat</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-
-                <!-- 1. FORMULIR -->
+            <!-- NAVIGATION GRID (Menu Pintas) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <!-- Menu 1 -->
                 <a href="{{ route('camaba.formulir') }}"
-                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all relative overflow-hidden">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl border-2 border-black">
-                            📝</div>
-                        <div>
-                            <h3 class="font-black text-base text-unmaris-blue uppercase leading-tight">Formulir</h3>
-                            <p class="text-[10px] text-gray-500 font-bold">Biodata & Berkas</p>
-                        </div>
-                    </div>
-                    @if ($pendaftar)
-                        <div class="absolute top-2 right-2 text-green-500"><svg class="w-5 h-5" fill="currentColor"
-                                viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd" />
-                            </svg></div>
-                    @endif
+                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</div>
+                    <div class="font-black text-unmaris-blue text-sm uppercase">Formulir</div>
+                    <div class="text-[10px] font-bold text-gray-400">Biodata & Berkas</div>
                 </a>
 
-                <!-- 2. PEMBAYARAN -->
+                <!-- Menu 2 -->
                 <a href="{{ route('camaba.pembayaran') }}"
-                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all relative overflow-hidden">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl border-2 border-black">
-                            💸</div>
-                        <div>
-                            <h3 class="font-black text-base text-unmaris-blue uppercase leading-tight">Pembayaran</h3>
-                            <p class="text-[10px] text-gray-500 font-bold">Upload Bukti</p>
-                        </div>
-                    </div>
-                    @if ($pendaftar && $pendaftar->status_pembayaran == 'lunas')
-                        <div class="absolute top-2 right-2 text-green-500"><svg class="w-5 h-5" fill="currentColor"
-                                viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd" />
-                            </svg></div>
-                    @endif
+                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">💸</div>
+                    <div class="font-black text-unmaris-blue text-sm uppercase">Pembayaran</div>
+                    <div class="text-[10px] font-bold text-gray-400">Upload Bukti</div>
                 </a>
 
-                <!-- 3. KARTU UJIAN -->
-                @php $isJadwalReady = $pendaftar && $pendaftar->jadwal_ujian && $pendaftar->status_pembayaran == 'lunas'; @endphp
-                <a href="{{ $isJadwalReady ? route('camaba.cetak-kartu') : '#' }}"
-                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all relative overflow-hidden {{ !$isJadwalReady ? 'opacity-60 cursor-not-allowed grayscale' : '' }}">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl border-2 border-black">
-                            🎫</div>
-                        <div>
-                            <h3 class="font-black text-base text-unmaris-blue uppercase leading-tight">Kartu Ujian</h3>
-                            <p class="text-[10px] text-gray-500 font-bold">Cetak Kartu</p>
-                        </div>
-                    </div>
-                    @if (!$isJadwalReady)
-                        <div
-                            class="absolute top-2 right-2 text-gray-400 text-[10px] font-black uppercase border border-gray-400 px-1 rounded">
-                            LOCKED</div>
-                    @endif
+                <!-- Menu 3 -->
+                <a href="{{ $pendaftar && $pendaftar->jadwal_ujian ? route('camaba.cetak-kartu') : '#' }}"
+                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all {{ !$pendaftar || !$pendaftar->jadwal_ujian ? 'opacity-50 cursor-not-allowed' : '' }}">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🎫</div>
+                    <div class="font-black text-unmaris-blue text-sm uppercase">Kartu Ujian</div>
+                    <div class="text-[10px] font-bold text-gray-400">Cetak PDF</div>
                 </a>
 
-                <!-- 4. PENGUMUMAN -->
-                @php $isResultReady = $pendaftar && in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal']); @endphp
-                <a href="{{ $isResultReady ? route('camaba.pengumuman') : '#' }}"
-                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all relative overflow-hidden {{ !$isResultReady ? 'opacity-60 cursor-not-allowed grayscale' : '' }}">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-xl border-2 border-black">
-                            📢</div>
-                        <div>
-                            <h3 class="font-black text-base text-unmaris-blue uppercase leading-tight">Pengumuman</h3>
-                            <p class="text-[10px] text-gray-500 font-bold">Hasil Seleksi</p>
-                        </div>
-                    </div>
-                    @if (!$isResultReady)
-                        <div
-                            class="absolute top-2 right-2 text-gray-400 text-[10px] font-black uppercase border border-gray-400 px-1 rounded">
-                            LOCKED</div>
-                    @endif
+                <!-- Menu 4 -->
+                <a href="{{ $pendaftar && in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal']) ? route('camaba.pengumuman') : '#' }}"
+                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all {{ !$pendaftar || !in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal']) ? 'opacity-50 cursor-not-allowed' : '' }}">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">📢</div>
+                    <div class="font-black text-unmaris-blue text-sm uppercase">Pengumuman</div>
+                    <div class="text-[10px] font-bold text-gray-400">Hasil Seleksi</div>
                 </a>
+            </div>
 
+            <!-- PROFILE SUMMARY -->
+            <div class="bg-white border-4 border-black rounded-2xl p-6 shadow-sm flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-full bg-unmaris-yellow border-2 border-black overflow-hidden">
+                        <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}&background=facc15&color=1e3a8a"
+                            alt="User">
+                    </div>
+                    <div>
+                        <h4 class="font-black text-unmaris-blue text-lg">{{ Auth::user()->name }}</h4>
+                        <p class="text-xs font-bold text-gray-500">{{ Auth::user()->email }}</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="#">
+                    @csrf
+                    <button type="submit" class="text-red-500 font-black text-xs uppercase hover:underline">
+                        Keluar
+                    </button>
+                </form>
             </div>
 
         </div>

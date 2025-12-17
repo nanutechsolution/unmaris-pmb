@@ -30,9 +30,9 @@
                         <div>
                             <!-- Nama Bank -->
                             <div class="text-xs font-bold text-yellow-300 uppercase">{{ $b['bank'] }}</div>
-                            <!-- Nomor Rekening (Key dari DB: rekening) -->
+                            <!-- Nomor Rekening -->
                             <div class="text-xl font-black tracking-wider font-mono">{{ $b['rekening'] }}</div>
-                            <!-- Atas Nama (Key dari DB: atas_nama) -->
+                            <!-- Atas Nama -->
                             <div class="text-[10px] font-bold text-gray-300">a.n {{ $b['atas_nama'] }}</div>
                         </div>
                         
@@ -71,7 +71,7 @@
                 </div>
             @endif
 
-            <!-- STATUS LOGIC -->
+            <!-- CASE 1: LUNAS -->
             @if($pendaftar->status_pembayaran == 'lunas')
                 <div class="text-center py-8">
                     <div class="text-6xl mb-4">✅</div>
@@ -79,26 +79,78 @@
                     <p class="font-bold text-gray-500 text-sm mt-2">Terima kasih! Data Anda sedang diproses ke tahap seleksi.</p>
                 </div>
             
+            <!-- CASE 2: MENUNGGU VERIFIKASI (Bisa Edit Jika Salah) -->
             @elseif($pendaftar->status_pembayaran == 'menunggu_verifikasi')
-                <div class="text-center py-8">
-                    <div class="text-6xl mb-4 animate-pulse">⏳</div>
-                    <h2 class="text-xl font-black text-yellow-600 uppercase">MENUNGGU VERIFIKASI</h2>
-                    <p class="font-bold text-gray-500 text-sm mt-2">Admin sedang mengecek bukti transfer Anda.</p>
+                <div x-data="{ gantiFile: false }">
                     
-                    <div class="mt-4">
-                        @if (str_ends_with($pendaftar->bukti_pembayaran, '.pdf'))
-                            <a href="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" target="_blank" class="flex flex-col items-center justify-center p-4 bg-gray-50 border-2 border-black rounded shadow-sm hover:bg-gray-100">
-                                <span class="text-2xl">📄</span>
-                                <span class="text-xs font-bold mt-1 text-blue-600 underline">Lihat PDF Bukti</span>
-                            </a>
-                        @else
-                            <img src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="h-32 mx-auto border-2 border-black rounded shadow-sm">
-                        @endif
-                        <span class="text-xs text-gray-400 font-bold block mt-2">Bukti terkirim</span>
+                    <!-- Tampilan Menunggu (Default) -->
+                    <div x-show="!gantiFile" class="text-center py-8">
+                        <div class="text-6xl mb-4 animate-pulse">⏳</div>
+                        <h2 class="text-xl font-black text-yellow-600 uppercase">MENUNGGU VERIFIKASI</h2>
+                        <p class="font-bold text-gray-500 text-sm mt-2">Admin sedang mengecek bukti transfer Anda.</p>
+                        
+                        <div class="mt-4 mb-6">
+                            @if (str_ends_with($pendaftar->bukti_pembayaran, '.pdf'))
+                                <a href="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" target="_blank" class="flex flex-col items-center justify-center p-4 bg-gray-50 border-2 border-black rounded shadow-sm hover:bg-gray-100">
+                                    <span class="text-2xl">📄</span>
+                                    <span class="text-xs font-bold mt-1 text-blue-600 underline">Lihat PDF Bukti</span>
+                                </a>
+                            @else
+                                <img src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="h-32 mx-auto border-2 border-black rounded shadow-sm object-cover">
+                            @endif
+                            <span class="text-xs text-gray-400 font-bold block mt-2">Bukti terkirim</span>
+                        </div>
+
+                        <!-- Tombol Salah Upload -->
+                        <button @click="gantiFile = true" class="text-xs font-bold text-red-500 hover:text-red-700 underline decoration-2 cursor-pointer">
+                            ⚠️ Salah kirim bukti? Upload ulang disini
+                        </button>
+                    </div>
+
+                    <!-- Form Ganti File (Hidden by Default) -->
+                    <div x-show="gantiFile" x-transition class="mt-4">
+                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 text-xs font-bold mb-4">
+                            Silakan upload bukti pembayaran yang baru. Bukti lama akan diganti.
+                        </div>
+                        
+                        <form wire:submit.prevent="save">
+                            <div class="mb-4">
+                                <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group">
+                                    @if ($bukti_transfer)
+                                        <div class="text-sm font-black text-unmaris-blue">File Siap Upload</div>
+                                    @else
+                                        <span class="text-4xl block">📸</span>
+                                        <p class="text-xs font-bold text-unmaris-blue mt-2">Pilih File Baru</p>
+                                    @endif
+                                    <input type="file" wire:model="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                </div>
+                                @error('bukti_transfer') <span class="text-red-600 font-bold text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="button" @click="gantiFile = false" class="flex-1 py-2 rounded-lg border-2 border-gray-400 font-bold text-gray-600 hover:bg-gray-100">
+                                    Batal
+                                </button>
+                                <button type="submit" wire:loading.attr="disabled" class="flex-1 bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-2 rounded-lg border-2 border-unmaris-blue shadow-neo hover:shadow-neo-hover transition-all">
+                                    <span wire:loading.remove>KIRIM ULANG</span>
+                                    <span wire:loading>...</span>
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
+            <!-- CASE 3: BELUM BAYAR / DITOLAK -->
             @else
+                <!-- Alert Jika Ditolak -->
+                @if($pendaftar->status_pembayaran == 'ditolak')
+                    <div class="bg-red-100 border-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 text-center shadow-sm">
+                        <div class="text-3xl mb-2">❌</div>
+                        <h4 class="font-black text-lg uppercase">Pembayaran Ditolak</h4>
+                        <p class="text-sm font-bold mt-1">Bukti pembayaran Anda tidak valid atau tidak terbaca. Silakan upload ulang bukti yang benar.</p>
+                    </div>
+                @endif
+
                 <!-- FORM UPLOAD -->
                 <form wire:submit.prevent="save">
                     <div class="mb-4">

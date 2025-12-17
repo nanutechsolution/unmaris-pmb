@@ -5,8 +5,9 @@ namespace App\Livewire;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Pendaftar;
+use App\Models\Gelombang;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Storage; // Penting untuk hapus file
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -16,7 +17,7 @@ class PendaftaranWizard extends Component
 {
     use WithFileUploads;
 
-    // Gunakan layout camaba jika belum diset otomatis
+    // Gunakan layout camaba
     #[Layout('layouts.camaba')] 
     
     public $currentStep = 1;
@@ -29,9 +30,11 @@ class PendaftaranWizard extends Component
     // --- STEP 2: SEKOLAH & ORTU & BERKAS ---
     public $asal_sekolah, $tahun_lulus, $nama_ayah, $pekerjaan_ayah, $nama_ibu, $pekerjaan_ibu;
     
-    // File Uploads
+    // File Uploads (Temporary)
     public $foto;
     public $ijazah;
+    
+    // Path File Lama (Untuk referensi hapus)
     public $existingFotoPath;
     public $existingIjazahPath;
 
@@ -44,15 +47,13 @@ class PendaftaranWizard extends Component
         $pendaftar = $user->pendaftar;
 
         if ($pendaftar) {
-            // 🛡️ PROTEKSI HALAMAN 🛡️
-            // Jika status SUDAH BUKAN 'draft' (berarti sudah submit/verifikasi/lulus/gagal),
-            // user dilarang masuk kembali ke form ini.
+            // 🛡️ PROTEKSI: Jika sudah submit, kunci halaman
             if ($pendaftar->status_pendaftaran !== 'draft') {
-                session()->flash('message', 'Formulir Anda sudah dikirim dan sedang dikunci untuk verifikasi. Silakan pantau status di Dashboard.');
+                session()->flash('message', 'Formulir Anda sudah dikirim dan sedang dikunci untuk verifikasi. Pantau status di Dashboard.');
                 return redirect()->route('camaba.dashboard');
             }
 
-            // LOAD DATA (Hanya jika masih draft)
+            // LOAD DATA EKSISTING
             $this->jalur_pendaftaran = $pendaftar->jalur_pendaftaran;
             $this->nisn = $pendaftar->nisn;
             $this->nik = $pendaftar->nik;
@@ -69,6 +70,7 @@ class PendaftaranWizard extends Component
             $this->nama_ibu = $pendaftar->nama_ibu;
             $this->pekerjaan_ibu = $pendaftar->pekerjaan_ibu;
 
+            // Simpan path file lama ke variable public agar bisa dicek view/logic
             $this->existingFotoPath = $pendaftar->foto_path;
             $this->existingIjazahPath = $pendaftar->ijazah_path;
 
@@ -77,7 +79,6 @@ class PendaftaranWizard extends Component
         }
     }
 
-    // Hook Real-time: Jika jalur berubah, reset validasi NISN
     public function updatedJalurPendaftaran($value)
     {
         if ($value !== 'reguler') {
@@ -118,7 +119,9 @@ class PendaftaranWizard extends Component
             'pekerjaan_ibu' => 'nullable|string|max:50',
         ];
 
-        // Validasi File: Wajib jika belum pernah upload sebelumnya
+        // Validasi File Cerdas:
+        // Jika belum ada file lama -> WAJIB upload
+        // Jika sudah ada file lama -> BOLEH kosong (berarti tidak ganti file)
         if (!$this->existingFotoPath) {
             $rules['foto'] = 'required|image|mimes:jpg,jpeg,png|max:2048';
         } else {
@@ -147,17 +150,21 @@ class PendaftaranWizard extends Component
         try {
             $userId = Auth::id();
             
-            // Handle File Upload
+            // Siapkan path default (gunakan yang lama jika tidak ada upload baru)
             $fotoPathToSave = $this->existingFotoPath;
             $ijazahPathToSave = $this->existingIjazahPath;
 
+            // --- LOGIC GANTI FOTO (SALAH UPLOAD) ---
             if ($this->foto) {
+                // 1. Hapus file lama fisik di storage agar tidak menuhin server
                 if ($this->existingFotoPath && Storage::disk('public')->exists($this->existingFotoPath)) {
                     Storage::disk('public')->delete($this->existingFotoPath);
                 }
+                // 2. Upload file baru
                 $fotoPathToSave = $this->foto->store('uploads/foto', 'public');
             }
 
+            // --- LOGIC GANTI IJAZAH (SALAH UPLOAD) ---
             if ($this->ijazah) {
                 if ($this->existingIjazahPath && Storage::disk('public')->exists($this->existingIjazahPath)) {
                     Storage::disk('public')->delete($this->existingIjazahPath);
@@ -165,7 +172,7 @@ class PendaftaranWizard extends Component
                 $ijazahPathToSave = $this->ijazah->store('uploads/ijazah', 'public');
             }
 
-            // Simpan Data
+            // Simpan ke Database
             Pendaftar::updateOrCreate(
                 ['user_id' => $userId],
                 [
@@ -185,14 +192,14 @@ class PendaftaranWizard extends Component
                     'nama_ibu' => strip_tags($this->nama_ibu),
                     'pekerjaan_ibu' => strip_tags($this->pekerjaan_ibu),
 
+                    // Update path file (Entah itu baru atau tetap yang lama)
                     'foto_path' => $fotoPathToSave,
                     'ijazah_path' => $ijazahPathToSave,
 
                     'pilihan_prodi_1' => $this->pilihan_prodi_1,
                     'pilihan_prodi_2' => $this->pilihan_prodi_2,
                     
-                    // PENTING: Ubah status jadi 'submit' agar terkunci
-                    'status_pendaftaran' => 'submit',
+                    'status_pendaftaran' => 'submit', // Kunci data setelah ini
                 ]
             );
 
@@ -203,6 +210,10 @@ class PendaftaranWizard extends Component
 
         } catch (Exception $e) {
             DB::rollBack();
+            // Jika error DB, hapus file yang BARUSAN terlanjur ke-upload (Cleanup Orphan)
+            if ($this->foto && isset($fotoPathToSave)) Storage::disk('public')->delete($fotoPathToSave);
+            if ($this->ijazah && isset($ijazahPathToSave)) Storage::disk('public')->delete($ijazahPathToSave);
+            
             session()->flash('error', 'Terjadi kesalahan sistem. Silakan coba lagi.');
             return;
         }
@@ -215,6 +226,16 @@ class PendaftaranWizard extends Component
 
     public function render()
     {
+        // Cek Gelombang Aktif (Proteksi Tambahan)
+        $gelombangAktif = Gelombang::where('is_active', true)
+            ->whereDate('tgl_mulai', '<=', now())
+            ->whereDate('tgl_selesai', '>=', now())
+            ->first();
+
+        if (!$gelombangAktif && !Auth::user()->pendaftar) {
+            return view('livewire.pendaftaran-tutup');
+        }
+
         return view('livewire.pendaftaran-wizard');
     }
 }

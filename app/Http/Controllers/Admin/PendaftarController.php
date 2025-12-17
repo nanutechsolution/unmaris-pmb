@@ -51,13 +51,13 @@ class PendaftarController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:verifikasi,lulus,gagal,submit',
+            'status' => 'required|in:verifikasi,lulus,gagal,submit,draft',
         ]);
 
         $pendaftar = Pendaftar::findOrFail($id);
         $pendaftar->update(['status_pendaftaran' => $request->status]);
 
-        return back()->with('success', 'Status berhasil diupdate!');
+        return back()->with('success', 'Status pendaftaran diperbarui.');
     }
 
     // FITUR BARU: Export Excel

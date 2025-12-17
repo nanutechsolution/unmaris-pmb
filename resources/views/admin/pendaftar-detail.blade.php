@@ -72,6 +72,14 @@
                         class="w-full bg-red-500 hover:bg-red-600 text-white border-2 border-unmaris-blue font-bold py-2 rounded shadow-[2px_2px_0px_0px_#1E3A8A] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex justify-center items-center">
                         ❌ TOLAK / GAGAL
                     </button>
+
+                    <p class="text-xs font-bold text-gray-500 mb-2">Opsi Koreksi:</p>
+
+                    <button type="submit" name="status" value="draft"
+                        onclick="return confirm('Buka kunci data? Mahasiswa akan bisa mengedit formulirnya kembali.')"
+                        class="w-full bg-gray-500 hover:bg-gray-600 text-white border-2 border-unmaris-blue font-bold py-2 rounded shadow-sm hover:shadow-none transition-all text-sm flex justify-center items-center">
+                        🔓 BUKA KUNCI (IZINKAN EDIT)
+                    </button>
                 </form>
             </div>
         </div>
@@ -175,7 +183,6 @@
                     </div>
 
                     <div class="md:col-span-2 border-t-2 border-dashed border-gray-300 my-2"></div>
-
                     <!-- Orang Tua -->
                     <div>
                         <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Nama Ayah</label>
@@ -191,7 +198,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Card Dokumen -->
             <div class="bg-white border-4 border-unmaris-blue shadow-neo rounded-xl p-8">
                 <h3
@@ -234,9 +240,6 @@
                     @endif
                 </div>
             </div>
-
-            <!-- ... kode foto sebelumnya ... -->
-
             <!-- PANEL PEMBAYARAN -->
             <div class="bg-white border-4 border-unmaris-blue shadow-neo rounded-xl p-6 mt-6">
                 <h3
@@ -295,6 +298,6 @@
                     </form>
                 </div>
             </div>
-            </div>
+        </div>
     </div>
 </x-admin-layout>

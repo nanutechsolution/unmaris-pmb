@@ -51,20 +51,30 @@ class Pembayaran extends Component
 
         $pendaftar = Auth::user()->pendaftar;
 
+        // 1. Guard: Cegah ganti file jika sudah LUNAS (Verified)
+        if ($pendaftar->status_pembayaran === 'lunas') {
+            $this->addError('bukti_transfer', 'Pembayaran sudah lunas dan diverifikasi. Tidak dapat diubah.');
+            return;
+        }
+
+        // 2. Simpan File Baru
         $path = $this->bukti_transfer->store('uploads/pembayaran', 'public');
 
+        // 3. Logic Ganti File (Hapus file lama jika ada)
+        // Ini yang menangani kasus "Salah Upload". File lama dihapus agar tidak menuhin server.
         if ($pendaftar->bukti_pembayaran && Storage::disk('public')->exists($pendaftar->bukti_pembayaran)) {
             Storage::disk('public')->delete($pendaftar->bukti_pembayaran);
         }
 
+        // 4. Update Database
         $pendaftar->update([
             'bukti_pembayaran' => $path,
-            'status_pembayaran' => 'menunggu_verifikasi'
+            'status_pembayaran' => 'menunggu_verifikasi' // Reset status ke menunggu jika sebelumnya ditolak
         ]);
 
         $this->reset('bukti_transfer');
 
-        session()->flash('message', 'Bukti pembayaran berhasil diunggah! Mohon tunggu verifikasi admin.');
+        session()->flash('message', 'Bukti pembayaran berhasil diperbarui! Admin akan mengecek ulang.');
     }
 
     public function render()
