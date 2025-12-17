@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Url;
 use App\Models\Pendaftar;
+use App\Services\Logger;
 use Illuminate\Support\Facades\Http;
 
 class PendaftarIndex extends Component
@@ -29,11 +30,30 @@ class PendaftarIndex extends Component
     public $selectAll = false;
 
     // Reset seleksi jika filter berubah
-    public function updatingSearch() { $this->resetPage(); $this->resetSelection(); }
-    public function updatingFilterStatus() { $this->resetPage(); $this->resetSelection(); }
-    public function updatingFilterPembayaran() { $this->resetPage(); $this->resetSelection(); }
-    public function updatingFilterSync() { $this->resetPage(); $this->resetSelection(); } // Reset saat filter sync berubah
-    public function updatingPage() { $this->resetSelection(); }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+    public function updatingFilterStatus()
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+    public function updatingFilterPembayaran()
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+    public function updatingFilterSync()
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    } // Reset saat filter sync berubah
+    public function updatingPage()
+    {
+        $this->resetSelection();
+    }
 
     public function resetSelection()
     {
@@ -56,11 +76,11 @@ class PendaftarIndex extends Component
         $query = Pendaftar::with('user')->latest();
 
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('nisn', 'like', '%'.$this->search.'%')
-                  ->orWhereHas('user', function($u) {
-                      $u->where('name', 'like', '%'.$this->search.'%');
-                  });
+            $query->where(function ($q) {
+                $q->where('nisn', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('user', function ($u) {
+                        $u->where('name', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
@@ -104,9 +124,9 @@ class PendaftarIndex extends Component
 
         $successCount = 0;
         $failCount = 0;
-        
+
         // URL API SIAKAD
-        $urlSiakad = 'http://localhost:8001/api/v1/pmb/sync'; 
+        $urlSiakad = env('SIAKAD_API_URL') . '/api/v1/pmb/sync';
 
         // 2. Loop dan Kirim
         foreach ($targets as $pendaftar) {
@@ -121,14 +141,19 @@ class PendaftarIndex extends Component
                     'tahun_lulus'     => (int) $pendaftar->tahun_lulus,
                     'nama_ayah'       => $pendaftar->nama_ayah,
                     'nama_ibu'        => $pendaftar->nama_ibu,
-                    'pilihan_prodi_1' => $pendaftar->pilihan_prodi_1, 
+                    'pilihan_prodi_1' => $pendaftar->pilihan_prodi_1,
                     'pilihan_prodi_2' => $pendaftar->pilihan_prodi_2,
                     'jalur_masuk'     => $pendaftar->jalur_pendaftaran,
-                    'secret_key'      => 'rahasia-pmb-siakad-2025', 
+                    'secret_key'      =>  env('SIAKAD_API_SECRET'),
                 ]);
 
                 if ($response->successful() && isset($response->json()['status']) && $response->json()['status'] == 'success') {
                     $pendaftar->update(['is_synced' => true]);
+                    Logger::record(
+                        'SYNC',
+                        'SIAKAD Integration',
+                        "Mengirim data mahasiswa {$pendaftar->user->name} ke SIAKAD. NIM Sementara: " . ($result['data']['nim_sementara'] ?? '-')
+                    );
                     $successCount++;
                 } else {
                     $failCount++;
@@ -140,7 +165,7 @@ class PendaftarIndex extends Component
 
         // 3. Feedback
         $this->resetSelection();
-        
+
         if ($successCount > 0) {
             session()->flash('success', "Berhasil migrasi $successCount mahasiswa ke SIAKAD! (Gagal: $failCount)");
         } else {

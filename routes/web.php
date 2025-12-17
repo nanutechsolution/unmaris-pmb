@@ -103,6 +103,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/pengumuman-admin', function () {
             return view('admin.announcements');
         })->name('announcements.index');
+
+        Route::get('/activity-logs', function () {
+            return view('admin.logs');
+        })->name('logs.index');
     });
 
 // ====================================================
