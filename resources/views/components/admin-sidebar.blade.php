@@ -20,7 +20,8 @@
         <h2 class="mt-3 font-black text-unmaris-blue text-2xl tracking-tighter uppercase leading-none drop-shadow-sm">
             ADMIN<br>UNMARIS
         </h2>
-        <span class="text-xs font-bold bg-white px-2 py-0.5 rounded border border-black uppercase mt-1 inline-block text-unmaris-blue">
+        <span
+            class="text-xs font-bold bg-white px-2 py-0.5 rounded border border-black uppercase mt-1 inline-block text-unmaris-blue">
             Role: {{ Auth::user()->role }}
         </span>
     </div>
@@ -48,8 +49,17 @@
             Data Pendaftar
         </a>
 
+        <a href="{{ route('admin.beasiswa.index') }}"
+            class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo opacity-80 hover:opacity-100
+           {{ request()->routeIs('admin.beasiswa*')
+               ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
+               : 'bg-unmaris-blue text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
+            <span class="text-xl mr-3">🎓</span>
+            Beasiswa
+        </a>
+
         <!-- SELEKSI (Hanya Akademik & Admin) -->
-        @if(in_array(Auth::user()->role, ['admin', 'akademik']))
+        @if (in_array(Auth::user()->role, ['admin', 'akademik']))
             <!-- Manajemen Gelombang -->
             <a href="{{ route('admin.gelombang.index') ?? '#' }}"
                 class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
@@ -77,9 +87,9 @@
                 Wawancara
             </a>
         @endif
-        
+
         <!-- TEKNIS (Hanya Super Admin) -->
-        @if(Auth::user()->role === 'admin')
+        @if (Auth::user()->role === 'admin')
             <div class="border-t-2 border-white/20 my-2"></div>
             <p class="px-4 text-[10px] text-white/50 font-bold uppercase">System Area</p>
 
@@ -97,6 +107,11 @@
                 class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
        {{ request()->routeIs('admin.laporan*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
                 <span class="text-xl mr-3">🖨️</span> Laporan
+            </a>
+            <a href="{{ route('admin.geographic.index') }}"
+                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+   {{ request()->routeIs('admin.geographic*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
+                <span class="text-xl mr-3">🌍</span> Peta Sebaran
             </a>
 
             <a href="{{ route('admin.settings.index') }}"
@@ -117,7 +132,7 @@
                 <span class="text-xl mr-3">🕵️‍♂️</span> Log Aktivitas
             </a>
         @endif
-        
+
         <!-- Separator -->
         <div class="border-t-2 border-white/20 my-2"></div>
 

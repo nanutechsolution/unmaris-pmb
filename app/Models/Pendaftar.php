@@ -28,4 +28,7 @@ class Pendaftar extends Model
     {
         return !is_null($this->jadwal_ujian);
     }
+
+
+    public function scholarship() { return $this->belongsTo(Scholarship::class); }
 }

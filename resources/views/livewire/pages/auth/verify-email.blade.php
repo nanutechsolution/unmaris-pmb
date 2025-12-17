@@ -50,16 +50,23 @@ new #[Layout('layouts.guest')] class extends Component
         </p>
     </div>
 
-    <div class="mb-6 text-sm font-medium text-gray-700 leading-relaxed text-center border-2 border-dashed border-gray-300 p-4 rounded-xl">
-        {{ __('Terima kasih telah mendaftar! Sebelum memulai, tolong verifikasi akunmu dengan mengklik link yang baru saja kami kirim ke emailmu.') }}
-        <br><br>
-        <span class="text-xs text-gray-500 italic">{{ __('Tidak menerima email? Cek folder Spam atau klik tombol di bawah.') }}</span>
+    <div class="mb-6 text-sm font-medium text-gray-700 leading-relaxed text-center border-2 border-dashed border-gray-300 p-6 rounded-xl bg-gray-50">
+        <p class="mb-2">Link verifikasi telah dikirim ke:</p>
+        
+        <!-- MENAMPILKAN EMAIL USER (UX IMPROVEMENT) -->
+        <div class="font-black text-lg text-unmaris-blue break-all bg-white border-2 border-unmaris-blue py-2 px-4 rounded-lg shadow-sm inline-block mb-4">
+            {{ Auth::user()->email }}
+        </div>
+
+        <p class="text-xs text-gray-500 italic">
+            {{ __('Salah ketik email? Klik tombol "Keluar" di bawah dan daftar ulang dengan email yang benar.') }}
+        </p>
     </div>
 
     <!-- Status Session -->
     @if (session('status') == 'verification-link-sent')
         <div class="mb-6 font-bold text-sm text-green-600 bg-green-100 p-3 rounded-lg border-2 border-green-500 text-center animate-fade-in-down">
-            {{ __('Link verifikasi baru telah dikirim ke alamat email yang Anda daftarkan.') }}
+            {{ __('Link verifikasi BARU telah dikirim ulang.') }}
         </div>
     @endif
 

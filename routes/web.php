@@ -108,6 +108,11 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
         Route::get('/activity-logs', function () {
             return view('admin.logs');
         })->name('logs.index');
+
+        Route::get('/geographic-stats', App\Livewire\Admin\GeographicStats::class)->name('geographic.index');
+        Route::get('/beasiswa', function () {
+            return view('admin.beasiswa');
+        })->name('beasiswa.index');
     });
 
 // ====================================================
