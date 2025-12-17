@@ -4,7 +4,7 @@
 
     <div class="py-6 font-sans">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
+            
             <!-- LOGIKA INTELEGENSIA DASHBOARD -->
             @php
                 $state = 'unknown';
@@ -132,46 +132,41 @@
             @endphp
 
             <!-- 🔥 SMART ACTION CARD (Pemandu Utama) -->
-            <div
-                class="{{ $cardColor }} border-4 border-black p-6 md:p-8 rounded-3xl shadow-neo-lg mb-10 relative overflow-hidden transition-all hover:-translate-y-1">
+            <div class="{{ $cardColor }} border-4 border-black p-6 md:p-8 rounded-3xl shadow-neo-lg mb-10 relative overflow-hidden transition-all hover:-translate-y-1">
                 <!-- Background Decoration -->
-                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-20 rounded-full blur-2xl">
-                </div>
-
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-20 rounded-full blur-2xl"></div>
+                
                 <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-                    <div class="flex items-center gap-6 text-center md:text-left">
+                    <div class="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-center md:text-left">
                         <div class="text-6xl md:text-7xl animate-bounce-slight filter drop-shadow-md">
                             {{ $icon }}
                         </div>
                         <div>
-                            <div
-                                class="inline-block bg-black text-white text-[10px] font-black px-2 py-1 rounded mb-2 uppercase tracking-widest">
+                            <div class="inline-block bg-black text-white text-[10px] font-black px-2 py-1 rounded mb-2 uppercase tracking-widest">
                                 Status Terkini
                             </div>
-                            <h2 class="font-black text-2xl md:text-4xl text-black uppercase leading-none mb-2">
+                            <h2 class="font-black text-2xl md:text-4xl text-black uppercase leading-tight mb-2">
                                 {{ $title }}
                             </h2>
-                            <p class="font-bold text-black/80 text-base md:text-lg max-w-xl">
+                            <p class="font-bold text-black/80 text-sm md:text-base max-w-xl leading-relaxed">
                                 {{ $desc }}
                             </p>
 
                             <!-- Jika sedang menunggu, beri saran aktivitas -->
-                            @if (!$showBtn)
-                                <div class="mt-4 flex gap-2 justify-center md:justify-start">
-                                    <a href="https://wa.me/6281234567890" target="_blank"
-                                        class="text-xs font-black text-black underline hover:text-white">
+                            @if(!$showBtn)
+                                <div class="mt-4 flex flex-col md:flex-row items-center gap-2 justify-center md:justify-start text-xs md:text-sm">
+                                    <a href="https://wa.me/6281234567890" target="_blank" class="font-black text-black underline hover:text-white transition-colors">
                                         Butuh Bantuan? Chat Admin
                                     </a>
-                                    <span class="text-black/50">|</span>
-                                    <span class="text-xs font-bold text-black">Pantau terus halaman ini.</span>
+                                    <span class="text-black/50 hidden md:inline">|</span>
+                                    <span class="font-bold text-black">Pantau terus halaman ini.</span>
                                 </div>
                             @endif
                         </div>
                     </div>
 
-                    @if ($showBtn)
-                        <a href="{{ $btnUrl }}"
-                            class="w-full md:w-auto bg-white text-black font-black py-4 px-8 rounded-xl border-4 border-black shadow-sm hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all uppercase tracking-wider text-lg whitespace-nowrap flex justify-center items-center gap-2 group">
+                    @if($showBtn)
+                        <a href="{{ $btnUrl }}" class="w-full md:w-auto bg-white text-black font-black py-4 px-8 rounded-xl border-4 border-black shadow-sm hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all uppercase tracking-wider text-sm md:text-lg whitespace-nowrap flex justify-center items-center gap-2 group">
                             <span>{{ $btnText }}</span>
                             <span class="group-hover:translate-x-1 transition-transform">👉</span>
                         </a>
@@ -180,114 +175,132 @@
             </div>
 
             <!-- JADWAL SAYA (Otomatis Muncul Jika Ada) -->
-            @if ($pendaftar && ($pendaftar->jadwal_ujian || $pendaftar->jadwal_wawancara))
-                <div class="mb-10 animate-fade-in-up">
-                    <h3
-                        class="font-black text-xl text-unmaris-blue mb-4 uppercase flex items-center border-l-8 border-unmaris-yellow pl-3">
-                        📅 Agenda & Jadwal
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        @if ($pendaftar->jadwal_ujian)
-                            <div
-                                class="bg-white border-4 border-unmaris-blue shadow-neo rounded-xl p-6 relative overflow-hidden group hover:bg-blue-50 transition">
-                                <div class="flex items-start gap-4">
-                                    <div class="bg-blue-100 p-3 rounded-lg border-2 border-unmaris-blue text-2xl">📝
-                                    </div>
-                                    <div>
-                                        <p class="text-xs font-bold text-gray-500 uppercase">Ujian Tulis</p>
-                                        <h4 class="text-xl font-black text-unmaris-blue">
-                                            {{ $pendaftar->jadwal_ujian->format('l, d F Y') }}
-                                        </h4>
-                                        <p class="text-lg font-bold text-blue-600">
-                                            {{ $pendaftar->jadwal_ujian->format('H:i') }} WITA
-                                        </p>
-                                        <div
-                                            class="mt-2 text-xs font-bold bg-gray-100 px-2 py-1 rounded inline-block border border-gray-300">
-                                            📍 {{ $pendaftar->lokasi_ujian }}
-                                        </div>
-                                    </div>
+            @if($pendaftar && ($pendaftar->jadwal_ujian || $pendaftar->jadwal_wawancara))
+            <div class="mb-10 animate-fade-in-up">
+                <h3 class="font-black text-xl text-unmaris-blue mb-4 uppercase flex items-center border-l-8 border-unmaris-yellow pl-3">
+                    📅 Agenda & Jadwal
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @if($pendaftar->jadwal_ujian)
+                    <div class="bg-white border-4 border-unmaris-blue shadow-neo rounded-xl p-6 relative overflow-hidden group hover:bg-blue-50 transition">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-blue-100 p-3 rounded-lg border-2 border-unmaris-blue text-2xl flex-shrink-0">📝</div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-500 uppercase">Ujian Tulis</p>
+                                <h4 class="text-xl font-black text-unmaris-blue">
+                                    {{ $pendaftar->jadwal_ujian->format('l, d F Y') }}
+                                </h4>
+                                <p class="text-lg font-bold text-blue-600">
+                                    {{ $pendaftar->jadwal_ujian->format('H:i') }} WITA
+                                </p>
+                                <div class="mt-2 text-xs font-bold bg-gray-100 px-2 py-1 rounded inline-block border border-gray-300">
+                                    📍 {{ $pendaftar->lokasi_ujian }}
                                 </div>
                             </div>
-                        @endif
-
-                        @if ($pendaftar->jadwal_wawancara)
-                            <div
-                                class="bg-white border-4 border-orange-500 shadow-neo rounded-xl p-6 relative overflow-hidden group hover:bg-orange-50 transition">
-                                <div class="flex items-start gap-4">
-                                    <div class="bg-orange-100 p-3 rounded-lg border-2 border-orange-500 text-2xl">🎤
-                                    </div>
-                                    <div>
-                                        <p class="text-xs font-bold text-gray-500 uppercase">Wawancara</p>
-                                        <h4 class="text-xl font-black text-orange-900">
-                                            {{ $pendaftar->jadwal_wawancara->format('l, d F Y') }}
-                                        </h4>
-                                        <p class="text-lg font-bold text-orange-600">
-                                            {{ $pendaftar->jadwal_wawancara->format('H:i') }} WITA
-                                        </p>
-                                        <div
-                                            class="mt-2 text-xs font-bold bg-gray-100 px-2 py-1 rounded inline-block border border-gray-300">
-                                            👨‍🏫 {{ $pendaftar->pewawancara ?? 'Dosen Penguji' }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
+                        </div>
                     </div>
+                    @endif
+
+                    @if($pendaftar->jadwal_wawancara)
+                    <div class="bg-white border-4 border-orange-500 shadow-neo rounded-xl p-6 relative overflow-hidden group hover:bg-orange-50 transition">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-orange-100 p-3 rounded-lg border-2 border-orange-500 text-2xl flex-shrink-0">🎤</div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-500 uppercase">Wawancara</p>
+                                <h4 class="text-xl font-black text-orange-900">
+                                    {{ $pendaftar->jadwal_wawancara->format('l, d F Y') }}
+                                </h4>
+                                <p class="text-lg font-bold text-orange-600">
+                                    {{ $pendaftar->jadwal_wawancara->format('H:i') }} WITA
+                                </p>
+                                <div class="mt-2 text-xs font-bold bg-gray-100 px-2 py-1 rounded inline-block border border-gray-300">
+                                    👨‍🏫 {{ $pendaftar->pewawancara ?? 'Dosen Penguji' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
+            </div>
             @endif
 
             <!-- NAVIGATION GRID (Menu Pintas) -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <!-- Menu 1 -->
-                <a href="{{ route('camaba.formulir') }}"
-                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all">
-                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">📝</div>
-                    <div class="font-black text-unmaris-blue text-sm uppercase">Formulir</div>
-                    <div class="text-[10px] font-bold text-gray-400">Biodata & Berkas</div>
+                <a href="{{ route('camaba.formulir') }}" class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all h-full">
+                    <div class="flex flex-col md:flex-row items-center gap-3 text-center md:text-left h-full justify-center md:justify-start">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl border-2 border-black flex-shrink-0 group-hover:scale-110 transition-transform">📝</div>
+                        <div>
+                            <h3 class="font-black text-sm text-unmaris-blue uppercase leading-tight">Formulir</h3>
+                            <p class="text-[10px] text-gray-500 font-bold hidden md:block">Biodata & Berkas</p>
+                        </div>
+                    </div>
+                    @if($pendaftar)
+                        <div class="absolute top-2 right-2 text-green-500"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div>
+                    @endif
                 </a>
-
+                
                 <!-- Menu 2 -->
-                <a href="{{ route('camaba.pembayaran') }}"
-                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all">
-                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">💸</div>
-                    <div class="font-black text-unmaris-blue text-sm uppercase">Pembayaran</div>
-                    <div class="text-[10px] font-bold text-gray-400">Upload Bukti</div>
+                <a href="{{ route('camaba.pembayaran') }}" class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all h-full">
+                    <div class="flex flex-col md:flex-row items-center gap-3 text-center md:text-left h-full justify-center md:justify-start">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl border-2 border-black flex-shrink-0 group-hover:scale-110 transition-transform">💸</div>
+                        <div>
+                            <h3 class="font-black text-sm text-unmaris-blue uppercase leading-tight">Pembayaran</h3>
+                            <p class="text-[10px] text-gray-500 font-bold hidden md:block">Upload Bukti</p>
+                        </div>
+                    </div>
+                    @if($pendaftar && $pendaftar->status_pembayaran == 'lunas')
+                        <div class="absolute top-2 right-2 text-green-500"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div>
+                    @endif
                 </a>
 
                 <!-- Menu 3 -->
-                <a href="{{ $pendaftar && $pendaftar->jadwal_ujian ? route('camaba.cetak-kartu') : '#' }}"
-                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all {{ !$pendaftar || !$pendaftar->jadwal_ujian ? 'opacity-50 cursor-not-allowed' : '' }}">
-                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🎫</div>
-                    <div class="font-black text-unmaris-blue text-sm uppercase">Kartu Ujian</div>
-                    <div class="text-[10px] font-bold text-gray-400">Cetak PDF</div>
+                <a href="{{ ($pendaftar && $pendaftar->jadwal_ujian) ? route('camaba.cetak-kartu') : '#' }}" 
+                   class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all h-full {{ (!$pendaftar || !$pendaftar->jadwal_ujian) ? 'opacity-50 cursor-not-allowed' : '' }}">
+                    <div class="flex flex-col md:flex-row items-center gap-3 text-center md:text-left h-full justify-center md:justify-start">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl border-2 border-black flex-shrink-0 group-hover:scale-110 transition-transform">🎫</div>
+                        <div>
+                            <h3 class="font-black text-sm text-unmaris-blue uppercase leading-tight">Kartu Ujian</h3>
+                            <p class="text-[10px] text-gray-500 font-bold hidden md:block">Cetak PDF</p>
+                        </div>
+                    </div>
+                    @if(!$pendaftar || !$pendaftar->jadwal_ujian)
+                        <div class="absolute top-2 right-2 text-gray-400 text-[10px] font-black uppercase border border-gray-400 px-1 rounded">LOCKED</div>
+                    @endif
                 </a>
 
                 <!-- Menu 4 -->
-                <a href="{{ $pendaftar && in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal']) ? route('camaba.pengumuman') : '#' }}"
-                    class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all {{ !$pendaftar || !in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal']) ? 'opacity-50 cursor-not-allowed' : '' }}">
-                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">📢</div>
-                    <div class="font-black text-unmaris-blue text-sm uppercase">Pengumuman</div>
-                    <div class="text-[10px] font-bold text-gray-400">Hasil Seleksi</div>
+                <a href="{{ ($pendaftar && in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal'])) ? route('camaba.pengumuman') : '#' }}" 
+                   class="group bg-white p-4 rounded-xl border-4 border-black shadow-neo hover:shadow-neo-hover hover:-translate-y-1 transition-all h-full {{ (!$pendaftar || !in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal'])) ? 'opacity-50 cursor-not-allowed' : '' }}">
+                    <div class="flex flex-col md:flex-row items-center gap-3 text-center md:text-left h-full justify-center md:justify-start">
+                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-xl border-2 border-black flex-shrink-0 group-hover:scale-110 transition-transform">📢</div>
+                        <div>
+                            <h3 class="font-black text-sm text-unmaris-blue uppercase leading-tight">Pengumuman</h3>
+                            <p class="text-[10px] text-gray-500 font-bold hidden md:block">Hasil Seleksi</p>
+                        </div>
+                    </div>
+                    @if(!$pendaftar || !in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal']))
+                        <div class="absolute top-2 right-2 text-gray-400 text-[10px] font-black uppercase border border-gray-400 px-1 rounded">LOCKED</div>
+                    @endif
                 </a>
             </div>
 
             <!-- PROFILE SUMMARY -->
-            <div class="bg-white border-4 border-black rounded-2xl p-6 shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <div class="h-12 w-12 rounded-full bg-unmaris-yellow border-2 border-black overflow-hidden">
-                        <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}&background=facc15&color=1e3a8a"
-                            alt="User">
+            <div class="bg-white border-4 border-black rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                <div class="flex flex-col md:flex-row items-center gap-4">
+                    <div class="h-12 w-12 rounded-full bg-unmaris-yellow border-2 border-black overflow-hidden flex-shrink-0">
+                        <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}&background=facc15&color=1e3a8a" alt="User">
                     </div>
                     <div>
                         <h4 class="font-black text-unmaris-blue text-lg">{{ Auth::user()->name }}</h4>
                         <p class="text-xs font-bold text-gray-500">{{ Auth::user()->email }}</p>
                     </div>
                 </div>
-
-                <form method="POST" action="#">
+                
+                <form method="POST" action="#" onclick="return confirm('Yakin ingin keluar dari akun?')">
                     @csrf
-                    <button type="submit" class="text-red-500 font-black text-xs uppercase hover:underline">
-                        Keluar
+                    <button type="submit" class="text-red-500 font-black text-xs uppercase hover:underline border-2 border-red-500 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors w-full md:w-auto">
+                        Keluar Akun
                     </button>
                 </form>
             </div>
