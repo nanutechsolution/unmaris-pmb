@@ -19,21 +19,39 @@
                 
                 <h3 class="font-bold text-unmaris-yellow uppercase tracking-widest text-sm mb-1">Total Tagihan</h3>
                 
-                <!-- NOMINAL DINAMIS (Dari Database Setting) -->
                 <div class="text-4xl font-black mb-6">Rp {{ number_format($biaya_pendaftaran, 0, ',', '.') }}</div>
                 
-                <div class="bg-white/10 p-4 rounded-lg border border-white/20 mb-4 backdrop-blur-sm">
-                    <p class="text-xs uppercase font-bold text-gray-300">Bank Transfer</p>
-                    
-                    <!-- BANK & REKENING DINAMIS (Dari Database Setting) -->
-                    <div class="text-2xl font-black tracking-wider font-mono mt-1 uppercase">
-                        {{ $nama_bank }} {{ $nomor_rekening }}
+                <p class="text-xs uppercase font-bold text-gray-300 mb-2">Silakan transfer ke salah satu rekening:</p>
+
+                <!-- LIST REKENING (DINAMIS DARI DB) -->
+                <div class="space-y-3">
+                    @foreach($bank_accounts as $b)
+                    <div class="bg-white/10 p-3 rounded-lg border border-white/20 backdrop-blur-sm flex justify-between items-center group hover:bg-white/20 transition">
+                        <div>
+                            <!-- Nama Bank -->
+                            <div class="text-xs font-bold text-yellow-300 uppercase">{{ $b['bank'] }}</div>
+                            <!-- Nomor Rekening (Key dari DB: rekening) -->
+                            <div class="text-xl font-black tracking-wider font-mono">{{ $b['rekening'] }}</div>
+                            <!-- Atas Nama (Key dari DB: atas_nama) -->
+                            <div class="text-[10px] font-bold text-gray-300">a.n {{ $b['atas_nama'] }}</div>
+                        </div>
+                        
+                        <!-- Tombol Copy -->
+                        <button onclick="navigator.clipboard.writeText('{{ $b['rekening'] }}'); alert('No. Rekening Disalin!')" 
+                                class="bg-black/40 hover:bg-black/60 text-white p-2 rounded-lg transition" title="Salin No. Rekening">
+                            📋
+                        </button>
                     </div>
-                    
-                    <p class="text-sm font-bold mt-1">a.n {{ $atas_nama }}</p>
+                    @endforeach
+
+                    @if(empty($bank_accounts))
+                        <div class="p-3 text-center text-sm font-bold text-red-300 bg-red-900/20 rounded border border-red-500/50">
+                            Belum ada data rekening aktif. Hubungi Admin.
+                        </div>
+                    @endif
                 </div>
 
-                <div class="flex items-center text-xs font-bold text-yellow-300 bg-black/20 p-2 rounded">
+                <div class="flex items-center text-xs font-bold text-yellow-300 bg-black/20 p-2 rounded mt-4">
                     <span class="mr-2">💡</span>
                     <span>Pastikan nominal transfer sesuai hingga 3 digit terakhir.</span>
                 </div>
@@ -89,12 +107,10 @@
                         
                         <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group">
                             @if ($bukti_transfer)
-                                <!-- LOGIC PREVIEW FIX -->
                                 @try
                                     @if (in_array(strtolower($bukti_transfer->extension()), ['jpg', 'jpeg', 'png']))
                                         <img src="{{ $bukti_transfer->temporaryUrl() }}" class="h-40 mx-auto rounded shadow-sm border-2 border-black">
                                     @else
-                                        <!-- Tampilan untuk PDF/Dokumen Lain -->
                                         <div class="flex flex-col items-center justify-center py-4">
                                             <span class="text-4xl">📄</span>
                                             <p class="text-sm font-black text-unmaris-blue mt-2">File PDF Terpilih</p>
@@ -102,7 +118,6 @@
                                         </div>
                                     @endif
                                 @catch (\Exception $e)
-                                    <!-- Fallback jika error -->
                                     <div class="flex flex-col items-center justify-center py-4">
                                         <span class="text-4xl">📁</span>
                                         <p class="text-sm font-black text-gray-600 mt-2">File Siap Upload</p>
@@ -113,7 +128,6 @@
                                 <p class="text-xs font-bold text-unmaris-blue mt-2">Klik untuk pilih gambar/PDF</p>
                             @endif
                             
-                            <!-- Input File dengan accept PDF -->
                             <input type="file" wire:model="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                         </div>
                         @error('bukti_transfer') <span class="text-red-600 font-bold text-xs mt-1 block bg-red-100 p-1 border border-red-500 rounded">{{ $message }}</span> @enderror

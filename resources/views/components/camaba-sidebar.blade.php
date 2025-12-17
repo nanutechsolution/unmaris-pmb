@@ -32,7 +32,7 @@ new class extends Component {
         <div class="inline-block relative transform hover:scale-110 transition duration-300">
             <img src="{{ asset('images/logo.png') }}"
                 onerror="this.src='https://ui-avatars.com/api/?name=UNMARIS&background=1e3a8a&color=facc15&size=128'"
-                class="h-16 w-16 mx-auto drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] rounded-full border-2 border-black bg-white">
+                class="h-16 w-16 mx-auto drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] rounded-full border-2  bg-white">
         </div>
         <h2 class="mt-3 font-black text-unmaris-yellow text-xl tracking-tighter uppercase leading-none drop-shadow-sm">
             PORTAL<br>CAMABA
