@@ -139,19 +139,27 @@ class PendaftarController extends Controller
         try {
             $urlEndpoint = rtrim($urlBase, '/') . '/api/v1/pmb/sync';
 
+            // Persiapan variabel tahun (bisa ambil tahun sekarang)
+            $tahun = date('Y');
+
+            // Format ID agar menjadi 4 digit (misal ID 12 jadi 0012)
+            // Hasil akhirnya: "PMB-2025-0012"
+            $generatedNoReg = 'PMB-' . $tahun . '-' . sprintf('%04d', $pendaftar->id);
+
             $response = Http::timeout(10)->post($urlEndpoint, [
                 'secret_key'      => $secretKey,
+
+                // Menggunakan ID yang sudah diformat
+                'registration_no' => $generatedNoReg,
+
+                'nik'             => $pendaftar->nik,
                 'name'            => $pendaftar->user->name,
                 'email'           => $pendaftar->user->email,
-                'nomor_hp'        => $pendaftar->user->nomor_hp,
-                'nik'             => $pendaftar->nik,
-                'nisn'            => $pendaftar->nisn,
-                'asal_sekolah'    => $pendaftar->asal_sekolah,
-                'tahun_lulus'     => (int) $pendaftar->tahun_lulus,
-                'nama_ayah'       => $pendaftar->nama_ayah,
-                'nama_ibu'        => $pendaftar->nama_ibu,
-                'pilihan_prodi_1' => $pendaftar->pilihan_prodi_1,
-                'pilihan_prodi_2' => $pendaftar->pilihan_prodi_2,
+                'prodi_code'      => $pendaftar->pilihan_prodi_1,
+                'entry_year'      => (string) $tahun, // Sesuaikan dengan tahun format di atas
+                'mother_name'     => $pendaftar->nama_ibu,
+                'school_name'     => $pendaftar->asal_sekolah,
+                'nomor_hp_ortu'   => $pendaftar->nomor_hp_ortu,
                 'jalur_masuk'     => $pendaftar->jalur_pendaftaran,
             ]);
 
