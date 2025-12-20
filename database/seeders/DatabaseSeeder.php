@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@unmaris.ac.id',
             'nomor_hp' => '081234567890',
             'role' => 'admin',
+            'email_verified_at' => now(),
             'password' => Hash::make('password'),
         ]);
 
@@ -25,6 +26,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'camaba@gmail.com',
             'nomor_hp' => '089876543210',
             'role' => 'camaba',
+            'email_verified_at' => now(),
             'password' => Hash::make('password'),
         ]);
 
