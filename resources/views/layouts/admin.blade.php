@@ -15,7 +15,9 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- PENTING: Import Alpine.js via CDN agar sidebar responsive jalan tanpa npm run dev -->
+    {{-- logo --}}
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}" />
+
 </head>
 
 <body class="font-sans antialiased bg-gray-100">
