@@ -13,6 +13,12 @@
         </div>
     @endif
 
+    @if (session()->has('error'))
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 font-bold shadow-sm animate-pulse">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <form wire:submit.prevent="update" class="bg-white border-4 border-unmaris-blue shadow-neo rounded-xl p-8">
 
         <!-- SECTION 1: IDENTITAS -->
@@ -100,6 +106,48 @@
             </div>
         </div>
 
+        <h3
+            class="text-xl font-black text-unmaris-blue mb-4 border-b-2 border-gray-200 pb-2 flex justify-between items-center">
+            <span>📞 Kontak Panitia (WhatsApp)</span>
+            <button type="button" wire:click="addContact"
+                class="bg-green-500 text-white text-xs px-3 py-1 rounded border-2 border-black hover:bg-green-600 transition shadow-sm">
+                + Tambah Kontak
+            </button>
+        </h3>
+
+        <div class="space-y-4 mb-8">
+            @foreach ($admin_contacts as $index => $contact)
+                <div wire:key="contact-{{ $index }}"
+                    class="flex flex-col md:flex-row gap-4 items-end bg-blue-50 p-4 rounded-lg border-2 border-dashed border-blue-300">
+                    <div class="w-full md:w-1/2">
+                        <label class="block text-xs font-bold text-gray-500 mb-1">Nama (Contoh: Pak Yolen)</label>
+                        <input type="text" wire:model="admin_contacts.{{ $index }}.name"
+                            class="w-full border-2 border-gray-400 rounded px-2 py-1 font-bold">
+                        @error("admin_contacts.{$index}.name")
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="w-full md:w-1/2">
+                        <label class="block text-xs font-bold text-gray-500 mb-1">Nomor WA (628...)</label>
+                        <input type="number" wire:model="admin_contacts.{{ $index }}.phone"
+                            placeholder="6281xxxx" class="w-full border-2 border-gray-400 rounded px-2 py-1 font-bold">
+                        @error("admin_contacts.{$index}.phone")
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <button type="button" wire:click="removeContact({{ $index }})"
+                            class="bg-red-500 text-white p-2 rounded border-2 border-black hover:bg-red-600"
+                            title="Hapus Kontak">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
         <div class="flex justify-end">
             <button type="submit"
                 class="bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-3 px-8 rounded-lg border-2 border-black shadow-neo hover:shadow-neo-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider">
@@ -122,8 +170,8 @@
             <button type="button" wire:click="syncProdi" wire:loading.attr="disabled"
                 class="bg-blue-100 text-blue-800 border-2 border-blue-800 px-6 py-3 rounded-lg font-black hover:bg-blue-200 transition flex items-center gap-2 shadow-sm">
                 <!-- Icon saat Normal -->
-                <svg wire:loading.remove wire:target="syncProdi" class="w-5 h-5" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
+                <svg wire:loading.remove wire:target="syncProdi" class="w-5 h-5" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
                     </path>

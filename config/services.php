@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'siakad' => [
+        'url' => env('SIAKAD_API_URL', 'http://localhost:8001'),
+    ],
+
 ];

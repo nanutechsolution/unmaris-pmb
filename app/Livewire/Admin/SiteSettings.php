@@ -17,6 +17,8 @@ class SiteSettings extends Component
 
     public $no_wa_admin, $email_admin;
 
+    public $admin_contacts = [];
+
     public function mount()
     {
         $setting = SiteSetting::first();
@@ -40,8 +42,31 @@ class SiteSettings extends Component
             ];
         }
 
+        if (!empty($setting->admin_contacts)) {
+            $this->admin_contacts = $setting->admin_contacts;
+        } else {
+            // Fallback: Ambil dari kolom lama jika JSON kosong
+            $this->admin_contacts = [
+                [
+                    'name' => 'Admin Utama',
+                    'phone' => $setting->no_wa_admin ?? '628...'
+                ]
+            ];
+        }
+
         $this->no_wa_admin = $setting->no_wa_admin;
         $this->email_admin = $setting->email_admin;
+    }
+
+    public function addContact()
+    {
+        $this->admin_contacts[] = ['name' => '', 'phone' => ''];
+    }
+
+    public function removeContact($index)
+    {
+        unset($this->admin_contacts[$index]);
+        $this->admin_contacts = array_values($this->admin_contacts);
     }
 
     public function addBank()
@@ -55,7 +80,7 @@ class SiteSettings extends Component
         $this->bank_accounts = array_values($this->bank_accounts); // Re-index array
     }
 
-    public function update()
+   public function update()
     {
         $this->validate([
             'nama_kampus' => 'required|string',
@@ -63,16 +88,31 @@ class SiteSettings extends Component
             'bank_accounts.*.bank' => 'required|string',
             'bank_accounts.*.rekening' => 'required|string',
             'bank_accounts.*.atas_nama' => 'required|string',
-            'no_wa_admin' => 'required|string',
+            'no_wa_admin' => 'required|string', // Validasi untuk data legacy
+            
+            // Validasi array kontak
+            'admin_contacts.*.name' => 'required',
+            'admin_contacts.*.phone' => 'required|numeric',
         ]);
 
-        $setting = SiteSetting::first();
+        $setting = SiteSetting::firstOrNew(['id' => 1]);
+
+        // --- UPDATE LOGIC UTAMA ---
+        // Sinkronisasi data legacy (no_wa_admin) dengan kontak pertama di array
+        if (count($this->admin_contacts) > 0) {
+            $this->no_wa_admin = $this->admin_contacts[0]['phone'];
+        }
+
+        // SIMPAN SEMUA SEKALIGUS DI SINI
         $setting->update([
             'nama_kampus' => $this->nama_kampus,
             'singkatan_kampus' => $this->singkatan_kampus,
             'alamat_kampus' => $this->alamat_kampus,
             'biaya_pendaftaran' => $this->biaya_pendaftaran,
-            'bank_accounts' => $this->bank_accounts, // Simpan array ke JSON
+            
+            'bank_accounts' => $this->bank_accounts, 
+            'admin_contacts' => $this->admin_contacts, // <--- PINDAHKAN KE SINI
+            
             'no_wa_admin' => $this->no_wa_admin,
             'email_admin' => $this->email_admin,
         ]);
@@ -90,7 +130,7 @@ class SiteSettings extends Component
     {
         try {
             // URL API SIAKAD (Sesuaikan port jika perlu)
-            $urlSiakad = 'http://localhost:8001/api/v1/ref/prodi';
+            $urlSiakad = config('services.siakad.url') . '/api/v1/ref/prodi';
             // Panggil API
             $response = Http::get($urlSiakad);
 
