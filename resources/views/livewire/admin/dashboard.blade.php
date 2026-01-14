@@ -35,7 +35,7 @@
                                 <p class="text-sm font-bold text-red-600">Formulir pendaftaran tidak dapat digunakan. Harap sinkronisasi data dari SIAKAD sekarang.</p>
                             </div>
                         </div>
-                        <a href="{{ route('admin.settings') }}" class="bg-red-600 hover:bg-red-700 text-white font-black py-2 px-6 rounded-lg border-2 border-black shadow-sm uppercase text-sm whitespace-nowrap">
+                        <a href="{{ route('admin.settings.index') }}" class="bg-red-600 hover:bg-red-700 text-white font-black py-2 px-6 rounded-lg border-2 border-black shadow-sm uppercase text-sm whitespace-nowrap">
                             ⚙️ Sync Sekarang
                         </a>
                     </div>
