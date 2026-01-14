@@ -18,16 +18,16 @@ class SiteSettingSeeder extends Seeder
             'singkatan_kampus' => 'UNMARIS',
             'alamat_kampus' => 'Jl. Soekarno Hatta No.05, Tambolaka, NTT',
             'biaya_pendaftaran' => 200000,
-            
+
             // Set default kontak utama ke Pak Yolen
-            'no_wa_admin' => '6281216156883', 
+            'no_wa_admin' => '6281216156883',
             'email_admin' => 'pmb@unmaris.ac.id',
 
             // Data Bank Default (Placeholder)
             'bank_accounts' => [
                 [
                     'bank' => 'BRI',
-                    'rekening' => '0000-0000-0000', 
+                    'rekening' => '0000-0000-0000',
                     'atas_nama' => 'Yayasan Pendidikan St. Yosef Freinademetz'
                 ]
             ],
