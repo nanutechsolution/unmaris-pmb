@@ -354,7 +354,8 @@
                                     <!-- FIX: Jangan tampilkan prodi yang sudah dipilih di Pilihan 1 -->
                                     @if ($p->name != $pilihan_prodi_1)
                                         <option value="{{ $p->name }}">{{ $p->name }}
-                                            ({{ $p->degree }})</option>
+                                            ({{ $p->degree }})
+                                        </option>
                                     @endif
                                 @endforeach
                             </select>
@@ -520,16 +521,19 @@
                                 <div
                                     class="flex flex-col items-center justify-center p-4 bg-blue-50 border-2 border-unmaris-blue rounded-lg">
                                     <span class="text-2xl">📄</span><span
-                                        class="text-xs font-bold mt-1 text-unmaris-blue">Siap Upload</span></div>
+                                        class="text-xs font-bold mt-1 text-unmaris-blue">Siap Upload</span>
+                                </div>
                             @elseif($existingIjazahPath)
                                 <div
                                     class="flex flex-col items-center justify-center p-4 bg-green-100 border-2 border-unmaris-blue rounded-lg">
                                     <span class="text-2xl">✅</span><span
-                                        class="text-xs font-black mt-1 text-green-900">TERSIMPAN</span></div>
+                                        class="text-xs font-black mt-1 text-green-900">TERSIMPAN</span>
+                                </div>
                             @else
                                 <div
                                     class="w-32 h-32 bg-gray-200 rounded-lg border-4 border-unmaris-blue border-dashed flex items-center justify-center">
-                                    <span class="text-xs text-gray-500 font-bold px-2">Klik Upload</span></div>
+                                    <span class="text-xs text-gray-500 font-bold px-2">Klik Upload</span>
+                                </div>
                             @endif
                         </div>
 
@@ -543,12 +547,32 @@
                 </div>
 
                 <!-- Checkbox Persetujuan -->
-                <div class="mt-6 flex items-center bg-yellow-50 p-4 rounded-xl border-2 border-unmaris-blue">
-                    <input type="checkbox" x-model="agreed"
-                        class="w-6 h-6 text-unmaris-blue border-2 border-unmaris-blue rounded focus:ring-0 cursor-pointer flex-shrink-0">
-                    <span class="ml-3 text-xs md:text-sm font-bold text-unmaris-blue">
-                        Saya menyatakan bahwa data yang saya isi adalah benar dan dapat dipertanggungjawabkan.
-                    </span>
+                <div class="mt-8 p-5 rounded-xl border-4 transition-colors duration-300 shadow-neo"
+                    :class="agreed ? 'bg-green-100 border-green-600' : 'bg-yellow-100 border-unmaris-blue'">
+
+                    <label class="flex items-start gap-4 cursor-pointer group">
+                        <div class="relative flex-shrink-0 mt-1">
+                            <input type="checkbox" x-model="agreed"
+                                class="w-8 h-8 text-unmaris-blue border-4 border-black rounded focus:ring-0 cursor-pointer relative z-10 transition-transform group-hover:scale-110">
+
+                            <!-- Animasi Ping agar mencolok jika belum dicentang -->
+                            <span x-show="!agreed"
+                                class="animate-ping absolute inset-0 rounded-md bg-yellow-600 opacity-75"></span>
+                        </div>
+
+                        <div>
+                            <div class="font-black text-xs uppercase tracking-widest mb-1"
+                                :class="agreed ? 'text-green-800' : 'text-red-600'">
+                                <span x-show="!agreed">⚠️ WAJIB DICENTANG</span>
+                                <span x-show="agreed" style="display: none;">✅ TERIMA KASIH</span>
+                            </div>
+                            <span class="text-sm md:text-base font-bold text-gray-900 leading-tight">
+                                Saya menyatakan bahwa seluruh data yang saya isi adalah <span
+                                    class="underline decoration-2 decoration-red-500">BENAR</span> dan dapat
+                                dipertanggungjawabkan.
+                            </span>
+                        </div>
+                    </label>
                 </div>
 
                 <div class="mt-8 flex flex-col-reverse md:flex-row justify-between items-center gap-3">
@@ -557,8 +581,11 @@
                         Kembali</button>
 
                     <button wire:click="submit" :disabled="!agreed"
-                        :class="{ 'opacity-50 cursor-not-allowed': !
-                            agreed, 'bg-unmaris-green hover:bg-green-600 hover:shadow-none': agreed }"
+                        :class="{
+                            'opacity-50 cursor-not-allowed': !
+                                agreed,
+                            'bg-unmaris-green hover:bg-green-600 hover:shadow-none': agreed
+                        }"
                         wire:loading.attr="disabled"
                         class="w-full md:w-auto bg-gray-300 text-white font-black py-3 px-8 rounded-lg border-2 border-unmaris-blue shadow-neo transition-all transform uppercase tracking-wider flex justify-center items-center">
                         <span wire:loading.remove wire:target="submit">KIRIM PENDAFTARAN 🚀</span>
