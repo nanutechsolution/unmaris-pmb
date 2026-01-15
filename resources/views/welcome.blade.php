@@ -270,59 +270,33 @@
 
 
 
-<!-- SECTION 2: FASILITAS & KEUNGGULAN (MODERN SLIDER WITH MULTI-IMAGE SUPPORT) -->
-<section class="bg-unmaris-blue border-b-4 border-black py-16 md:py-24 text-white relative overflow-hidden">
-    
-    <!-- Background Decoration -->
-    <div class="absolute top-0 right-0 p-10 opacity-10 text-9xl font-black text-white select-none pointer-events-none">UNMARIS</div>
-    <div class="absolute bottom-0 left-0 p-10 opacity-10 text-9xl font-black text-white select-none pointer-events-none">2026</div>
+    <!-- SECTION 2: FASILITAS & KEUNGGULAN (DYNAMIC DATABASE) -->
+    <section class="bg-unmaris-blue border-b-4 border-black py-16 md:py-24 text-white relative overflow-hidden">
 
-    <div class="max-w-7xl mx-auto px-6 relative z-10" 
-            x-data="{
+        <!-- Background Decoration -->
+        <div
+            class="absolute top-0 right-0 p-10 opacity-10 text-9xl font-black text-white select-none pointer-events-none">
+            UNMARIS</div>
+        <div
+            class="absolute bottom-0 left-0 p-10 opacity-10 text-9xl font-black text-white select-none pointer-events-none">
+            2026</div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10" x-data="{
             active: 0,
-            slides: [
-                {
-                    title: 'Gedung St. Alexander',
-                    desc: 'Gedung perkuliahan 4 lantai terbaru kebanggaan UNMARIS. Dilengkapi ruang kelas ber-AC, lift, dan area diskusi terbuka.',
-                    images: [
-                        'https://placehold.co/800x600/1e3a8a/FFF?text=Gedung+Tampak+Depan',
-                        'https://placehold.co/800x600/172554/FFF?text=Lobby+Utama',
-                        'https://placehold.co/800x600/1e40af/FFF?text=Ruang+Kelas+Modern'
-                    ],
-                    icon: '🏢'
-                },
-                {
-                    title: 'Laboratorium Lengkap',
-                    desc: 'Fasilitas praktikum terlengkap di Sumba: Lab Multimedia, Hardware, Jaringan, K3, Simulasi RS, dan Teknik Lingkungan.',
-                    images: [
-                        'https://placehold.co/800x600/eab308/000?text=Lab+Multimedia',
-                        'https://placehold.co/800x600/ca8a04/000?text=Lab+Jaringan+Komputer',
-                        'https://placehold.co/800x600/a16207/000?text=Lab+K3+Safety',
-                        'https://placehold.co/800x600/854d0e/000?text=Lab+Simulasi+RS'
-                    ],
-                    icon: '🔬'
-                },
-                {
-                    title: 'Kampus Digital',
-                    desc: 'Sistem akademik terintegrasi (SIAKAD), Perpustakaan Digital, dan Internet Wi-Fi kecepatan tinggi di seluruh area kampus.',
-                    images: [
-                        'https://placehold.co/800x600/22c55e/FFF?text=Sistem+Akademik',
-                        'https://placehold.co/800x600/15803d/FFF?text=Perpustakaan+Digital',
-                        'https://placehold.co/800x600/166534/FFF?text=Free+WiFi+Zone'
-                    ],
-                    icon: '💻'
-                },
-                {
-                    title: 'Sarana Olahraga',
-                    desc: 'Menjunjung tinggi sportivitas dengan lapangan Futsal, Voli, dan Bulutangkis standar nasional untuk kegiatan mahasiswa.',
-                    images: [
-                        'https://placehold.co/800x600/ef4444/FFF?text=Lapangan+Futsal',
-                        'https://placehold.co/800x600/b91c1c/FFF?text=Lapangan+Voli',
-                        'https://placehold.co/800x600/991b1b/FFF?text=GOR+Serbaguna'
-                    ],
-                    icon: '⚽'
-                }
-            ],
+        
+            // INI BAGIAN DINAMISNYA (MENGAMBIL DARI DATABASE)
+            slides: {{ $facilitySlides->map(function ($slide) {
+                    return [
+                        'title' => $slide->title,
+                        'desc' => $slide->description,
+                        'icon' => $slide->icon,
+                        // Logika Gambar: Cek apakah URL http (seeder) atau path storage (upload admin)
+                        'images' => collect($slide->images)->map(function ($img) {
+                            return \Illuminate\Support\Str::startsWith($img, 'http') ? $img : asset('storage/' . $img);
+                        }),
+                    ];
+                })->toJson() }},
+        
             next() {
                 this.active = (this.active + 1) % this.slides.length;
             },
@@ -330,111 +304,117 @@
                 this.active = (this.active - 1 + this.slides.length) % this.slides.length;
             },
             init() {
-                // Auto slide utama setiap 8 detik (biar sempat lihat foto-fotonya)
-                setInterval(() => this.next(), 8000);
+                // Auto slide jika ada datanya
+                if (this.slides.length > 0) {
+                    setInterval(() => this.next(), 8000);
+                }
             }
-            }">
+        }">
 
-        <!-- Header Section -->
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-            <div>
-                <h2 class="text-3xl md:text-5xl font-black text-white uppercase leading-none mb-2">
-                    Fasilitas <span class="text-unmaris-yellow">Unggulan</span>
-                </h2>
-                <p class="text-blue-200 font-bold max-w-xl text-lg">
-                    Bukti nyata fasilitas modern untuk menunjang masa depanmu.
-                </p>
-            </div>
-            
-            <!-- Slider Controls -->
-            <div class="flex gap-3">
-                <button @click="prev()" class="w-12 h-12 flex items-center justify-center border-2 border-white bg-transparent hover:bg-white hover:text-unmaris-blue text-white rounded-full transition-all text-xl font-bold">
-                    ←
-                </button>
-                <button @click="next()" class="w-12 h-12 flex items-center justify-center border-2 border-white bg-unmaris-yellow text-unmaris-blue border-black hover:scale-110 rounded-full transition-all text-xl font-bold shadow-[4px_4px_0px_0px_#000]">
-                    →
-                </button>
-            </div>
-        </div>
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+                <div>
+                    <h2 class="text-3xl md:text-5xl font-black text-white uppercase leading-none mb-2">
+                        Fasilitas <span class="text-unmaris-yellow">Unggulan</span>
+                    </h2>
+                    <p class="text-blue-200 font-bold max-w-xl text-lg">
+                        Bukti nyata fasilitas modern untuk menunjang masa depanmu.
+                    </p>
+                </div>
 
-        <!-- SLIDER CONTENT -->
-        <div class="relative h-[550px] md:h-[500px]">
-            <template x-for="(slide, index) in slides" :key="index">
-                <div x-show="active === index"
-                        x-transition:enter="transition ease-out duration-500"
+                <!-- Slider Controls -->
+                <div class="flex gap-3" x-show="slides.length > 1">
+                    <button @click="prev()"
+                        class="w-12 h-12 flex items-center justify-center border-2 border-white bg-transparent hover:bg-white hover:text-unmaris-blue text-white rounded-full transition-all text-xl font-bold">
+                        ←
+                    </button>
+                    <button @click="next()"
+                        class="w-12 h-12 flex items-center justify-center border-2 border-white bg-unmaris-yellow text-unmaris-blue border-black hover:scale-110 rounded-full transition-all text-xl font-bold shadow-[4px_4px_0px_0px_#000]">
+                        →
+                    </button>
+                </div>
+            </div>
+
+            <!-- SLIDER CONTENT -->
+            <div class="relative h-[550px] md:h-[500px]">
+
+                <!-- Jika Data Kosong -->
+                <template x-if="slides.length === 0">
+                    <div
+                        class="absolute inset-0 flex items-center justify-center border-4 border-dashed border-white/20 rounded-2xl">
+                        <p class="text-white/50 font-bold text-xl">Belum ada data fasilitas.</p>
+                    </div>
+                </template>
+
+                <template x-for="(slide, index) in slides" :key="index">
+                    <div x-show="active === index" x-transition:enter="transition ease-out duration-500"
                         x-transition:enter-start="opacity-0 translate-x-20"
                         x-transition:enter-end="opacity-100 translate-x-0"
                         x-transition:leave="transition ease-in duration-300"
                         x-transition:leave-start="opacity-100 translate-x-0"
-                        x-transition:leave-end="opacity-0 -translate-x-20"
-                        class="absolute inset-0 w-full h-full">
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-                        
-                        <!-- Image Side (Dengan Mini Slider Internal) -->
-                        <div class="relative h-64 md:h-full border-4 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0px_0px_#FACC15] group bg-gray-900"
-                             x-data="{ currentImg: 0 }" 
-                             x-init="setInterval(() => { currentImg = (currentImg + 1) % slide.images.length }, 2500)">
-                            
-                            <!-- Looping Gambar Internal -->
-                            <template x-for="(imgUrl, imgIndex) in slide.images" :key="imgIndex">
-                                <img :src="imgUrl" 
-                                     x-show="currentImg === imgIndex"
-                                     x-transition:enter="transition ease-in duration-500"
-                                     x-transition:enter-start="opacity-0 scale-105"
-                                     x-transition:enter-end="opacity-100 scale-100"
-                                     x-transition:leave="transition ease-out duration-500"
-                                     x-transition:leave-start="opacity-100 scale-100"
-                                     x-transition:leave-end="opacity-0 scale-95"
-                                     :alt="slide.title" 
-                                     class="absolute inset-0 w-full h-full object-cover">
-                            </template>
-                            
-                            <!-- Badge Icon -->
-                            <div class="absolute top-4 left-4 bg-white text-4xl w-16 h-16 flex items-center justify-center border-4 border-black rounded-full shadow-neo z-10" x-text="slide.icon"></div>
+                        x-transition:leave-end="opacity-0 -translate-x-20" class="absolute inset-0 w-full h-full">
 
-                            <!-- Indikator Foto Kecil -->
-                            <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10" x-show="slide.images.length > 1">
-                                <template x-for="(img, i) in slide.images">
-                                    <div class="h-1.5 rounded-full transition-all duration-300 shadow-sm"
-                                         :class="currentImg === i ? 'w-6 bg-unmaris-yellow' : 'w-1.5 bg-white/50'"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+
+                            <!-- Image Side (Dengan Mini Slider Internal) -->
+                            <div class="relative h-64 md:h-full border-4 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0px_0px_#FACC15] group bg-gray-900"
+                                x-data="{ currentImg: 0 }" x-init="// Ganti foto internal setiap 2.5 detik jika foto lebih dari 1
+                                if (slide.images.length > 1) {
+                                    setInterval(() => { currentImg = (currentImg + 1) % slide.images.length }, 2500)
+                                }">
+
+                                <!-- Looping Gambar Internal -->
+                                <template x-for="(imgUrl, imgIndex) in slide.images" :key="imgIndex">
+                                    <img :src="imgUrl" x-show="currentImg === imgIndex"
+                                        x-transition:enter="transition ease-in duration-500"
+                                        x-transition:enter-start="opacity-0 scale-105"
+                                        x-transition:enter-end="opacity-100 scale-100"
+                                        x-transition:leave="transition ease-out duration-500"
+                                        x-transition:leave-start="opacity-100 scale-100"
+                                        x-transition:leave-end="opacity-0 scale-95" :alt="slide.title"
+                                        class="absolute inset-0 w-full h-full object-cover">
                                 </template>
+
+                                <!-- Badge Icon -->
+                                <div class="absolute top-4 left-4 bg-white text-4xl w-16 h-16 flex items-center justify-center border-4 border-black rounded-full shadow-neo z-10"
+                                    x-text="slide.icon"></div>
+
+                                <!-- Indikator Foto Kecil -->
+                                <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10"
+                                    x-show="slide.images.length > 1">
+                                    <template x-for="(img, i) in slide.images">
+                                        <div class="h-1.5 rounded-full transition-all duration-300 shadow-sm"
+                                            :class="currentImg === i ? 'w-6 bg-unmaris-yellow' : 'w-1.5 bg-white/50'">
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Text Side -->
+                            <div class="flex flex-col justify-center text-left p-2">
+                                <h3 class="text-3xl md:text-5xl font-black text-white mb-4 leading-tight"
+                                    x-text="slide.title"></h3>
+                                <div class="w-24 h-2 bg-unmaris-yellow mb-6"></div>
+                                <p class="text-lg md:text-xl text-blue-100 leading-relaxed font-medium"
+                                    x-text="slide.desc"></p>
                             </div>
                         </div>
 
-                        <!-- Text Side -->
-                        <div class="flex flex-col justify-center text-left p-2">
-                            <h3 class="text-3xl md:text-5xl font-black text-white mb-4 leading-tight" x-text="slide.title"></h3>
-                            <div class="w-24 h-2 bg-unmaris-yellow mb-6"></div>
-                            <p class="text-lg md:text-xl text-blue-100 leading-relaxed font-medium" x-text="slide.desc"></p>
-                            
-                            <!-- List Lab jika di slide Laboratorium (Optional Detail) -->
-                            <div x-show="slide.title.includes('Laboratorium')" class="mt-4 flex flex-wrap gap-2">
-                                <span class="px-3 py-1 bg-blue-800 rounded border border-blue-500 text-xs font-bold text-blue-200">Multimedia</span>
-                                <span class="px-3 py-1 bg-blue-800 rounded border border-blue-500 text-xs font-bold text-blue-200">Hardware</span>
-                                <span class="px-3 py-1 bg-blue-800 rounded border border-blue-500 text-xs font-bold text-blue-200">Jaringan</span>
-                                <span class="px-3 py-1 bg-blue-800 rounded border border-blue-500 text-xs font-bold text-blue-200">K3</span>
-                                <span class="px-3 py-1 bg-blue-800 rounded border border-blue-500 text-xs font-bold text-blue-200">RS</span>
-                            </div>
-                        </div>
                     </div>
+                </template>
+            </div>
 
-                </div>
-            </template>
-        </div>
-
-        <!-- Dots Indicator Utama -->
-        <div class="flex justify-center md:justify-start gap-3 mt-8">
-            <template x-for="(slide, index) in slides" :key="index">
-                <button @click="active = index" 
-                        class="h-3 rounded-full transition-all duration-300"
+            <!-- Dots Indicator Utama -->
+            <div class="flex justify-center md:justify-start gap-3 mt-8" x-show="slides.length > 1">
+                <template x-for="(slide, index) in slides" :key="index">
+                    <button @click="active = index" class="h-3 rounded-full transition-all duration-300"
                         :class="active === index ? 'w-12 bg-unmaris-yellow' : 'w-3 bg-white/30 hover:bg-white'">
-                </button>
-            </template>
-        </div>
+                    </button>
+                </template>
+            </div>
 
-    </div>
-</section>
+        </div>
+    </section>
 
     <!-- JADWAL & BIAYA -->
     <section class="py-20 px-6 max-w-7xl mx-auto bg-gray-50 border-y-4 border-black">

@@ -9,6 +9,7 @@ use App\Livewire\Camaba\Pembayaran;
 // Import Livewire Components Baru
 use App\Livewire\Camaba\Dashboard as CamabaDashboard;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Models\FacilitySlide;
 use App\Models\Gelombang;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Auth;
@@ -18,8 +19,11 @@ Route::get('/', function () {
     $gelombangs = Gelombang::orderBy('tgl_mulai', 'asc')->get();
     $settings = SiteSetting::first();
 
+    $facilitySlides= FacilitySlide::where('is_active', true)
+                            ->orderBy('sort_order', 'asc')
+                            ->get();
     // Kirim variable $settings ke view
-    return view('welcome', compact('gelombangs', 'settings'));
+    return view('welcome', compact('gelombangs', 'settings', 'facilitySlides'));
 });
 Route::post('/admin/pendaftar/{id}/sync', [\App\Http\Controllers\Admin\PendaftarController::class, 'pushToSiakad'])
     ->name('admin.pendaftar.sync');
