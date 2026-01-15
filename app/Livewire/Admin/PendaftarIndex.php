@@ -127,6 +127,7 @@ class PendaftarIndex extends Component
 
         // URL API SIAKAD
         $urlSiakad = env('SIAKAD_API_URL') . '/api/v1/pmb/sync';
+        dd($urlSiakad);
 
         // 2. Loop dan Kirim
         foreach ($targets as $pendaftar) {

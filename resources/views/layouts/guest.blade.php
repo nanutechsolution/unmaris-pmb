@@ -13,6 +13,9 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        {{-- logo --}}
+        <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}" />
     </head>
     <body class="font-sans text-gray-900 antialiased bg-yellow-50 selection:bg-unmaris-blue selection:text-white">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 p-6">
