@@ -118,6 +118,9 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
         Route::get('/helpdesk', function () {
             return view('admin.helpdesk');
         })->name('helpdesk.index');
+
+
+        Route::get('/facilities', \App\Livewire\Admin\FacilityManager::class)->name('facilities');
     });
 
 // ====================================================

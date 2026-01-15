@@ -1,162 +1,203 @@
 <!-- Menggunakan Alpine logic untuk class binding -->
 
 <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-    class="fixed left-0 top-0 h-screen w-64 bg-unmaris-blue text-white border-r-4 border-black overflow-y-auto z-50 flex flex-col shadow-[4px_0px_0px_0px_rgba(0,0,0,1)] transition-transform duration-300 ease-in-out transform md:translate-x-0">
+    class="fixed left-0 top-0 h-screen w-64 bg-unmaris-blue text-white border-r-4 border-black overflow-y-auto z-50 flex flex-col shadow-[4px_0px_0px_0px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out transform md:translate-x-0">
 
     <!-- Tombol Close (Hanya di Mobile) -->
-    <button @click="sidebarOpen = false" class="md:hidden absolute top-2 right-2 text-white hover:text-yellow-400 p-2">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    <button @click="sidebarOpen = false"
+        class="md:hidden absolute top-3 right-3 text-white hover:text-yellow-400 p-2 transition-colors z-50">
+        <svg class="w-6 h-6 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
     </button>
 
-    <!-- Logo Area -->
-    <div class="p-6 text-center border-b-4 border-black bg-unmaris-yellow relative">
-        <div class="inline-block relative transform hover:scale-110 transition duration-300">
+    <!-- Logo Area (Compact & Clean) -->
+    <div class="p-4 border-b-4 border-black bg-unmaris-yellow flex items-center gap-3">
+        <div class="relative shrink-0">
             <img src="{{ asset('images/logo.png') }}"
-                onerror="this.src='https://ui-avatars.com/api/?name=UNMARIS&background=1e3a8a&color=facc15&size=128'"
-                class="h-16 w-16 mx-auto drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] rounded-full border-2 bg-unmaris-blue ">
+                onerror="this.src='https://ui-avatars.com/api/?name=UN&background=1e3a8a&color=facc15&size=128'"
+                class="h-10 w-10 rounded-full border-2 border-black bg-white shadow-sm">
+            <!-- Status Dot -->
+            <div
+                class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full animate-pulse">
+            </div>
         </div>
-        <h2 class="mt-3 font-black text-unmaris-blue text-2xl tracking-tighter uppercase leading-none drop-shadow-sm">
-            ADMIN<br>UNMARIS
-        </h2>
-        <span
-            class="text-xs font-bold bg-white px-2 py-0.5 rounded border border-black uppercase mt-1 inline-block text-unmaris-blue">
-            Role: {{ Auth::user()->role }}
-        </span>
+
+        <div class="flex-1 min-w-0">
+            <h2 class="font-black text-unmaris-blue text-base leading-tight tracking-tight truncate">
+                ADMIN PANEL
+            </h2>
+            <p class="text-[9px] font-bold text-unmaris-blue/70 uppercase tracking-widest truncate">
+                {{ Auth::user()->role }}
+            </p>
+        </div>
     </div>
 
-    <!-- Menu Items -->
-    <nav class="flex-1 px-4 py-6 space-y-4">
+    <!-- Menu Items Container -->
+    <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto custom-scrollbar">
 
         <!-- Dashboard -->
         <a href="{{ route('admin.dashboard') }}"
-            class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo 
+            class="group relative flex items-center px-3 py-2.5 font-black text-xs uppercase tracking-wide border-2 border-black rounded-lg transition-all duration-200 ease-out
            {{ request()->routeIs('admin.dashboard')
-               ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
-               : 'bg-unmaris-blue text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-            <span class="text-xl mr-3">⚡</span>
-            Command Center
+               ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
+               : 'bg-unmaris-blue text-white shadow-none hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
+            <span class="text-lg mr-3 group-hover:rotate-12 transition-transform duration-300">⚡</span>
+            <span>Command Center</span>
+
+            @if (request()->routeIs('admin.dashboard'))
+                <span class="absolute right-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span>
+            @endif
         </a>
 
-        <!-- Data Pendaftar -->
+        <!-- GROUP: PENDAFTARAN -->
+        <div class="pt-4 pb-1 px-2 flex items-center gap-2">
+            <div class="h-px bg-white/20 flex-1"></div>
+            <p class="text-[9px] text-yellow-400 font-black uppercase tracking-widest">Pendaftaran</p>
+            <div class="h-px bg-white/20 flex-1"></div>
+        </div>
+
         <a href="{{ route('admin.pendaftar.index') }}"
-            class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg transition-all duration-200
            {{ request()->routeIs('admin.pendaftar*')
-               ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
-               : 'bg-unmaris-blue text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-            <span class="text-xl mr-3">📂</span>
+               ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
+               : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">📂</span>
             Data Pendaftar
         </a>
 
         <a href="{{ route('admin.beasiswa.index') }}"
-            class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo opacity-80 hover:opacity-100
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg transition-all duration-200
            {{ request()->routeIs('admin.beasiswa*')
-               ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
-               : 'bg-unmaris-blue text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-            <span class="text-xl mr-3">🎓</span>
+               ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
+               : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🎓</span>
             Beasiswa
         </a>
 
-        <!-- SELEKSI (Hanya Akademik & Admin) -->
+        <!-- GROUP: AKADEMIK -->
         @if (in_array(Auth::user()->role, ['admin', 'akademik']))
-            <!-- Manajemen Gelombang -->
+            <div class="pt-4 pb-1 px-2 flex items-center gap-2">
+                <div class="h-px bg-white/20 flex-1"></div>
+                <p class="text-[9px] text-yellow-400 font-black uppercase tracking-widest">Akademik</p>
+                <div class="h-px bg-white/20 flex-1"></div>
+            </div>
+
             <a href="{{ route('admin.gelombang.index') ?? '#' }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg transition-all duration-200
             {{ request()->routeIs('admin.gelombang*')
-                ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
-                : 'bg-unmaris-blue text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">🌊</span>
+                ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
+                : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
+                <span class="text-lg mr-3 group-hover:animate-wave">🌊</span>
                 Gelombang PMB
             </a>
 
             <a href="{{ route('admin.seleksi.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg transition-all duration-200
        {{ request()->routeIs('admin.seleksi*')
-           ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
-           : 'bg-unmaris-blue text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">🎯</span>
+           ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
+           : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
+                <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🎯</span>
                 Seleksi & Nilai
             </a>
+
             <a href="{{ route('admin.wawancara.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
+                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg transition-all duration-200
        {{ request()->routeIs('admin.wawancara*')
-           ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
-           : 'bg-unmaris-blue text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">🎤</span>
+           ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
+           : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
+                <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🎤</span>
                 Wawancara
             </a>
         @endif
 
-        <!-- TEKNIS (Hanya Super Admin) -->
+        <!-- GROUP: SYSTEM AREA -->
         @if (Auth::user()->role === 'admin')
-            <div class="border-t-2 border-white/20 my-2"></div>
-            <p class="px-4 text-[10px] text-white/50 font-bold uppercase">System Area</p>
+            <div class="pt-4 pb-1 px-2 flex items-center gap-2">
+                <div class="h-px bg-white/20 flex-1"></div>
+                <p class="text-[9px] text-yellow-400 font-black uppercase tracking-widest">System Area</p>
+                <div class="h-px bg-white/20 flex-1"></div>
+            </div>
 
-            <!-- Manajemen User -->
-            <a href="{{ route('admin.users.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
-       {{ request()->routeIs('admin.users*')
-           ? 'bg-white text-unmaris-blue shadow-neo translate-x-1'
-           : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">👥</span>
-                Akun User
+            <!-- Fasilitas & Slider (Featured) -->
+            <a href="{{ route('admin.facilities') }}"
+                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg transition-all duration-200 bg-gray-800 text-white hover:bg-white hover:text-gray-900 hover:shadow-[3px_3px_0px_0px_#FACC15] hover:-translate-y-0.5
+               {{ request()->routeIs('admin.facilities*') ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-unmaris-blue' : '' }}">
+                <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🏢</span>
+                Slider & Fasilitas
             </a>
 
-            <a href="{{ route('admin.helpdesk.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
-   {{ request()->routeIs('admin.helpdesk*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">💬</span> Helpdesk
-            </a>
-
-            <a href="{{ route('admin.laporan.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
-       {{ request()->routeIs('admin.laporan*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">🖨️</span> Laporan
-            </a>
-            <a href="{{ route('admin.geographic.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
-   {{ request()->routeIs('admin.geographic*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">🌍</span> Peta Sebaran
-            </a>
-
+            <!-- Settings (Featured) -->
             <a href="{{ route('admin.settings.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
-       {{ request()->routeIs('admin.settings*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">⚙️</span> Settings
+                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg transition-all duration-200 bg-gray-800 text-white hover:bg-white hover:text-gray-900 hover:shadow-[3px_3px_0px_0px_#FACC15] hover:-translate-y-0.5
+       {{ request()->routeIs('admin.settings*') ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-unmaris-blue' : '' }}">
+                <span class="text-lg mr-3 group-hover:rotate-90 transition-transform duration-500">⚙️</span>
+                Web Settings
             </a>
 
-            <a href="{{ route('admin.announcements.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
-       {{ request()->routeIs('admin.announcements*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-unmaris-blue text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">📢</span> Pengumuman
-            </a>
+            <!-- Dropdown Menu Lainnya -->
+            <div x-data="{ open: false }"
+                class="mt-2 border-2 border-black rounded-lg bg-unmaris-blue/50 overflow-hidden">
+                <button @click="open = !open"
+                    class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-black uppercase tracking-wider text-white/80 hover:text-white hover:bg-white/10 transition">
+                    <span class="flex items-center gap-2"><span class="text-sm">🛠️</span> Menu Lainnya</span>
+                    <svg :class="open ? 'rotate-180' : ''" class="w-3 h-3 transition-transform duration-300"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
 
-            <a href="{{ route('admin.logs.index') }}"
-                class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
-       {{ request()->routeIs('admin.logs*') ? 'bg-white text-unmaris-blue shadow-neo translate-x-1' : 'bg-gray-800 text-white hover:bg-yellow-400 hover:text-unmaris-blue' }}">
-                <span class="text-xl mr-3">🕵️‍♂️</span> Log Aktivitas
-            </a>
+                <div x-show="open" x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 -translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0" class="space-y-1 p-2 bg-black/20">
+
+                    <a href="{{ route('admin.users.index') }}"
+                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                        <span>👥</span> User Management
+                    </a>
+                    <a href="{{ route('admin.helpdesk.index') }}"
+                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                        <span>💬</span> Helpdesk
+                    </a>
+                    <a href="{{ route('admin.laporan.index') }}"
+                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                        <span>🖨️</span> Laporan
+                    </a>
+                    <a href="{{ route('admin.geographic.index') }}"
+                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                        <span>🌍</span> Peta Sebaran
+                    </a>
+                    <a href="{{ route('admin.announcements.index') }}"
+                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                        <span>📢</span> Pengumuman
+                    </a>
+                    <a href="{{ route('admin.logs.index') }}"
+                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                        <span>🕵️‍♂️</span> Log Aktivitas
+                    </a>
+                </div>
+            </div>
         @endif
 
-        <!-- Separator -->
-        <div class="border-t-2 border-white/20 my-2"></div>
-
-        <!-- Logout Form (Fixed) -->
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit"
-                class="w-full flex items-center px-4 py-3 font-black border-2 border-black rounded-lg bg-red-500 text-white hover:bg-red-600 hover:shadow-neo transition-all transform hover:-translate-y-1">
-                <span class="text-xl mr-3">🚪</span>
-                Keluar
-            </button>
-        </form>
+        <!-- Logout Area -->
+        <div class="pt-4 pb-2">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit"
+                    class="group w-full flex items-center justify-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg bg-red-600 text-white hover:bg-red-500 hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5 transition-all duration-200">
+                    <span class="text-lg mr-2 group-hover:rotate-180 transition-transform duration-500">🚪</span>
+                    Keluar Sistem
+                </button>
+            </form>
+        </div>
 
     </nav>
 
-    <!-- Footer -->
-    <div
-        class="p-4 text-center text-[10px] font-bold text-white/50 uppercase tracking-widest border-t-4 border-black bg-black">
-        UNMARIS Admin System v2.0
+    <!-- Footer Info -->
+    <div class="p-3 text-center border-t-4 border-black bg-black">
+        <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">
+            UNMARIS SYSTEM v2.0
+        </p>
+        <p class="text-[8px] text-white/20 mt-1">&copy; {{ date('Y') }} IT Dev Team</p>
     </div>
 </div>
