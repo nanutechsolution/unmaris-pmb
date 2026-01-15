@@ -16,6 +16,8 @@
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- logo --}}
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
 </head>
 
 <body
@@ -267,10 +269,7 @@
     </section>
 
 
-
-
-
-    <!-- SECTION 2: FASILITAS & KEUNGGULAN (DYNAMIC DATABASE) -->
+    <!-- SECTION 2: FASILITAS & KEUNGGULAN (INTERACTIVE GALLERY) -->
     <section class="bg-unmaris-blue border-b-4 border-black py-16 md:py-24 text-white relative overflow-hidden">
 
         <!-- Background Decoration -->
@@ -283,17 +282,19 @@
 
         <div class="max-w-7xl mx-auto px-6 relative z-10" x-data="{
             active: 0,
-        
-            // INI BAGIAN DINAMISNYA (MENGAMBIL DARI DATABASE)
+            lightboxOpen: false,
+            lightboxImage: '',
             slides: {{ $facilitySlides->map(function ($slide) {
+                    $rawImages = is_string($slide->images) ? json_decode($slide->images, true) : $slide->images;
+                    $rawImages = is_array($rawImages) ? $rawImages : [];
+            
                     return [
                         'title' => $slide->title,
                         'desc' => $slide->description,
                         'icon' => $slide->icon,
-                        // Logika Gambar: Cek apakah URL http (seeder) atau path storage (upload admin)
-                        'images' => collect($slide->images)->map(function ($img) {
-                            return \Illuminate\Support\Str::startsWith($img, 'http') ? $img : asset('storage/' . $img);
-                        }),
+                        'images' => collect($rawImages)->map(function ($img) {
+                                return \Illuminate\Support\Str::startsWith($img, 'http') ? $img : asset('storage/' . $img);
+                            })->values()->toArray(),
                     ];
                 })->toJson() }},
         
@@ -303,13 +304,22 @@
             prev() {
                 this.active = (this.active - 1 + this.slides.length) % this.slides.length;
             },
+            openZoom(url) {
+                this.lightboxImage = url;
+                this.lightboxOpen = true;
+            },
             init() {
-                // Auto slide jika ada datanya
                 if (this.slides.length > 0) {
-                    setInterval(() => this.next(), 8000);
+                    setInterval(() => {
+                        // Hanya auto-slide jika lightbox sedang tertutup
+                        if (!this.lightboxOpen) {
+                            this.next();
+                        }
+                    }, 9000);
                 }
             }
-        }">
+        }"
+            @keydown.escape.window="lightboxOpen = false">
 
             <!-- Header Section -->
             <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
@@ -325,20 +335,15 @@
                 <!-- Slider Controls -->
                 <div class="flex gap-3" x-show="slides.length > 1">
                     <button @click="prev()"
-                        class="w-12 h-12 flex items-center justify-center border-2 border-white bg-transparent hover:bg-white hover:text-unmaris-blue text-white rounded-full transition-all text-xl font-bold">
-                        ←
-                    </button>
+                        class="w-12 h-12 flex items-center justify-center border-2 border-white bg-transparent hover:bg-white hover:text-unmaris-blue text-white rounded-full transition-all text-xl font-bold">←</button>
                     <button @click="next()"
-                        class="w-12 h-12 flex items-center justify-center border-2 border-white bg-unmaris-yellow text-unmaris-blue border-black hover:scale-110 rounded-full transition-all text-xl font-bold shadow-[4px_4px_0px_0px_#000]">
-                        →
-                    </button>
+                        class="w-12 h-12 flex items-center justify-center border-2 border-white bg-unmaris-yellow text-unmaris-blue border-black hover:scale-110 rounded-full transition-all text-xl font-bold shadow-[4px_4px_0px_0px_#000]">→</button>
                 </div>
             </div>
 
-            <!-- SLIDER CONTENT -->
+            <!-- MAIN SLIDER CONTENT -->
             <div class="relative h-[550px] md:h-[500px]">
 
-                <!-- Jika Data Kosong -->
                 <template x-if="slides.length === 0">
                     <div
                         class="absolute inset-0 flex items-center justify-center border-4 border-dashed border-white/20 rounded-2xl">
@@ -356,36 +361,68 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
 
-                            <!-- Image Side (Dengan Mini Slider Internal) -->
+                            <!-- Image Side (INTERACTIVE MINI SLIDER) -->
                             <div class="relative h-64 md:h-full border-4 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0px_0px_#FACC15] group bg-gray-900"
-                                x-data="{ currentImg: 0 }" x-init="// Ganti foto internal setiap 2.5 detik jika foto lebih dari 1
-                                if (slide.images.length > 1) {
-                                    setInterval(() => { currentImg = (currentImg + 1) % slide.images.length }, 2500)
-                                }">
+                                x-data="{
+                                    currentImg: 0,
+                                    imgCount: slide.images.length,
+                                    timer: null,
+                                    startTimer() {
+                                        if (this.imgCount > 1) {
+                                            this.timer = setInterval(() => {
+                                                this.currentImg = (this.currentImg + 1) % this.imgCount;
+                                            }, 3000);
+                                        }
+                                    },
+                                    stopTimer() {
+                                        clearInterval(this.timer);
+                                    }
+                                }" x-init="startTimer()" @mouseenter="stopTimer()"
+                                @mouseleave="startTimer()">
 
                                 <!-- Looping Gambar Internal -->
                                 <template x-for="(imgUrl, imgIndex) in slide.images" :key="imgIndex">
-                                    <img :src="imgUrl" x-show="currentImg === imgIndex"
-                                        x-transition:enter="transition ease-in duration-500"
+                                    <div class="absolute inset-0 w-full h-full cursor-zoom-in"
+                                        x-show="currentImg === imgIndex"
+                                        x-transition:enter="transition ease-in duration-700"
                                         x-transition:enter-start="opacity-0 scale-105"
                                         x-transition:enter-end="opacity-100 scale-100"
-                                        x-transition:leave="transition ease-out duration-500"
+                                        x-transition:leave="transition ease-out duration-700"
                                         x-transition:leave-start="opacity-100 scale-100"
-                                        x-transition:leave-end="opacity-0 scale-95" :alt="slide.title"
-                                        class="absolute inset-0 w-full h-full object-cover">
+                                        x-transition:leave-end="opacity-0 scale-95" @click="openZoom(imgUrl)">
+                                        <img :src="imgUrl" :alt="slide.title"
+                                            class="w-full h-full object-cover">
+
+                                        <!-- Overlay Hint (Muncul saat hover) -->
+                                        <div
+                                            class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                            <span
+                                                class="bg-black/50 text-white px-3 py-1 rounded-full text-sm font-bold backdrop-blur-sm border border-white/30">
+                                                🔍 Klik untuk Perbesar
+                                            </span>
+                                        </div>
+                                    </div>
                                 </template>
 
+                                <!-- Fallback -->
+                                <div x-show="imgCount === 0"
+                                    class="absolute inset-0 flex items-center justify-center bg-gray-800 text-gray-500 font-bold">
+                                    No Image Available
+                                </div>
+
                                 <!-- Badge Icon -->
-                                <div class="absolute top-4 left-4 bg-white text-4xl w-16 h-16 flex items-center justify-center border-4 border-black rounded-full shadow-neo z-10"
+                                <div class="absolute top-4 left-4 bg-white text-4xl w-16 h-16 flex items-center justify-center border-4 border-black rounded-full shadow-neo z-10 pointer-events-none"
                                     x-text="slide.icon"></div>
 
-                                <!-- Indikator Foto Kecil -->
+                                <!-- Interactive Dots (Bisa Diklik) -->
                                 <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10"
-                                    x-show="slide.images.length > 1">
+                                    x-show="imgCount > 1">
                                     <template x-for="(img, i) in slide.images">
-                                        <div class="h-1.5 rounded-full transition-all duration-300 shadow-sm"
-                                            :class="currentImg === i ? 'w-6 bg-unmaris-yellow' : 'w-1.5 bg-white/50'">
-                                        </div>
+                                        <button @click="currentImg = i"
+                                            class="h-2 rounded-full transition-all duration-300 shadow-sm border border-black/20 hover:scale-125 focus:outline-none"
+                                            :class="currentImg === i ? 'w-8 bg-unmaris-yellow' :
+                                                'w-2 bg-white/70 hover:bg-white'">
+                                        </button>
                                     </template>
                                 </div>
                             </div>
@@ -411,6 +448,32 @@
                         :class="active === index ? 'w-12 bg-unmaris-yellow' : 'w-3 bg-white/30 hover:bg-white'">
                     </button>
                 </template>
+            </div>
+
+            <!-- LIGHTBOX MODAL (FULLSCREEN ZOOM) -->
+            <div x-show="lightboxOpen" style="display: none;" x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+                @click.self="lightboxOpen = false">
+
+                <div class="relative max-w-5xl w-full max-h-screen flex flex-col items-center">
+                    <!-- Close Button -->
+                    <button @click="lightboxOpen = false"
+                        class="absolute -top-12 right-0 text-white hover:text-unmaris-yellow transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Zoomed Image -->
+                    <img :src="lightboxImage"
+                        class="max-w-full max-h-[85vh] rounded-lg shadow-2xl border-2 border-white/20 object-contain">
+
+                    <p class="text-white/50 text-sm mt-4 font-bold">Tekan ESC atau klik area gelap untuk menutup</p>
+                </div>
             </div>
 
         </div>
@@ -833,22 +896,46 @@
         </div>
     </section>
 
-    <footer class="bg-white border-t-4 border-black py-10 px-6 pb-24 md:pb-10">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-3">
-                <img src="{{ asset('images/logo.png') }}"
-                    onerror="this.src='https://ui-avatars.com/api/?name=UN&background=1e3a8a&color=facc15'"
-                    class="h-12 w-12 border-2 border-black rounded-full bg-white">
-                <div>
-                    <h4 class="font-black text-unmaris-blue uppercase text-lg">Universitas Stella Maris Sumba</h4>
-                    <p class="text-xs font-bold text-gray-500">Jl. Soekarno Hatta No.05, Tambolaka, NTT</p>
+     <footer class="bg-white border-t-4 border-black py-10 px-6 pb-24 md:pb-10">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                
+                <!-- Identitas Kampus -->
+                <div class="flex items-center gap-3">
+                    <img src="{{ asset('images/logo.png') }}" onerror="this.src='https://ui-avatars.com/api/?name=UN&background=1e3a8a&color=facc15'" class="h-12 w-12 border-2 border-black rounded-full bg-white">
+                    <div>
+                        <h4 class="font-black text-unmaris-blue uppercase text-lg">Universitas Stella Maris Sumba</h4>
+                        <p class="text-xs font-bold text-gray-500">Jl. Soekarno Hatta No.05, Tambolaka, NTT</p>
+                    </div>
+                </div>
+
+                <!-- SOCIAL MEDIA ICONS (BARU) -->
+                <div class="flex gap-4">
+                    <!-- Facebook -->
+                    <a href="#" class="w-10 h-10 bg-[#1877F2] text-white rounded-full flex items-center justify-center border-2 border-black hover:-translate-y-1 transition-transform shadow-sm" title="Facebook">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    
+                    <!-- Instagram -->
+                    <a href="#" class="w-10 h-10 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 text-white rounded-full flex items-center justify-center border-2 border-black hover:-translate-y-1 transition-transform shadow-sm" title="Instagram">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.225-.149-4.771-1.664-4.919-4.919-.058-1.265-.069-1.644-.069-4.849 0-3.204.012-3.584.069-4.849.149-3.226 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+
+                    <!-- YouTube -->
+                    <a href="#" class="w-10 h-10 bg-[#FF0000] text-white rounded-full flex items-center justify-center border-2 border-black hover:-translate-y-1 transition-transform shadow-sm" title="YouTube">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+
+                    <!-- TikTok -->
+                    <a href="#" class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center border-2 border-gray-600 hover:-translate-y-1 transition-transform shadow-sm" title="TikTok">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93v6.16c0 2.52-1.12 4.88-2.91 6.37-1.48 1.25-3.4 2.01-5.39 2.14-2.7.2-5.34-1.32-6.27-3.81-.38-1.01-.44-2.11-.2-3.18.23-1.07.72-2.08 1.46-2.91 1.74-1.9 4.66-2.23 6.81-.83.24.16.46.35.66.54v-4.4c-1.66-.4-3.42-.3-5.02.33-1.66.65-3.04 1.9-3.94 3.46-.88 1.54-1.19 3.39-.74 5.12.45 1.72 1.56 3.24 3.04 4.19 1.66 1.07 3.73 1.34 5.66.79 1.84-.53 3.39-1.83 4.19-3.55.8-1.72.82-3.76.06-5.54-.42-1.01-1.14-1.89-2.02-2.56-.57-.43-1.21-.77-1.89-1.01V.02z"/></svg>
+                    </a>
+                </div>
+
+                <div class="text-sm font-bold text-gray-500 text-center md:text-right">
+                    &copy; {{ date('Y') }} PMB UNMARIS. All rights reserved.
                 </div>
             </div>
-            <div class="text-sm font-bold text-gray-500 text-center md:text-right">
-                &copy; {{ date('Y') }} PMB UNMARIS. All rights reserved.
-            </div>
-        </div>
-    </footer>
+        </footer>
 
     <!-- MOBILE STICKY BOTTOM -->
     <div
