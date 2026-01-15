@@ -11,6 +11,7 @@ use Livewire\Volt\Component;
 new #[Layout('layouts.guest')] class extends Component
 {
     public string $name = '';
+    public string $nomor_hp = ''; // Property Baru
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
@@ -22,15 +23,14 @@ new #[Layout('layouts.guest')] class extends Component
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            'nomor_hp' => ['required', 'numeric', 'digits_between:10,15'], // Validasi No HP
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
-        // Set default role jika database mendukung, atau biarkan default migration handle
-        // $validated['role'] = 'camaba'; 
-
+        // Pastikan kolom 'nomor_hp' ada di fillable model User & Database
         event(new Registered($user = User::create($validated)));
 
         Auth::login($user);
@@ -54,29 +54,44 @@ new #[Layout('layouts.guest')] class extends Component
         
         <!-- Nama Lengkap -->
         <div>
-            <label for="name" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">Nama Lengkap</label>
+            <label for="name" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">
+                Nama Lengkap <span class="text-red-500">*</span>
+            </label>
             <input wire:model="name" id="name" type="text" 
-                   class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
-                   placeholder="Sesuai Ijazah / KTP" required autofocus autocomplete="name" />
+                   class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400 uppercase" 
+                   placeholder="SESUAI IJAZAH TERAKHIR" required autofocus autocomplete="name" />
+            <p class="text-[10px] font-bold text-gray-500 mt-1">⚠️ Wajib sama persis dengan ijazah SMA/SMK.</p>
             <x-input-error :messages="$errors->get('name')" class="mt-1 font-bold text-red-500 text-xs" />
+        </div>
+
+        <!-- Nomor HP / WhatsApp (BARU) -->
+        <div>
+            <label for="nomor_hp" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">
+                No. HP / WhatsApp (Aktif) <span class="text-red-500">*</span>
+            </label>
+            <input wire:model="nomor_hp" id="nomor_hp" type="tel" inputmode="numeric" 
+                   class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
+                   placeholder="Contoh: 081234567890" required />
+            <p class="text-[10px] font-bold text-gray-500 mt-1">Digunakan untuk info jadwal ujian & kelulusan.</p>
+            <x-input-error :messages="$errors->get('nomor_hp')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
 
         <!-- Email -->
         <div>
-            <label for="email" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">Alamat Email</label>
+            <label for="email" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">
+                Alamat Email <span class="text-red-500">*</span>
+            </label>
             <input wire:model="email" id="email" type="email" 
                    class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
                    placeholder="email.kamu@gmail.com" required autocomplete="username" />
-            <p class="text-[10px] font-bold text-gray-500 mt-1 flex items-center">
-                <svg class="w-3 h-3 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                Pastikan email aktif untuk info kelulusan.
-            </p>
             <x-input-error :messages="$errors->get('email')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
 
         <!-- Password -->
         <div>
-            <label for="password" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">Buat Password</label>
+            <label for="password" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">
+                Buat Password <span class="text-red-500">*</span>
+            </label>
             <input wire:model="password" id="password" type="password" 
                    class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
                    placeholder="Minimal 8 karakter" required autocomplete="new-password" />
@@ -85,24 +100,24 @@ new #[Layout('layouts.guest')] class extends Component
 
         <!-- Confirm Password -->
         <div>
-            <label for="password_confirmation" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">Ulangi Password</label>
+            <label for="password_confirmation" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">
+                Ulangi Password <span class="text-red-500">*</span>
+            </label>
             <input wire:model="password_confirmation" id="password_confirmation" type="password" 
                    class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
                    placeholder="Ketik ulang password di atas" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
 
-        <!-- Tombol Aksi dengan Loading State -->
+        <!-- Tombol Aksi -->
         <div class="pt-4">
             <button type="submit" 
                     wire:loading.attr="disabled"
-                    class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-4 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg flex justify-center items-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-x-[2px] disabled:translate-y-[2px]">
+                    class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-4 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg flex justify-center items-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none">
                 
-                <!-- Tampil Saat Normal -->
                 <span wire:loading.remove>DAFTAR SEKARANG</span>
                 <span wire:loading.remove class="group-hover:translate-x-1 transition-transform">👉</span>
 
-                <!-- Tampil Saat Loading -->
                 <span wire:loading class="flex items-center gap-2">
                     <svg class="animate-spin h-5 w-5 text-unmaris-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
