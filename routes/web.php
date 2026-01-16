@@ -19,9 +19,9 @@ Route::get('/', function () {
     $gelombangs = Gelombang::orderBy('tgl_mulai', 'asc')->get();
     $settings = SiteSetting::first();
 
-    $facilitySlides= FacilitySlide::where('is_active', true)
-                            ->orderBy('sort_order', 'asc')
-                            ->get();
+    $facilitySlides = FacilitySlide::where('is_active', true)
+        ->orderBy('sort_order', 'asc')
+        ->get();
     // Kirim variable $settings ke view
     return view('welcome', compact('gelombangs', 'settings', 'facilitySlides'));
 });
@@ -65,7 +65,10 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-
+        Route::patch(
+            '/pendaftar/{id}/lulus-pilihan',
+            [PendaftarController::class, 'lulusPilihan']
+        )->name('pendaftar.lulus-prodi');
         // 1. Command Center (Livewire)
         Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
         // 2. Export Data Excel
@@ -125,6 +128,23 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
 
         Route::get('/facilities', \App\Livewire\Admin\FacilityManager::class)->name('facilities');
+
+
+        Route::patch(
+            '/pendaftar/{id}/lulus-pilihan',
+            [PendaftarController::class, 'lulusPilihan']
+        )->name('pendaftar.lulus-pilihan');
+
+        Route::patch(
+            '/pendaftar/{id}/rekomendasi',
+            [\App\Http\Controllers\Admin\PendaftarController::class, 'simpanRekomendasi']
+        )->name('pendaftar.rekomendasi');
+
+
+        Route::patch(
+            '/pendaftar/{pendaftar}/lulus-rekomendasi',
+            [App\Http\Controllers\Admin\PendaftarController::class, 'lulusRekomendasi']
+        )->name('pendaftar.lulus-rekomendasi');
     });
 
 // ====================================================

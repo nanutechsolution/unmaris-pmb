@@ -155,7 +155,8 @@ class PendaftarController extends Controller
                 'nik'             => $pendaftar->nik,
                 'name'            => $pendaftar->user->name,
                 'email'           => $pendaftar->user->email,
-                'prodi_code'      => $pendaftar->pilihan_prodi_1,
+                // 'prodi_code'      => $pendaftar->pilihan_prodi_1,
+                'prodi_code' => $pendaftar->prodi_diterima,
                 'entry_year'      => (string) $tahun, // Sesuaikan dengan tahun format di atas
                 'mother_name'     => $pendaftar->nama_ibu,
                 'school_name'     => $pendaftar->asal_sekolah,
@@ -189,5 +190,123 @@ class PendaftarController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'System Error: ' . $e->getMessage());
         }
+    }
+
+    // public function lulusPilihan(Request $request, $id)
+    // {
+
+    //     $request->validate([
+    //         'pilihan' => 'required|in:1,2'
+    //     ]);
+
+    //     $pendaftar = Pendaftar::findOrFail($id);
+
+    //     // SYARAT WAJIB
+    //     if ($pendaftar->status_pembayaran !== 'lunas') {
+    //         return back()->with('error', 'Belum lunas pembayaran');
+    //     }
+
+    //     if ($pendaftar->nilai_ujian <= 0 || $pendaftar->nilai_wawancara <= 0) {
+    //         return back()->with('error', 'Nilai belum lengkap');
+    //     }
+
+    //     if ($request->pilihan == 1) {
+    //         $pendaftar->update([
+    //             'status_pilihan_1' => 'lulus',
+    //             'prodi_diterima'   => $pendaftar->pilihan_prodi_1,
+    //             'status_pendaftaran' => 'lulus',
+    //         ]);
+    //     }
+
+    //     if ($request->pilihan == 2) {
+    //         $pendaftar->update([
+    //             'status_pilihan_2' => 'lulus',
+    //             'prodi_diterima'   => $pendaftar->pilihan_prodi_2,
+    //             'status_pendaftaran' => 'lulus',
+    //         ]);
+    //     }
+
+    //     Logger::record(
+    //         'LULUS',
+    //         'PMB',
+    //         "Pendaftar {$pendaftar->id} lulus pilihan {$request->pilihan}"
+    //     );
+
+    //     return back()->with('success', 'Peserta dinyatakan LULUS');
+    // }
+
+
+
+    public function lulusPilihan(Request $request, $id)
+    {
+        $pendaftar = Pendaftar::findOrFail($id);
+
+        // 🔒 JIKA SUDAH LULUS → STOP
+        if ($pendaftar->is_locked) {
+            return back()->with('error', 'Data sudah dikunci. Kelulusan bersifat final.');
+        }
+
+        $request->validate([
+            'pilihan' => 'required|in:1,2'
+        ]);
+
+        // Tentukan prodi diterima
+        $prodi = $request->pilihan == 1
+            ? $pendaftar->pilihan_prodi_1
+            : $pendaftar->pilihan_prodi_2;
+
+        if (!$prodi) {
+            return back()->with('error', 'Pilihan prodi tidak valid.');
+        }
+
+        // ✅ FINALISASI
+        $pendaftar->update([
+            'status_pendaftaran' => 'lulus',
+            'prodi_diterima'     => $prodi,
+            'is_locked'          => true,
+        ]);
+
+        return back()->with('success', 'Mahasiswa dinyatakan LULUS di ' . $prodi);
+    }
+
+
+    public function simpanRekomendasi(Request $request, $id)
+    {
+        $request->validate([
+            'rekomendasi_prodi' => 'nullable|string',
+            'catatan_seleksi'   => 'nullable|string',
+        ]);
+
+        $pendaftar = Pendaftar::findOrFail($id);
+
+        // ❌ Kalau sudah lulus, TOLAK
+        if ($pendaftar->status_pendaftaran === 'lulus') {
+            return back()->with('error', 'Data sudah final dan tidak dapat diubah.');
+        }
+
+        $pendaftar->update([
+            'rekomendasi_prodi' => $request->rekomendasi_prodi,
+            'catatan_seleksi'   => $request->catatan_seleksi,
+        ]);
+
+        return back()->with('success', 'Rekomendasi & catatan seleksi berhasil disimpan.');
+    }
+
+
+    public function lulusRekomendasi(Pendaftar $pendaftar)
+    {
+        if (!$pendaftar->rekomendasi_prodi) {
+            return back()->with('error', 'Tidak ada rekomendasi prodi.');
+        }
+
+        $pendaftar->update([
+            'status_pendaftaran' => 'lulus',
+            'prodi_diterima' => $pendaftar->rekomendasi_prodi,
+        ]);
+
+        return back()->with(
+            'success',
+            'Pendaftar diluluskan sesuai rekomendasi prodi.'
+        );
     }
 }

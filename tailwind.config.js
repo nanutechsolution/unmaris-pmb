@@ -11,6 +11,7 @@ export default {
     ],
 
     theme: {
+        dark: 'class',
         extend: {
             // 🎨 PALET WARNA KHUSUS UNMARIS
             colors: {

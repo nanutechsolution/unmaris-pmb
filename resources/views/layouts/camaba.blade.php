@@ -13,6 +13,9 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        {{-- icon --}}
+        <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     </head>
     <body class="font-sans antialiased bg-yellow-50">
         <!-- Root Alpine State -->

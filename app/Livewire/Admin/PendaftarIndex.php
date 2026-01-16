@@ -107,97 +107,96 @@ class PendaftarIndex extends Component
         ]);
     }
 
- public function syncToSiakadBulk()
-{
-    $targets = Pendaftar::with('user')
-        ->whereIn('id', $this->selected)
-        ->where('status_pendaftaran', 'lulus')
-        ->where('is_synced', false)
-        ->get();
+    public function syncToSiakadBulk()
+    {
+        $targets = Pendaftar::with('user')
+            ->whereIn('id', $this->selected)
+            ->where('status_pendaftaran', 'lulus')
+            ->where('is_synced', false)
+            ->get();
 
-    if ($targets->isEmpty()) {
-        session()->flash('error', 'Tidak ada data valid yang bisa dikirim.');
-        return;
-    }
+        if ($targets->isEmpty()) {
+            session()->flash('error', 'Tidak ada data valid yang bisa dikirim.');
+            return;
+        }
 
-    $successCount = 0;
-    $failCount = 0;
-    $errorMessages = [];
+        $successCount = 0;
+        $failCount = 0;
+        $errorMessages = [];
 
-    $urlSiakad = env('SIAKAD_API_URL') . '/api/v1/pmb/sync';
+        $urlSiakad = env('SIAKAD_API_URL') . '/api/v1/pmb/sync';
 
-    foreach ($targets as $pendaftar) {
-        try {
-            $response = Http::timeout(10)->post($urlSiakad, [
-                'name'            => $pendaftar->user->name,
-                'email'           => $pendaftar->user->email,
-                'nomor_hp'        => $pendaftar->user->nomor_hp,
-                'nik'             => $pendaftar->nik,
-                'nisn'            => $pendaftar->nisn,
-                'asal_sekolah'    => $pendaftar->asal_sekolah,
-                'tahun_lulus'     => (int) $pendaftar->tahun_lulus,
-                'nama_ayah'       => $pendaftar->nama_ayah,
-                'nama_ibu'        => $pendaftar->nama_ibu,
-                'pilihan_prodi_1' => $pendaftar->pilihan_prodi_1,
-                'pilihan_prodi_2' => $pendaftar->pilihan_prodi_2,
-                'jalur_masuk'     => $pendaftar->jalur_pendaftaran,
-                'secret_key'      => env('SIAKAD_API_SECRET'),
-            ]);
+        foreach ($targets as $pendaftar) {
+            try {
+                $response = Http::timeout(10)->post($urlSiakad, [
+                    'name'            => $pendaftar->user->name,
+                    'email'           => $pendaftar->user->email,
+                    'nomor_hp'        => $pendaftar->user->nomor_hp,
+                    'nik'             => $pendaftar->nik,
+                    'nisn'            => $pendaftar->nisn,
+                    'asal_sekolah'    => $pendaftar->asal_sekolah,
+                    'tahun_lulus'     => (int) $pendaftar->tahun_lulus,
+                    'nama_ayah'       => $pendaftar->nama_ayah,
+                    'nama_ibu'        => $pendaftar->nama_ibu,
+                    'pilihan_prodi_1' => $pendaftar->pilihan_prodi_1,
+                    'pilihan_prodi_2' => $pendaftar->pilihan_prodi_2,
+                    'jalur_masuk'     => $pendaftar->jalur_pendaftaran,
+                    'secret_key'      => env('SIAKAD_API_SECRET'),
+                ]);
 
-            $result = $response->json();
+                $result = $response->json();
 
-            if ($response->successful() && ($result['status'] ?? '') === 'success') {
-                $pendaftar->update(['is_synced' => true]);
+                if ($response->successful() && ($result['status'] ?? '') === 'success') {
+                    $pendaftar->update(['is_synced' => true]);
 
-                Logger::record(
-                    'SYNC',
-                    'SIAKAD Integration',
-                    "Berhasil sync {$pendaftar->user->name}, NIM: " . ($result['data']['nim_sementara'] ?? '-')
-                );
+                    Logger::record(
+                        'SYNC',
+                        'SIAKAD Integration',
+                        "Berhasil sync {$pendaftar->user->name}, NIM: " . ($result['data']['nim_sementara'] ?? '-')
+                    );
 
-                $successCount++;
-            } else {
+                    $successCount++;
+                } else {
+                    $failCount++;
+
+                    $errorMessages[] =
+                        "{$pendaftar->user->name} → " .
+                        ($result['message'] ?? 'Respon gagal dari server SIAKAD');
+
+                    Logger::record(
+                        'ERROR',
+                        'SIAKAD Integration',
+                        "Gagal sync {$pendaftar->user->name}. HTTP {$response->status()} | " . json_encode($result)
+                    );
+                }
+            } catch (\Throwable $e) {
                 $failCount++;
 
                 $errorMessages[] =
-                    "{$pendaftar->user->name} → " .
-                    ($result['message'] ?? 'Respon gagal dari server SIAKAD');
+                    "{$pendaftar->user->name} → " . $e->getMessage();
 
                 Logger::record(
                     'ERROR',
                     'SIAKAD Integration',
-                    "Gagal sync {$pendaftar->user->name}. HTTP {$response->status()} | " . json_encode($result)
+                    "Exception sync {$pendaftar->user->name}: " . $e->getMessage()
                 );
             }
-        } catch (\Throwable $e) {
-            $failCount++;
+        }
 
-            $errorMessages[] =
-                "{$pendaftar->user->name} → " . $e->getMessage();
+        $this->resetSelection();
 
-            Logger::record(
-                'ERROR',
-                'SIAKAD Integration',
-                "Exception sync {$pendaftar->user->name}: " . $e->getMessage()
+        if ($successCount > 0) {
+            session()->flash(
+                'success',
+                "Berhasil sync $successCount mahasiswa. Gagal: $failCount"
+            );
+        }
+
+        if ($failCount > 0) {
+            session()->flash(
+                'error',
+                "Detail error:\n" . implode("\n", $errorMessages)
             );
         }
     }
-
-    $this->resetSelection();
-
-    if ($successCount > 0) {
-        session()->flash(
-            'success',
-            "Berhasil sync $successCount mahasiswa. Gagal: $failCount"
-        );
-    }
-
-    if ($failCount > 0) {
-        session()->flash(
-            'error',
-            "Detail error:\n" . implode("\n", $errorMessages)
-        );
-    }
-}
-
 }

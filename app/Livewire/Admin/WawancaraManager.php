@@ -11,11 +11,11 @@ class WawancaraManager extends Component
     use WithPagination;
 
     public $search = '';
-    
+
     // --- FITUR BULK ACTION (AKSI MASSAL) ---
-    public $selected = []; 
+    public $selected = [];
     public $selectAll = false;
-    
+
     public $bulk_jadwal_wawancara;
     public $bulk_pewawancara;
 
@@ -28,8 +28,14 @@ class WawancaraManager extends Component
     public $isModalOpen = false;
 
     // Reset jika pindah halaman/search
-    public function updatingPage() { $this->resetSelection(); }
-    public function updatingSearch() { $this->resetSelection(); }
+    public function updatingPage()
+    {
+        $this->resetSelection();
+    }
+    public function updatingSearch()
+    {
+        $this->resetSelection();
+    }
 
     public function resetSelection()
     {
@@ -53,8 +59,8 @@ class WawancaraManager extends Component
             ->latest();
 
         if ($this->search) {
-            $query->whereHas('user', function($q) {
-                $q->where('name', 'like', '%'.$this->search.'%');
+            $query->whereHas('user', function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%');
             });
         }
         return $query;
@@ -84,7 +90,7 @@ class WawancaraManager extends Component
         $count = count($this->selected);
         $this->resetSelection();
         $this->reset(['bulk_jadwal_wawancara', 'bulk_pewawancara']);
-        
+
         session()->flash('message', "Berhasil menjadwalkan wawancara untuk $count peserta sekaligus!");
     }
 

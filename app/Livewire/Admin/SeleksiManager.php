@@ -13,11 +13,12 @@ class SeleksiManager extends Component
 
     public $search = '';
     
-    // --- FITUR BULK ACTION (AKSI MASSAL) ---
-    public $selected = []; // Menyimpan ID yang dicentang
-    public $selectAll = false; // Checkbox "Pilih Semua"
+    // --- FITUR FILTER (AGAR TIDAK PUSING) ---
+    public $filterStatus = 'belum_jadwal'; // Default tampilkan yang perlu dikerjakan duluan
     
-    // Variable Form Massal
+    // --- FITUR BULK ACTION ---
+    public $selected = []; 
+    public $selectAll = false; 
     public $bulk_jadwal_ujian;
     public $bulk_lokasi_ujian;
 
@@ -29,9 +30,10 @@ class SeleksiManager extends Component
     public $catatan_penguji;
     public $isModalOpen = false;
 
-    // Hook: Reset seleksi jika pindah halaman atau search
+    // Hook: Reset seleksi & page jika filter berubah
     public function updatingPage() { $this->resetSelection(); }
     public function updatingSearch() { $this->resetSelection(); }
+    public function updatingFilterStatus() { $this->resetSelection(); $this->resetPage(); }
 
     public function resetSelection()
     {
@@ -39,32 +41,41 @@ class SeleksiManager extends Component
         $this->selectAll = false;
     }
 
-    // Logic "Pilih Semua"
     public function updatedSelectAll($value)
     {
         if ($value) {
-            // Ambil semua ID dari query saat ini (semua halaman atau halaman ini saja tergantung kebutuhan logic)
-            // Di sini kita ambil halaman ini saja agar performa aman
+            // Ambil ID sesuai query filter saat ini (Smart Select)
             $this->selected = $this->getPendaftarQuery()->pluck('id')->map(fn($id) => (string) $id)->toArray();
         } else {
             $this->selected = [];
         }
     }
 
-    // Query Pusat
+    // Query Pusat yang Lebih Pintar
     private function getPendaftarQuery()
     {
         $query = Pendaftar::with('user')
-            // Tampilkan yang sudah diverifikasi, lulus, atau gagal
-            ->whereIn('status_pendaftaran', ['verifikasi', 'lulus', 'gagal'])
-            ->latest();
+            // Hanya ambil status yang relevan dengan ujian
+            ->whereIn('status_pendaftaran', ['submit', 'verifikasi', 'lulus', 'gagal']);
 
+        // --- FILTER PINTAR ---
+        if ($this->filterStatus == 'belum_jadwal') {
+            $query->whereNull('jadwal_ujian');
+        } elseif ($this->filterStatus == 'sudah_jadwal') {
+            $query->whereNotNull('jadwal_ujian')->where('nilai_ujian', 0);
+        } elseif ($this->filterStatus == 'sudah_nilai') {
+            $query->where('nilai_ujian', '>', 0);
+        }
+
+        // Search Logic
         if ($this->search) {
             $query->whereHas('user', function($q) {
                 $q->where('name', 'like', '%'.$this->search.'%');
             });
         }
-        return $query;
+        
+        // Sorting: Prioritaskan yang belum selesai
+        return $query->latest(); 
     }
 
     public function render()
@@ -92,15 +103,17 @@ class SeleksiManager extends Component
         $this->resetSelection();
         $this->reset(['bulk_jadwal_ujian', 'bulk_lokasi_ujian']);
         
-        session()->flash('message', "Berhasil menjadwalkan ujian untuk $count peserta sekaligus!");
+        // Ubah filter ke 'sudah_jadwal' agar admin bisa lihat hasilnya
+        $this->filterStatus = 'sudah_jadwal'; 
+
+        session()->flash('message', "Sukses! $count peserta berhasil dijadwalkan.");
     }
 
-    // --- SINGLE EDIT FUNCTIONS ---
+    // --- SINGLE EDIT ---
     public function edit($id)
     {
         $p = Pendaftar::find($id);
         $this->selectedPendaftarId = $id;
-        // Format untuk input datetime-local HTML5
         $this->jadwal_ujian = $p->jadwal_ujian ? $p->jadwal_ujian->format('Y-m-d\TH:i') : null;
         $this->lokasi_ujian = $p->lokasi_ujian;
         $this->nilai_ujian = $p->nilai_ujian;
@@ -125,15 +138,14 @@ class SeleksiManager extends Component
             'catatan_penguji' => $this->catatan_penguji,
         ]);
 
-        // Otomatis LULUS jika nilai >= 75 (Opsional, matikan jika ingin manual)
-        /*
-        if ($this->nilai_ujian >= 75) {
-            $p->update(['status_pendaftaran' => 'lulus']);
-        }
-        */
-
         $this->isModalOpen = false;
-        session()->flash('message', 'Data seleksi peserta berhasil disimpan.');
+        session()->flash('message', 'Data seleksi berhasil diperbarui.');
+    }
+
+    // Fitur Pintar: Set Lokasi Cepat
+    public function setQuickLocation($location)
+    {
+        $this->lokasi_ujian = $location;
     }
 
     public function closeModal()
