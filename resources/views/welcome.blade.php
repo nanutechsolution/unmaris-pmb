@@ -222,17 +222,17 @@
                             class="h-16 md:h-20 object-contain hover:scale-110 transition-transform" alt="Kemdikbud">
 
                         <!-- Kampus Merdeka -->
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Logo_Kampus_Merdeka_Kemendikbud.png/800px-Logo_Kampus_Merdeka_Kemendikbud.png"
+                        <img src="{{asset('images/kampusmerdeka.jpg')}}"
                             class="h-12 md:h-16 object-contain hover:scale-110 transition-transform"
                             alt="Kampus Merdeka">
 
                         <!-- BAN-PT -->
-                        <img src="https://1.bp.blogspot.com/-pictMWBnFp8/X6bd5gW6JQI/AAAAAAAACek/y1XIwzIwmh0HbCKsTDilLWL8V-Bs8lcCgCLcBGAsYHQ/s16000/Logo%2BBAN-PT.png"
+                        <img src="{{asset('images/banpt.png')}}"
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=BAN-PT'"
                             class="h-14 md:h-18 object-contain hover:scale-110 transition-transform" alt="BAN-PT">
 
                         <!-- PDDikti (Logo Tambahan agar lebih panjang) -->
-                        <img src="https://pddikti.kemdikbud.go.id/asset/gambar/logopddikti.png"
+                        <img src="{{asset('images/pddikti.png')}}"
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=PDDIKTI'"
                             class="h-10 md:h-14 object-contain hover:scale-110 transition-transform" alt="PDDikti">
                     </div>
@@ -262,7 +262,7 @@
                 class="mt-8 inline-block bg-blue-50 border-2 border-unmaris-blue px-4 py-2 rounded-full shadow-[2px_2px_0px_0px_#1e3a8a] transform hover:scale-105 transition">
                 <p class="text-xs md:text-sm font-black text-unmaris-blue flex items-center justify-center gap-2">
                     <span class="text-lg">📜</span>
-                    SK Menteri Pendidikan No: 985/E/O/2023
+                    SK BAN-PT No: 2230/SK/BAN-PT/Ak.P/PT/XII/2024
                 </p>
             </div>
         </div>

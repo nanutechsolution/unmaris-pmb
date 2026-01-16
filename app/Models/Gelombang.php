@@ -16,4 +16,11 @@ class Gelombang extends Model
         'tgl_selesai' => 'date',
         'is_active' => 'boolean',
     ];
+
+    public static function aktifSaatIni()
+    {
+        return self::where('tgl_mulai', '<=', now())
+            ->where('tgl_selesai', '>=', now())
+            ->first();
+    }
 }
