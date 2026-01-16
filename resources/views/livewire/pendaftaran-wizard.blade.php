@@ -155,9 +155,7 @@
                     </label>
                     <select wire:model.live="jalur_pendaftaran" class="w-full bg-white border-2 border-unmaris-blue rounded-lg py-3 px-4 focus:outline-none focus:ring-0 focus:shadow-neo transition-all font-bold cursor-pointer text-unmaris-blue text-sm md:text-base">
                         <option value="reguler">🔥 Reguler (Umum)</option>
-                        <option value="beasiswa">🎓 Jalur Beasiswa</option>
                         <option value="pindahan">🔄 Pindahan (Transfer)</option>
-                        <option value="asing">🌍 International Student</option>
                     </select>
 
                     <!-- PILIHAN PROGRAM BEASISWA (Muncul jika pilih 'beasiswa') -->
