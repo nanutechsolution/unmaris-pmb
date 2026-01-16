@@ -16,7 +16,7 @@ class SiteSettingSeeder extends Seeder
         SiteSetting::create([
             'nama_kampus' => 'Universitas Stella Maris Sumba',
             'singkatan_kampus' => 'UNMARIS',
-            'alamat_kampus' => 'Jl. Soekarno Hatta No.05, Tambolaka, NTT',
+            'alamat_kampus' => 'Jl. Karya Kasih No. 5, Tambolaka – Kab. Sumba Barat Daya',
             'biaya_pendaftaran' => 200000,
 
             // Set default kontak utama ke Pak Yolen

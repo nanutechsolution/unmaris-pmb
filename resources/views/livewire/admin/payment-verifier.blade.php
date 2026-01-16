@@ -63,10 +63,10 @@
         </div>
     @else
         <!-- Tombol Batalkan Status Lunas (Opsional) -->
-        <div class="text-center mt-2">
+        {{-- <div class="text-center mt-2">
             <button wire:click="reject" onclick="return confirm('Batalkan status lunas?')" class="text-[10px] text-red-500 underline hover:text-red-700 font-bold">
                 (Batalkan Status Lunas)
             </button>
-        </div>
+        </div> --}}
     @endif
 </div>

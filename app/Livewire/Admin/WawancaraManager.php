@@ -5,12 +5,16 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Pendaftar;
+use App\Services\Logger; // 1. Import Logger
 
 class WawancaraManager extends Component
 {
     use WithPagination;
 
     public $search = '';
+
+    // --- FITUR FILTER (SMART FILTER) ---
+    public $filterStatus = 'belum_jadwal'; // Default: Tampilkan yang belum dijadwalkan
 
     // --- FITUR BULK ACTION (AKSI MASSAL) ---
     public $selected = [];
@@ -27,15 +31,10 @@ class WawancaraManager extends Component
     public $catatan_wawancara;
     public $isModalOpen = false;
 
-    // Reset jika pindah halaman/search
-    public function updatingPage()
-    {
-        $this->resetSelection();
-    }
-    public function updatingSearch()
-    {
-        $this->resetSelection();
-    }
+    // Reset jika pindah halaman/search/filter
+    public function updatingPage() { $this->resetSelection(); }
+    public function updatingSearch() { $this->resetSelection(); }
+    public function updatingFilterStatus() { $this->resetSelection(); $this->resetPage(); }
 
     public function resetSelection()
     {
@@ -55,15 +54,25 @@ class WawancaraManager extends Component
     private function getPendaftarQuery()
     {
         $query = Pendaftar::with('user')
-            ->whereIn('status_pendaftaran', ['verifikasi', 'lulus', 'gagal'])
-            ->latest();
+            ->whereIn('status_pendaftaran', ['verifikasi', 'lulus', 'gagal']);
+
+        // --- SMART FILTER LOGIC ---
+        if ($this->filterStatus == 'belum_jadwal') {
+            $query->whereNull('jadwal_wawancara');
+        } elseif ($this->filterStatus == 'sudah_jadwal') {
+            $query->whereNotNull('jadwal_wawancara')->where('nilai_wawancara', 0);
+        } elseif ($this->filterStatus == 'sudah_nilai') {
+            $query->where('nilai_wawancara', '>', 0);
+        }
 
         if ($this->search) {
             $query->whereHas('user', function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%');
             });
         }
-        return $query;
+        
+        // Sorting: Prioritaskan yang belum selesai (Null jadwal di atas)
+        return $query->orderByRaw('jadwal_wawancara IS NULL DESC')->latest();
     }
 
     public function render()
@@ -82,16 +91,30 @@ class WawancaraManager extends Component
             'selected' => 'required|array|min:1'
         ]);
 
+        // Mencegah duplikasi jadwal yang tidak disengaja (opsional: bisa dihapus jika ingin override)
+        // Di sini kita menimpa (override) jadwal yang dipilih, asumsinya admin sadar memilih
         Pendaftar::whereIn('id', $this->selected)->update([
             'jadwal_wawancara' => $this->bulk_jadwal_wawancara,
-            'pewawancara' => $this->bulk_pewawancara
+            'pewawancara' => $this->bulk_pewawancara,
         ]);
 
         $count = count($this->selected);
+
+        // 2. LOGGING BULK ACTION
+        Logger::record(
+            'UPDATE',
+            'Wawancara',
+            "Menjadwalkan wawancara massal untuk {$count} peserta. Jadwal: {$this->bulk_jadwal_wawancara}, Pewawancara: {$this->bulk_pewawancara}"
+        );
+
         $this->resetSelection();
         $this->reset(['bulk_jadwal_wawancara', 'bulk_pewawancara']);
+        
+        // Pindah filter ke 'sudah_jadwal' agar admin bisa lihat hasilnya
+        // Ini mencegah admin mengira data hilang (karena filter 'belum_jadwal' akan menyembunyikan yang baru diupdate)
+        $this->filterStatus = 'sudah_jadwal';
 
-        session()->flash('message', "Berhasil menjadwalkan wawancara untuk $count peserta sekaligus!");
+        session()->flash('message', "Sukses! $count peserta berhasil dijadwalkan wawancara.");
     }
 
     // --- SINGLE EDIT ---
@@ -114,15 +137,30 @@ class WawancaraManager extends Component
             'nilai_wawancara' => 'required|integer|min:0|max:100',
         ]);
 
-        Pendaftar::find($this->selectedId)->update([
+        $p = Pendaftar::find($this->selectedId);
+        
+        $p->update([
             'jadwal_wawancara' => $this->jadwal_wawancara,
             'pewawancara' => $this->pewawancara,
             'nilai_wawancara' => $this->nilai_wawancara,
             'catatan_wawancara' => $this->catatan_wawancara,
         ]);
 
+        // 3. LOGGING SINGLE UPDATE
+        Logger::record(
+            'UPDATE',
+            'Wawancara',
+            "Update data wawancara Pendaftar #{$p->id} ({$p->user->name}). Nilai: {$this->nilai_wawancara}, Pewawancara: {$this->pewawancara}"
+        );
+
         $this->isModalOpen = false;
         session()->flash('message', 'Data wawancara berhasil disimpan.');
+    }
+
+    // Fitur Pintar: Set Pewawancara Cepat
+    public function setQuickInterviewer($name)
+    {
+        $this->pewawancara = $name;
     }
 
     public function closeModal()

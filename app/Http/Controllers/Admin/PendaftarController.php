@@ -11,7 +11,7 @@ use App\Mail\PmbNotification;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use App\Services\Logger; // <--- PERBAIKAN: Import ini wajib ada!
+use App\Services\Logger; 
 use Illuminate\Support\Facades\Mail;
 
 class PendaftarController extends Controller
@@ -191,51 +191,6 @@ class PendaftarController extends Controller
             return back()->with('error', 'System Error: ' . $e->getMessage());
         }
     }
-
-    // public function lulusPilihan(Request $request, $id)
-    // {
-
-    //     $request->validate([
-    //         'pilihan' => 'required|in:1,2'
-    //     ]);
-
-    //     $pendaftar = Pendaftar::findOrFail($id);
-
-    //     // SYARAT WAJIB
-    //     if ($pendaftar->status_pembayaran !== 'lunas') {
-    //         return back()->with('error', 'Belum lunas pembayaran');
-    //     }
-
-    //     if ($pendaftar->nilai_ujian <= 0 || $pendaftar->nilai_wawancara <= 0) {
-    //         return back()->with('error', 'Nilai belum lengkap');
-    //     }
-
-    //     if ($request->pilihan == 1) {
-    //         $pendaftar->update([
-    //             'status_pilihan_1' => 'lulus',
-    //             'prodi_diterima'   => $pendaftar->pilihan_prodi_1,
-    //             'status_pendaftaran' => 'lulus',
-    //         ]);
-    //     }
-
-    //     if ($request->pilihan == 2) {
-    //         $pendaftar->update([
-    //             'status_pilihan_2' => 'lulus',
-    //             'prodi_diterima'   => $pendaftar->pilihan_prodi_2,
-    //             'status_pendaftaran' => 'lulus',
-    //         ]);
-    //     }
-
-    //     Logger::record(
-    //         'LULUS',
-    //         'PMB',
-    //         "Pendaftar {$pendaftar->id} lulus pilihan {$request->pilihan}"
-    //     );
-
-    //     return back()->with('success', 'Peserta dinyatakan LULUS');
-    // }
-
-
 
     public function lulusPilihan(Request $request, $id)
     {
