@@ -4,7 +4,7 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\Pendaftar;
-use App\Services\Logger; 
+use App\Services\Logger;
 
 class PaymentVerifier extends Component
 {
@@ -15,25 +15,40 @@ class PaymentVerifier extends Component
         $this->pendaftar = $pendaftar;
     }
 
-    public function verify($status)
+    // Method untuk tombol "Terima Pembayaran"
+    public function approve()
     {
-        // Simpan status lama untuk log
-        $oldStatus = $this->pendaftar->status_pembayaran;
-
-        // Update database
         $this->pendaftar->update([
-            'status_pembayaran' => $status
+            'status_pembayaran' => 'lunas'
         ]);
 
-        // 2. Implementasi Logger Audit
         Logger::record(
-            'UPDATE', // Action
-            'Keuangan', // Module
-            "Mengubah status pembayaran Pendaftar #{$this->pendaftar->id} ({$this->pendaftar->user->name}) dari '$oldStatus' menjadi '$status'" // Message
+            'UPDATE',
+            'Keuangan',
+            "Memverifikasi pembayaran LUNAS untuk Pendaftar #{$this->pendaftar->id} ({$this->pendaftar->user->name})"
         );
 
-        // Kirim notifikasi sukses
-        session()->flash('message', 'Status pembayaran berhasil diubah menjadi: ' . strtoupper($status));
+        session()->flash('success', 'Pembayaran berhasil diverifikasi LUNAS.');
+        
+        // Refresh halaman agar tombol verifikasi berkas di parent component aktif
+        return redirect(request()->header('Referer'));
+    }
+
+    // Method untuk tombol "Tolak" atau "Batalkan"
+    public function reject()
+    {
+        $this->pendaftar->update([
+            'status_pembayaran' => 'ditolak' // Atau 'belum_bayar' jika ingin reset
+        ]);
+
+        Logger::record(
+            'UPDATE',
+            'Keuangan',
+            "Membatalkan/Menolak pembayaran Pendaftar #{$this->pendaftar->id} ({$this->pendaftar->user->name})"
+        );
+
+        session()->flash('error', 'Status pembayaran diubah menjadi DITOLAK.');
+        return redirect(request()->header('Referer'));
     }
 
     public function render()
