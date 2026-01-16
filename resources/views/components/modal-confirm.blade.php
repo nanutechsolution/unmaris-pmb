@@ -1,3 +1,12 @@
+@props([
+    'show',
+    'title',
+    'color',
+    'prodi',
+    'action',
+    'pilihan' => null, // <-- tambahkan ini
+]);
+
 <div>
     <div x-show="{{ $show }}" x-transition.opacity class="fixed inset-0 bg-black/60 z-40"
         @click="{{ $show }}=false" x-cloak></div>
@@ -35,6 +44,7 @@
                 <form action="{{ $action }}" method="POST" class="w-full md:w-auto">
                     @csrf
                     @method('PATCH')
+                    <input type="hidden" name="pilihan" value="{{ $pilihan }}">
                     <button type="submit"
                         class="w-full bg-{{ $color }}-600 hover:bg-{{ $color }}-700 text-white font-black py-2 rounded-md shadow-md transition flex items-center justify-center gap-2 px-6">
                         ✅ YA, LULUSKAN

@@ -11,7 +11,7 @@ use App\Mail\PmbNotification;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use App\Services\Logger; 
+use App\Services\Logger;
 use Illuminate\Support\Facades\Mail;
 
 class PendaftarController extends Controller

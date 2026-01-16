@@ -382,8 +382,8 @@
                     </div>
 
                     <!-- MODAL CONFIRMATION (HIDDEN) -->
-                    <x-modal-confirm show="openP1" title="Lulus Pilihan 1" color="green" prodi="{{ $pendaftar->pilihan_prodi_1 }}" action="{{ route('admin.pendaftar.lulus-pilihan', $pendaftar->id) }}" x-cloak><input type="hidden" name="pilihan" value="1" /></x-modal-confirm>
-                    <x-modal-confirm show="openP2" title="Lulus Pilihan 2" color="emerald" prodi="{{ $pendaftar->pilihan_prodi_2 }}" action="{{ route('admin.pendaftar.lulus-pilihan', $pendaftar->id) }}" x-cloak><input type="hidden" name="pilihan" value="2" /></x-modal-confirm>
+                    <x-modal-confirm show="openP1" title="Lulus Pilihan 1" color="green" prodi="{{ $pendaftar->pilihan_prodi_1 }}"   :pilihan="1" action="{{ route('admin.pendaftar.lulus-pilihan', $pendaftar->id) }}" x-cloak><input type="hidden" name="pilihan" value="1" /></x-modal-confirm>
+                    <x-modal-confirm show="openP2" title="Lulus Pilihan 2" color="emerald" prodi="{{ $pendaftar->pilihan_prodi_2 }}"   :pilihan="2" action="{{ route('admin.pendaftar.lulus-pilihan', $pendaftar->id) }}" x-cloak><input type="hidden" name="pilihan" value="2" /></x-modal-confirm>
                     <x-modal-confirm show="openRek" title="Lulus Rekomendasi" color="purple" prodi="{{ $pendaftar->rekomendasi_prodi }}" action="{{ route('admin.pendaftar.lulus-rekomendasi', $pendaftar->id) }}" x-cloak>
                         <p class="text-xs font-bold text-gray-500 mb-1 uppercase">Catatan Panitia:</p>
                         <div class="bg-gray-100 p-3 rounded border border-gray-300 italic text-sm">{{ $pendaftar->catatan_seleksi ?? 'Tidak ada catatan.' }}</div>
