@@ -30,7 +30,7 @@ return new class extends Migration
 
         // Insert Default Data (Hanya 1 baris)
         DB::table('site_settings')->insert([
-            'alamat_kampus' => 'Jl. Soekarno Hatta No.05, Tambolaka, NTT',
+            'alamat_kampus' => 'Jl. Karya Kasih No. 5, Tambolaka – Kab. Sumba Barat Daya.',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
