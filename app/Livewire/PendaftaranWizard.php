@@ -123,7 +123,7 @@ class PendaftaranWizard extends Component
             'tgl_lahir' => 'required|date|before:-15 years|after:-60 years',
             'jenis_kelamin' => 'required|in:L,P',
             'agama' => 'required',
-            'alamat' => 'required|string|min:10',
+            'alamat' => 'required|string|min:5',
         ];
 
         if ($this->jalur_pendaftaran == 'beasiswa') {
