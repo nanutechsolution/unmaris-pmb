@@ -114,6 +114,8 @@ class PendaftaranWizard extends Component
         $rules = [
             'jalur_pendaftaran' => 'required',
             'nisn' => ['nullable', 'numeric', Rule::unique('pendaftars', 'nisn')->ignore(Auth::id(), 'user_id')],
+            // Cek NIK unik & format valid (abaikan milik user sendiri saat update)
+            'nik' => ['required', 'numeric', 'digits:16', Rule::unique('pendaftars', 'nik')->ignore(Auth::id(), 'user_id')],
             // Validasi Keras NIK & HP
             'nik' => 'required|numeric|digits:16',
             'nomor_hp' => 'required|numeric|digits_between:10,15',
