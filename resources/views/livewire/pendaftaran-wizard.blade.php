@@ -2,6 +2,54 @@
      x-data="{ showConfirmModal: false }"
      @validation-error.window="showConfirmModal = false">
     
+    <!-- DEV TOOL: AUTO FILL BUTTON (Hanya muncul di environment local) -->
+    @if(app()->environment('local'))
+    <button type="button" 
+            title="Klik untuk isi data dummy otomatis"
+            class="fixed bottom-4 left-4 z-50 bg-gray-900 text-white px-4 py-3 rounded-full shadow-2xl border-2 border-yellow-400 font-bold text-xs flex items-center gap-2 opacity-75 hover:opacity-100 transition-opacity"
+            @click="
+                // STEP 1
+                $wire.set('jalur_pendaftaran', 'reguler');
+                $wire.set('nisn', '0051234567');
+                $wire.set('nik', '5301012301050001');
+                $wire.set('tempat_lahir', 'Tambolaka');
+                $wire.set('tgl_lahir', '2005-05-20');
+                $wire.set('jenis_kelamin', 'L');
+                $wire.set('agama', 'Katolik');
+                $wire.set('nomor_hp', '081234567890');
+                $wire.set('alamat', 'Jl. Testing Developer No. 404, Localhost');
+                
+                // STEP 2
+                $wire.set('asal_sekolah', 'SMA Negeri 1 Testing');
+                $wire.set('tahun_lulus', '2024');
+                $wire.set('pilihan_prodi_1', 'Teknik Informatika');
+                $wire.set('pilihan_prodi_2', 'Bisnis Digital');
+
+                // STEP 3
+                $wire.set('nama_ayah', 'Bapak Developer');
+                $wire.set('nama_ibu', 'Ibu Developer');
+                $wire.set('jenis_dokumen', 'skl');
+            ">
+        <span>🛠️</span> AUTO-FILL FORM
+    </button>
+    @endif
+
+    <!-- CSS FIX: HILANGKAN SPINNER NUMBER INPUT -->
+    <style>
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        /* Modal Animation */
+        [x-cloak] { display: none !important; }
+    </style>
+
     <!-- HEADER BRANDED -->
     <div class="text-center mb-8 md:mb-10 animate-fade-in-down">
         <!-- Logo Placeholder with Theme Color -->
@@ -199,6 +247,7 @@
                                 @endforeach
                             </select>
                             @error('pilihan_prodi_2') <span class="validation-error text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
+                            <p class="text-xs text-gray-500 mt-1">Pilihan kedua akan digunakan jika kuota pilihan utama penuh.</p>
                         </div>
                     </div>
                 </div>
@@ -267,6 +316,10 @@
 
                     <div class="bg-white border-2 border-unmaris-blue rounded-xl p-6 text-center hover:bg-yellow-50 transition shadow-neo group relative @error('foto') has-error @enderror">
                         <label class="block text-lg font-black text-unmaris-blue mb-1">Pas Foto (Latar Biru) *</label>
+                        <div class="mb-4 inline-block px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-white bg-black animate-pulse">
+                            WAJIB LATAR: {{ $this->warnaLatar }} (BIRU)
+                        </div>
+
                         <div class="mt-2 flex justify-center relative">
                             @if ($foto && method_exists($foto, 'temporaryUrl') && str_starts_with($foto->getMimeType(), 'image/'))
                                 <img src="{{ $foto->temporaryUrl() }}" class="h-32 w-32 object-cover rounded-full border-4 border-unmaris-blue shadow-sm">
@@ -278,11 +331,29 @@
                         </div>
                         <input type="file" wire:model="foto" wire:key="foto_input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
                         @error('foto') <span class="validation-error text-red-600 font-bold text-xs block mt-2 bg-red-50 p-1 border border-red-200 rounded">{{ $message }}</span> @enderror
-                        <p class="text-[10px] text-gray-500 mt-2">Format: JPG/PNG. Max: 2MB.</p>
+                        
+                         <!-- Tampilkan peringatan tambahan jika upload bukan gambar -->
+                        @php
+                            $isImage = false;
+                             try {
+                                if($foto) {
+                                    $mime = $foto->getMimeType();
+                                    $isImage = str_starts_with($mime, 'image/');
+                                }
+                            } catch (\Exception $e) { $isImage = false; }
+                        @endphp
+                        @if ($foto && !$isImage)
+                            <span class="text-red-600 font-bold text-xs block mt-2 bg-red-50 p-1 border border-red-200 rounded">
+                                File harus berupa gambar (JPG/PNG)!
+                            </span>
+                        @endif
+
+                        <p class="text-[10px] text-gray-500 mt-2">Format: JPG/PNG. Max: 2MB. Wajah harus terlihat jelas.</p>
                     </div>
 
                     <div class="bg-white border-2 border-unmaris-blue rounded-xl p-6 text-center shadow-neo relative group @error('file_ktp') has-error @enderror">
                         <label class="block text-lg font-black text-unmaris-blue mb-1">Scan KTP/KK *</label>
+                        <span class="text-xs font-bold text-gray-400 block mb-4">PDF / JPG</span>
                         <div class="mt-2 flex justify-center relative h-20 mb-4">
                             @if($file_ktp)
                                 <div class="bg-green-100 text-green-700 p-2 rounded flex items-center gap-2 border border-green-300">
@@ -305,6 +376,7 @@
 
                     <div class="md:col-span-2 bg-yellow-50 border-2 border-yellow-500 border-dashed rounded-xl p-6 text-center relative group">
                         <label class="block text-lg font-black text-yellow-800 mb-1">Scan Akta Kelahiran (Opsional)</label>
+                        <span class="text-xs font-bold text-green-600 block mb-4 bg-white px-2 py-1 inline-block rounded border border-green-500 uppercase">Opsional (Jika Ada)</span>
                         <div class="mt-2 flex justify-center relative h-12 mb-2">
                              @if($file_akta)
                                 <span class="text-xs font-bold text-green-600 bg-white px-2 py-1 rounded border border-green-500">File Dipilih: {{ $file_akta->getClientOriginalName() }}</span>
@@ -333,6 +405,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="bg-white border-2 border-gray-300 border-dashed rounded-xl p-4 text-center relative @error('ijazah') has-error @enderror">
                                 <label class="block text-sm font-bold text-gray-700 mb-1">Upload {{ $jenis_dokumen == 'skl' ? 'SKL' : 'Ijazah' }} *</label>
+                                <span class="text-[10px] text-gray-400 block mb-2">PDF / JPG</span>
                                 @if($ijazah)
                                     <div class="text-xs text-green-600 font-bold my-2">File OK: {{ $ijazah->getClientOriginalName() }}</div>
                                 @elseif($existingIjazahPath)
@@ -341,11 +414,13 @@
                                 <input type="file" wire:model="ijazah" wire:key="ijazah_input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
                                 <div class="mt-8 text-gray-400 text-xs">Klik untuk upload (PDF/JPG)</div>
                                 @error('ijazah') <span class="validation-error text-red-600 font-bold text-xs block mt-1 bg-red-50 p-1 border border-red-200 rounded relative z-10">{{ $message }}</span> @enderror
+                                <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG/PNG. Max: 2MB.</p>
                             </div>
 
                             @if($jenis_dokumen == 'ijazah')
                             <div class="bg-white border-2 border-dashed border-red-400 bg-red-50 rounded-xl p-4 text-center relative @error('transkrip') has-error @enderror">
                                 <label class="block text-sm font-bold text-gray-700 mb-1">Transkrip Nilai <span class="text-red-600 bg-red-100 px-1 rounded text-[10px]">Wajib</span></label>
+                                <span class="text-[10px] text-gray-400 block mb-2">Halaman nilai di belakang Ijazah</span>
                                 @if($transkrip)
                                     <div class="text-xs text-green-600 font-bold my-2">File OK: {{ $transkrip->getClientOriginalName() }}</div>
                                 @elseif($existingTranskripPath)
@@ -354,6 +429,7 @@
                                 <input type="file" wire:model="transkrip" wire:key="transkrip_input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
                                 <div class="mt-8 text-gray-400 text-xs">Klik untuk upload (PDF/JPG)</div>
                                 @error('transkrip') <span class="validation-error text-red-600 font-bold text-xs block mt-1 bg-red-100 p-1 border border-red-300 rounded relative z-10">{{ $message }}</span> @enderror
+                                <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG/PNG. Max: 2MB.</p>
                             </div>
                             @endif
                         </div>
@@ -438,25 +514,27 @@
             return false;
         };
 
-        // Listen to validation errors
+        // Handle error status 422 (jika ada)
         Livewire.hook('request', ({ fail }) => {
             fail(({ status, preventDefault }) => {
                 if (status === 422) {
-                    // Tutup modal konfirmasi jika ada error
                     window.dispatchEvent(new CustomEvent('validation-error'));
                     setTimeout(scrollToError, 200); 
                 }
             })
         });
 
-        // Listen to component updates (jika error dirender ulang)
+        // Handle update sukses (cek apakah muncul error di DOM)
         Livewire.hook('commit', ({ component, commit, respond, succeed, fail }) => {
             succeed(({ snapshot, effect }) => {
-                const errors = snapshot.memo.errors;
-                if (Object.keys(errors).length > 0) {
-                     window.dispatchEvent(new CustomEvent('validation-error'));
-                     setTimeout(scrollToError, 200);
-                }
+                // FIX: Hapus pengecekan snapshot.memo.errors yang bikin error
+                // Langsung saja cek DOM setelah render selesai
+                setTimeout(() => {
+                    // Coba scroll, jika ditemukan error maka tutup modal (jika ada)
+                    if (scrollToError()) {
+                        window.dispatchEvent(new CustomEvent('validation-error'));
+                    }
+                }, 200);
             })
         });
     });
