@@ -1,83 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
     <title>Kartu Peserta Ujian - {{ $user->name }}</title>
     <style>
-        /* Reset & Base Fonts */
-        @page { margin: 2cm; }
+        /* Mengatur Margin Halaman agar muat 1 lembar */
+        @page { margin: 1cm; }
+        
         body { 
             font-family: 'Times New Roman', Times, serif; 
             font-size: 11pt; 
-            line-height: 1.3;
+            line-height: 1.2;
             color: #000;
         }
 
-        /* Kop Surat Resmi */
-        .header { 
-            text-align: center; 
-            margin-bottom: 20px; 
+        /* Kop Surat yang lebih Compact */
+        .kop-table {
+            width: 100%;
+            border-bottom: 3px double #000;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
         }
-        .header h3 { 
-            font-size: 14pt; 
-            margin: 0; 
-            font-weight: normal; 
-            text-transform: uppercase; 
+        .logo-cell {
+            width: 12%;
+            text-align: left;
+            vertical-align: middle;
         }
-        .header h1 { 
-            font-size: 16pt; 
-            margin: 5px 0; 
-            font-weight: bold; 
-            text-transform: uppercase; 
+        .logo-img {
+            width: 75px;
+            height: auto;
         }
-        .header p { 
-            font-size: 10pt; 
-            margin: 0; 
-            font-style: italic; 
+        .text-cell {
+            width: 88%;
+            text-align: center;
+            vertical-align: middle;
         }
-        .line-thick { border-bottom: 2px solid #000; margin-top: 10px; }
-        .line-thin { border-bottom: 1px solid #000; margin-top: 2px; margin-bottom: 25px; }
+        .yayasan { font-size: 11pt; font-weight: bold; letter-spacing: 1px; margin: 0; }
+        .universitas { font-size: 16pt; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
+        .alamat { font-size: 9pt; font-style: italic; margin: 0; }
 
-        /* Judul Dokumen */
+        /* Judul */
         .doc-title {
             text-align: center;
             font-size: 14pt;
             font-weight: bold;
             text-decoration: underline;
-            margin-bottom: 10px;
+            margin-bottom: 2px;
             text-transform: uppercase;
         }
         .doc-subtitle {
             text-align: center;
             font-size: 11pt;
-            margin-bottom: 30px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
 
-        /* Container Utama untuk Layout Foto di Kanan */
-        .content-container {
-            position: relative; /* Agar foto bisa absolute relative ke sini */
+        /* Layout Konten Utama */
+        .main-content {
             width: 100%;
+            position: relative;
         }
 
-        /* Tabel Data */
-        .table-data { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 15px; 
-        }
-        .table-data td { 
-            padding: 4px 0; 
-            vertical-align: top; 
-        }
-        .label { 
-            width: 160px; 
-            font-weight: bold; 
-        }
-        .separator { 
-            width: 15px; 
-            text-align: center; 
-        }
-
-        /* Area Foto (Pojok Kanan Atas Data) */
+        /* Area Foto (Pojok Kanan) */
         .photo-area {
             position: absolute;
             top: 0;
@@ -103,98 +87,134 @@
             font-size: 9pt;
             font-weight: bold;
             background: #f0f0f0;
+            padding-top: 1.5cm;
         }
 
-        /* Section Header Kecil */
+        /* Tabel Data (Agar tidak nabrak foto, dikasih margin kanan) */
+        .data-wrapper {
+            margin-right: 3.2cm;
+        }
+        .table-data { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 10px; 
+        }
+        .table-data td { 
+            padding: 2px 0; 
+            vertical-align: top; 
+        }
+        .label { width: 140px; font-weight: bold; }
+        .sep { width: 15px; text-align: center; }
+        .val-big { font-size: 13pt; font-weight: bold; letter-spacing: 1px; }
+        .val { font-weight: bold; }
+
+        /* Section Header */
         .section-header {
             font-weight: bold;
             text-transform: uppercase;
             border-bottom: 1px solid #000;
-            margin-top: 15px;
-            margin-bottom: 10px;
-            padding-bottom: 2px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-size: 11pt;
             width: 100%;
         }
 
-        /* Footer & TTD */
-        .footer {
-            margin-top: 40px;
+        /* Tabel Jadwal */
+        .schedule-table {
             width: 100%;
+            border-collapse: collapse;
+        }
+        .schedule-table td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        /* Footer TTD */
+        .footer-table {
+            width: 100%;
+            margin-top: 20px;
         }
         .ttd-box {
-            float: right;
-            width: 250px;
             text-align: center;
+            width: 250px;
+            float: right;
         }
-        .ttd-space {
-            height: 70px;
+        .nama-pejabat {
+            margin-top: 60px;
+            font-weight: bold;
+            text-decoration: underline;
         }
 
-        /* Kotak Peraturan */
+        /* Kotak Catatan */
         .notes-box {
-            margin-top: 30px;
+            margin-top: 15px;
             border: 1px solid #000;
-            padding: 10px;
+            padding: 8px;
             font-size: 9pt;
             clear: both;
+            background-color: #f9f9f9;
         }
-        .notes-box h4 { margin: 0 0 5px 0; font-size: 10pt; }
+        .notes-box h4 { margin: 0 0 3px 0; font-size: 10pt; text-decoration: underline; }
         .notes-box ul { margin: 0; padding-left: 20px; }
-        .notes-box li { margin-bottom: 2px; }
+        .notes-box li { margin-bottom: 1px; }
     </style>
 </head>
 <body>
 
-    <!-- KOP SURAT RESMI -->
-    <div class="header">
-        <h3>YAYASAN PENDIDIKAN STELLA MARIS</h3>
-        <h1>UNIVERSITAS STELLA MARIS SUMBA</h1>
-        <p>Jl. Soekarno Hatta No.05, Tambolaka, Sumba Barat Daya, Nusa Tenggara Timur</p>
-        <p>Telp: (0387) 24xxx | Email: pmb@unmaris.ac.id | Website: www.unmaris.ac.id</p>
-        <div class="line-thick"></div>
-        <div class="line-thin"></div>
-    </div>
+    <!-- KOP SURAT (Compact Table) -->
+    <table class="kop-table">
+        <tr>
+            <td class="logo-cell">
+                <!-- Pastikan path logo benar -->
+                <img src="{{ public_path('images/logo.png') }}" class="logo-img" alt="Logo">
+            </td>
+            <td class="text-cell">
+                <div class="universitas">UNIVERSITAS STELLA MARIS SUMBA</div>
+                <div class="alamat">
+                    Jl. Karya Kasih No. 5, Tambolaka – Kab. Sumba Barat Daya, NTT<br>
+                    Telp: (0387) 2524016 | Email: pmb@unmarissumba.ac.id | Website: www.unmarissumba.ac.id
+                </div>
+            </td>
+        </tr>
+    </table>
 
     <!-- JUDUL -->
-    <div class="doc-title">KARTU PESERTA SELEKSI MASUK</div>
-    <div class="doc-subtitle">TAHUN AKADEMIK {{ date('Y') }}/{{ date('Y')+1 }}</div>
+    <div class="doc-title">KARTU PESERTA UJIAN</div>
+    <div class="doc-subtitle">PENERIMAAN MAHASISWA BARU T.A. {{ date('Y') }}/{{ date('Y')+1 }}</div>
 
-    <div class="content-container">
-        
-        <!-- FOTO PESERTA (Posisi Absolute Kanan) -->
+    <div class="main-content">
+        <!-- FOTO (POSISI ABSOLUTE KANAN) -->
         <div class="photo-area">
             @if($pendaftar->foto_path)
                 <img src="{{ public_path('storage/' . $pendaftar->foto_path) }}" class="photo-img">
             @else
                 <div class="photo-placeholder">
-                    TEMPEL<br>FOTO<br>3x4
+                    FOTO<br>3x4
                 </div>
             @endif
         </div>
 
-        <!-- BIODATA (Margin Right agar tidak menabrak foto) -->
-        <div style="margin-right: 3.5cm;">
+        <!-- BIODATA (Disebelah kiri foto) -->
+        <div class="data-wrapper">
             <table class="table-data">
                 <tr>
                     <td class="label">NOMOR PESERTA</td>
-                    <td class="separator">:</td>
-                    <td style="font-size: 14pt; font-weight: bold; letter-spacing: 2px;">
-                        {{ $no_peserta }}
-                    </td>
+                    <td class="sep">:</td>
+                    <td class="val-big">{{ $no_peserta }}</td>
                 </tr>
                 <tr>
                     <td class="label">NAMA LENGKAP</td>
-                    <td class="separator">:</td>
-                    <td>{{ strtoupper($user->name) }}</td>
+                    <td class="sep">:</td>
+                    <td class="val">{{ strtoupper($user->name) }}</td>
                 </tr>
                 <tr>
                     <td class="label">NISN</td>
-                    <td class="separator">:</td>
+                    <td class="sep">:</td>
                     <td>{{ $pendaftar->nisn ?? '-' }}</td>
                 </tr>
                 <tr>
                     <td class="label">ASAL SEKOLAH</td>
-                    <td class="separator">:</td>
+                    <td class="sep">:</td>
                     <td>{{ $pendaftar->asal_sekolah }}</td>
                 </tr>
             </table>
@@ -203,24 +223,24 @@
             <table class="table-data">
                 <tr>
                     <td class="label">PILIHAN 1</td>
-                    <td class="separator">:</td>
-                    <td><strong>{{ strtoupper($pendaftar->pilihan_prodi_1) }}</strong></td>
+                    <td class="sep">:</td>
+                    <td class="val">{{ strtoupper($pendaftar->pilihan_prodi_1) }}</td>
                 </tr>
                 <tr>
                     <td class="label">PILIHAN 2</td>
-                    <td class="separator">:</td>
+                    <td class="sep">:</td>
                     <td>{{ $pendaftar->pilihan_prodi_2 ? strtoupper($pendaftar->pilihan_prodi_2) : '-' }}</td>
                 </tr>
             </table>
 
-            <div class="section-header">JADWAL SELEKSI</div>
-            <table class="table-data">
+            <div class="section-header">JADWAL UJIAN & SELEKSI</div>
+            <table class="schedule-table">
                 <tr>
                     <td class="label">UJIAN TULIS</td>
-                    <td class="separator">:</td>
+                    <td class="sep">:</td>
                     <td>
                         @if($pendaftar->jadwal_ujian)
-                            {{ $pendaftar->jadwal_ujian->format('l, d F Y') }}<br>
+                            <strong>{{ $pendaftar->jadwal_ujian->format('l, d F Y') }}</strong><br>
                             Pukul: {{ $pendaftar->jadwal_ujian->format('H:i') }} WITA<br>
                             Lokasi: {{ $pendaftar->lokasi_ujian }}
                         @else
@@ -230,10 +250,10 @@
                 </tr>
                 <tr>
                     <td class="label">WAWANCARA</td>
-                    <td class="separator">:</td>
+                    <td class="sep">:</td>
                     <td>
                         @if($pendaftar->jadwal_wawancara)
-                            {{ $pendaftar->jadwal_wawancara->format('l, d F Y') }}<br>
+                            <strong>{{ $pendaftar->jadwal_wawancara->format('l, d F Y') }}</strong><br>
                             Pukul: {{ $pendaftar->jadwal_wawancara->format('H:i') }} WITA<br>
                             Penguji: {{ $pendaftar->pewawancara ?? 'Panitia' }}
                         @else
@@ -245,35 +265,42 @@
         </div>
     </div>
 
-    <!-- TANDA TANGAN -->
-    <div class="footer">
-        <div class="ttd-box">
-            <p>Tambolaka, {{ date('d F Y') }}</p>
-            <p>Ketua Panitia PMB,</p>
-            
-            <!-- Jika ingin pakai QR Code Tanda Tangan -->
-            @if(isset($qrcode))
-                <div style="margin: 10px auto;">
-                    <img src="data:image/svg+xml;base64,{{ $qrcode }}" width="80">
+    <!-- FOOTER TTD -->
+    <table class="footer-table">
+        <tr>
+            <!-- Space Kiri Kosong -->
+            <td></td> 
+            <!-- Area TTD Kanan -->
+            <td style="width: 260px;">
+                <div class="ttd-box">
+                    <p style="margin: 0;">Tambolaka, {{ date('d F Y') }}</p>
+                    <p style="margin: 5px 0;">Ketua Panitia PMB,</p>
+                    
+                    <!-- QR Code / Space TTD -->
+                    @if(isset($qrcode))
+                        <div style="margin: 10px auto;">
+                            <img src="data:image/svg+xml;base64,{{ $qrcode }}" width="70">
+                        </div>
+                    @else
+                        <br><br><br>
+                    @endif
+
+                    <div class="nama-pejabat">Soleman Renda Bili, S.Sos, M.AP</div>
+                    <div>NIDN. 3137770671130343</div>
                 </div>
-            @else
-                <div class="ttd-space"></div>
-            @endif
+            </td>
+        </tr>
+    </table>
 
-            <p style="font-weight: bold; text-decoration: underline;">( NAMA PEJABAT )</p>
-            <p>NIDN. 123456789</p>
-        </div>
-    </div>
-
-    <!-- CATATAN PENTING -->
+    <!-- CATATAN PENTING (Footer) -->
     <div class="notes-box">
-        <h4>CATATAN UNTUK PESERTA:</h4>
+        <h4>TATA TERTIB PESERTA:</h4>
         <ul>
-            <li>Kartu ini wajib dibawa saat mengikuti Ujian Tulis dan Wawancara.</li>
-            <li>Peserta wajib hadir 30 menit sebelum ujian dimulai.</li>
-            <li>Wajib mengenakan pakaian rapi (Kemeja Putih & Celana/Rok Hitam) dan bersepatu.</li>
-            <li>Membawa alat tulis (Pensil 2B, Penghapus, Bolpoin Hitam).</li>
-            <li>Segala bentuk kecurangan akan mengakibatkan diskualifikasi.</li>
+            <li>Kartu ini <strong>WAJIB</strong> dibawa saat mengikuti ujian tulis dan wawancara.</li>
+            <li>Hadir di lokasi ujian <strong>30 menit</strong> sebelum jadwal dimulai.</li>
+            <li>Berpakaian rapi (Kemeja Putih, Bawahan Hitam/Gelap, dan Bersepatu).</li>
+            <li>Membawa alat tulis sendiri (Pensil 2B, Penghapus, Ballpoint Hitam).</li>
+            <li>Dilarang melakukan kecurangan dalam bentuk apapun.</li>
         </ul>
     </div>
 
