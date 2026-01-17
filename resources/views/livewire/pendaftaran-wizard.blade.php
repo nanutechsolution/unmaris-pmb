@@ -121,9 +121,7 @@
                         <label class="block text-sm font-black text-unmaris-blue mb-2 uppercase">Jalur Pendaftaran *</label>
                         <select wire:model.live="jalur_pendaftaran" class="w-full bg-white border-2 border-unmaris-blue rounded-lg py-3 px-4 font-bold cursor-pointer text-unmaris-blue text-sm md:text-base focus:shadow-neo transition-all">
                             <option value="reguler">🔥 Reguler (Umum)</option>
-                            <option value="beasiswa">🎓 Jalur Beasiswa</option>
-                            <option value="pindahan">🔄 Pindahan (Transfer)</option>
-                            <option value="asing">🌍 International Student</option>
+                            <option value="pindahan">🔄 Ekstensi</option>
                         </select>
                     </div>
 

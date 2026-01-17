@@ -92,6 +92,15 @@
                 Gelombang PMB
             </a>
 
+            <a href="{{ route('admin.payment-report') }}"
+                class="group flex items-center px-4 py-3 font-black text-sm uppercase border-2 border-black rounded-xl transition-all duration-200
+           {{ request()->routeIs('admin.payment-report')
+               ? 'bg-white text-unmaris-blue shadow-[4px_4px_0px_0px_#FACC15] translate-x-1'
+               : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[4px_4px_0px_0px_#000] hover:-translate-y-1' }}">
+                <span class="text-xl mr-3 group-hover:scale-110 transition-transform">💰</span>
+                Laporan Keuangan
+            </a>
+
             <a href="{{ route('admin.seleksi.index') }}"
                 class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-lg transition-all duration-200
        {{ request()->routeIs('admin.seleksi*')

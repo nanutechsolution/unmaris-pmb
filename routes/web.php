@@ -145,6 +145,9 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
             '/pendaftar/{pendaftar}/lulus-rekomendasi',
             [App\Http\Controllers\Admin\PendaftarController::class, 'lulusRekomendasi']
         )->name('pendaftar.lulus-rekomendasi');
+
+
+        Route::get('/admin/payment-report', \App\Livewire\Admin\PaymentReport::class)->name('payment-report');
     });
 
 // ====================================================
