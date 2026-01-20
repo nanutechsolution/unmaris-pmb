@@ -18,25 +18,18 @@
                 </div>
                 
                 <h3 class="font-bold text-unmaris-yellow uppercase tracking-widest text-sm mb-1">Total Tagihan</h3>
-                
                 <div class="text-4xl font-black mb-6">Rp {{ number_format($biaya_pendaftaran, 0, ',', '.') }}</div>
-                
                 <p class="text-xs uppercase font-bold text-gray-300 mb-2">Silakan transfer ke salah satu rekening:</p>
 
-                <!-- LIST REKENING (DINAMIS DARI DB) -->
+                <!-- LIST REKENING -->
                 <div class="space-y-3">
                     @foreach($bank_accounts as $b)
                     <div class="bg-white/10 p-3 rounded-lg border border-white/20 backdrop-blur-sm flex justify-between items-center group hover:bg-white/20 transition">
                         <div>
-                            <!-- Nama Bank -->
                             <div class="text-xs font-bold text-yellow-300 uppercase">{{ $b['bank'] }}</div>
-                            <!-- Nomor Rekening -->
                             <div class="text-xl font-black tracking-wider font-mono">{{ $b['rekening'] }}</div>
-                            <!-- Atas Nama -->
-                            <div class="text-[10px] font-bold text-gray-300">a.n {{ $b['atas_nama'] }}</div>
+                            <div class="text--[10px] font-bold text-gray-300">a.n {{ $b['atas_nama'] }}</div>
                         </div>
-                        
-                        <!-- Tombol Copy -->
                         <button onclick="navigator.clipboard.writeText('{{ $b['rekening'] }}'); alert('No. Rekening Disalin!')" 
                                 class="bg-black/40 hover:bg-black/60 text-white p-2 rounded-lg transition" title="Salin No. Rekening">
                             📋
@@ -79,11 +72,9 @@
                     <p class="font-bold text-gray-500 text-sm mt-2">Terima kasih! Data Anda sedang diproses ke tahap seleksi.</p>
                 </div>
             
-            <!-- CASE 2: MENUNGGU VERIFIKASI (Bisa Edit Jika Salah) -->
+            <!-- CASE 2: MENUNGGU VERIFIKASI -->
             @elseif($pendaftar->status_pembayaran == 'menunggu_verifikasi')
                 <div x-data="{ gantiFile: false }">
-                    
-                    <!-- Tampilan Menunggu (Default) -->
                     <div x-show="!gantiFile" class="text-center py-8">
                         <div class="text-6xl mb-4 animate-pulse">⏳</div>
                         <h2 class="text-xl font-black text-yellow-600 uppercase">MENUNGGU VERIFIKASI</h2>
@@ -101,29 +92,35 @@
                             <span class="text-xs text-gray-400 font-bold block mt-2">Bukti terkirim</span>
                         </div>
 
-                        <!-- Tombol Salah Upload -->
                         <button @click="gantiFile = true" class="text-xs font-bold text-red-500 hover:text-red-700 underline decoration-2 cursor-pointer">
                             ⚠️ Salah kirim bukti? Upload ulang disini
                         </button>
                     </div>
 
-                    <!-- Form Ganti File (Hidden by Default) -->
+                    <!-- Form Ganti File -->
                     <div x-show="gantiFile" x-transition class="mt-4">
-                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 text-xs font-bold mb-4">
-                            Silakan upload bukti pembayaran yang baru. Bukti lama akan diganti.
-                        </div>
-                        
                         <form wire:submit.prevent="save">
                             <div class="mb-4">
-                                <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group">
+                                <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group overflow-hidden">
+                                    
+                                    <!-- LOADING OVERLAY -->
+                                    <div wire:loading wire:target="bukti_transfer" class="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm z-20">
+                                        <svg class="animate-spin h-8 w-8 text-unmaris-blue mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span class="text-xs font-bold text-unmaris-blue">Mengunggah...</span>
+                                    </div>
+
                                     @if ($bukti_transfer)
                                         <div class="text-sm font-black text-unmaris-blue">File Siap Upload</div>
                                     @else
                                         <span class="text-4xl block">📸</span>
-                                        <p class="text-xs font-bold text-unmaris-blue mt-2">Pilih File Baru</p>
+                                        <p class="text-xs font-bold text-unmaris-blue mt-2">Pilih File Baru (PDF/JPG/PNG)</p>
                                     @endif
                                     <input type="file" wire:model="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                                 </div>
+                                <span class="text-[10px] font-bold text-gray-400 mt-1 block">Max Size: 1MB</span>
                                 @error('bukti_transfer') <span class="text-red-600 font-bold text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
@@ -142,22 +139,30 @@
 
             <!-- CASE 3: BELUM BAYAR / DITOLAK -->
             @else
-                <!-- Alert Jika Ditolak -->
                 @if($pendaftar->status_pembayaran == 'ditolak')
                     <div class="bg-red-100 border-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 text-center shadow-sm">
                         <div class="text-3xl mb-2">❌</div>
                         <h4 class="font-black text-lg uppercase">Pembayaran Ditolak</h4>
-                        <p class="text-sm font-bold mt-1">Bukti pembayaran Anda tidak valid atau tidak terbaca. Silakan upload ulang bukti yang benar.</p>
+                        <p class="text-sm font-bold mt-1">Bukti tidak valid. Silakan upload ulang.</p>
                     </div>
                 @endif
 
-                <!-- FORM UPLOAD -->
                 <form wire:submit.prevent="save">
                     <div class="mb-4">
-                        <label class="block text-sm font-bold text-unmaris-blue mb-2">Upload Bukti Transfer (Struk/Screenshot)</label>
-                        <span class="text-xs font-bold text-gray-400 mb-2 block">Format: JPG, PNG, PDF (Max 2MB)</span>
+                        <label class="block text-sm font-bold text-unmaris-blue mb-2">Upload Bukti Transfer</label>
+                        <span class="text-xs font-bold text-gray-400 mb-2 block">Format: JPG, PNG, PDF (Max 1MB)</span>
                         
-                        <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group">
+                        <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group overflow-hidden">
+                            
+                            <!-- LOADING OVERLAY -->
+                            <div wire:loading wire:target="bukti_transfer" class="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm z-20">
+                                <svg class="animate-spin h-8 w-8 text-unmaris-blue mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-xs font-bold text-unmaris-blue">Mengunggah File...</span>
+                            </div>
+
                             @if ($bukti_transfer)
                                 @try
                                     @if (in_array(strtolower($bukti_transfer->extension()), ['jpg', 'jpeg', 'png']))
@@ -187,7 +192,7 @@
 
                     <button type="submit" wire:loading.attr="disabled" class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-3 px-6 rounded-lg border-2 border-unmaris-blue shadow-neo hover:shadow-neo-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider flex justify-center items-center gap-2">
                         <span wire:loading.remove>KIRIM BUKTI BAYAR 🚀</span>
-                        <span wire:loading>MENGUPLOAD... ⏳</span>
+                        <span wire:loading>MEMPROSES... ⏳</span>
                     </button>
                 </form>
             @endif

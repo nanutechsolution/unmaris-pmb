@@ -14,27 +14,20 @@ class Pembayaran extends Component
 
     public $bukti_transfer;
     public $biaya_pendaftaran;
-    
-    // Ganti properti single menjadi array untuk menampung banyak bank
     public $bank_accounts = [];
 
     public function mount()
     {
-        // Redirect jika belum isi formulir
         if (!Auth::user()->pendaftar) {
             return redirect()->route('camaba.formulir');
         }
 
-        // Ambil data setting
         $settings = SiteSetting::first();
-        
         $this->biaya_pendaftaran = $settings->biaya_pendaftaran ?? 250000;
 
-        // LOGIKA BARU: Ambil dari kolom JSON 'bank_accounts'
         if (!empty($settings->bank_accounts)) {
             $this->bank_accounts = $settings->bank_accounts;
         } else {
-            // Fallback: Jika JSON kosong (data lama), ambil dari kolom biasa
             $this->bank_accounts = [[
                 'bank' => $settings->nama_bank ?? 'Bank Kampus',
                 'rekening' => $settings->nomor_rekening ?? '0000-0000-0000',
@@ -45,35 +38,34 @@ class Pembayaran extends Component
 
     public function save()
     {
+        // PERBAIKAN VALIDASI: Max 1MB (1024 KB) & Mimes PDF/Images
         $this->validate([
-            'bukti_transfer' => 'required|image|max:2048',
+            'bukti_transfer' => 'required|file|mimes:pdf,jpg,jpeg,png|max:1024',
+        ], [
+            'bukti_transfer.required' => 'Bukti transfer wajib diunggah.',
+            'bukti_transfer.mimes' => 'Format file harus JPG, PNG, atau PDF.',
+            'bukti_transfer.max' => 'Ukuran file maksimal 1MB.',
         ]);
 
         $pendaftar = Auth::user()->pendaftar;
 
-        // 1. Guard: Cegah ganti file jika sudah LUNAS (Verified)
         if ($pendaftar->status_pembayaran === 'lunas') {
-            $this->addError('bukti_transfer', 'Pembayaran sudah lunas dan diverifikasi. Tidak dapat diubah.');
+            $this->addError('bukti_transfer', 'Pembayaran sudah lunas. Tidak dapat diubah.');
             return;
         }
 
-        // 2. Simpan File Baru
         $path = $this->bukti_transfer->store('uploads/pembayaran', 'public');
 
-        // 3. Logic Ganti File (Hapus file lama jika ada)
-        // Ini yang menangani kasus "Salah Upload". File lama dihapus agar tidak menuhin server.
         if ($pendaftar->bukti_pembayaran && Storage::disk('public')->exists($pendaftar->bukti_pembayaran)) {
             Storage::disk('public')->delete($pendaftar->bukti_pembayaran);
         }
 
-        // 4. Update Database
         $pendaftar->update([
             'bukti_pembayaran' => $path,
-            'status_pembayaran' => 'menunggu_verifikasi' // Reset status ke menunggu jika sebelumnya ditolak
+            'status_pembayaran' => 'menunggu_verifikasi'
         ]);
 
         $this->reset('bukti_transfer');
-
         session()->flash('message', 'Bukti pembayaran berhasil diperbarui! Admin akan mengecek ulang.');
     }
 
