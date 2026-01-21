@@ -27,8 +27,18 @@ class SiteSettingSeeder extends Seeder
             'bank_accounts' => [
                 [
                     'bank' => 'BRI',
-                    'rekening' => '0000-0000-0000',
-                    'atas_nama' => 'Yayasan Pendidikan St. Yosef Freinademetz'
+                    'rekening' => '21860-10007-26301',
+                    'atas_nama' => 'YAYASAN PENDIDIKAN ST. YOSEP FREINADEMETZ'
+                ],
+                [
+                    'bank' => 'BNI',
+                    'rekening' => '04571-35868',
+                    'atas_nama' => 'UNIVERSITAS STELLA MARIS'
+                ],
+                [
+                    'bank' => 'MANDIRI',
+                    'rekening' => '137-00-0703016-5',
+                    'atas_nama' => 'YAYASAN ST YOSEP FREINADEMETZ'
                 ]
             ],
 
