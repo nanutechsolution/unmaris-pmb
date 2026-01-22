@@ -67,9 +67,9 @@
             <input wire:model.live.debounce="search" type="text" placeholder="Cari Nama Referensi / HP..." class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 font-bold text-sm focus:border-unmaris-blue outline-none">
             
             <!-- TOMBOL EXPORT KEREN -->
-            <button wire:click="export" wire:loading.attr="disabled" class="bg-green-600 hover:bg-green-700 text-white font-black px-4 py-2 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all flex items-center gap-2 whitespace-nowrap text-xs md:text-sm">
-                <span wire:loading.remove>📊 Export Excel</span>
-                <span wire:loading>Processing...</span>
+            <button wire:click="export" wire:loading.attr="disabled" wire:target="export" class="bg-green-600 hover:bg-green-700 text-white font-black px-4 py-2 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all flex items-center gap-2 whitespace-nowrap text-xs md:text-sm">
+                <span wire:loading.removewire:target="export">📊 Export Excel</span>
+                <span wire:loading wire:target="export">Processing...</span>
             </button>
         </div>
     </div>
@@ -141,13 +141,15 @@
                         </td>
 
                         <td class="p-4 text-right">
-                            <!-- Tombol ini nanti bisa dikembangkan untuk melihat list nama siswa yang direkrut -->
-                            <button class="text-xs font-bold text-blue-600 hover:underline">Lihat List ➜</button>
+                            <!-- TOMBOL LIHAT LIST -->
+                            <button wire:click="showDetails('{{ $ref->nama_referensi }}', '{{ $ref->nomor_hp_referensi ?? '' }}')" class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center justify-end gap-1 ml-auto">
+                                Lihat List <span class="text-lg">➜</span>
+                            </button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="p-8 text-center text-gray-400 font-bold bg-gray-50 italic">
+                        <td colspan="7" class="p-8 text-center text-gray-400 font-bold bg-gray-50 italic">
                             Belum ada data referral.
                         </td>
                     </tr>
@@ -159,5 +161,87 @@
             {{ $referrals->links() }}
         </div>
     </div>
+
+    <!-- MODAL DETAIL REKRUTAN -->
+    @if($showDetailModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in-up" x-data @keydown.escape.window="$wire.closeDetailModal()">
+        <div class="bg-white w-full max-w-3xl rounded-2xl border-4 border-unmaris-blue shadow-neo-lg overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Header Modal -->
+            <div class="bg-unmaris-blue p-4 flex justify-between items-center text-white shrink-0">
+                <div class="flex items-center gap-4">
+                    <div class="bg-white/20 p-2 rounded-lg">
+                        <span class="text-2xl">🤝</span>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-lg uppercase tracking-wide">Daftar Rekrutan</h3>
+                        <p class="text-xs text-blue-200 font-bold">Referrer: <span class="text-yellow-400">{{ strtoupper($detailReferrerName) }}</span></p>
+                    </div>
+                </div>
+                <button wire:click="closeDetailModal" class="text-white hover:text-yellow-400 font-black text-2xl transition">&times;</button>
+            </div>
+            
+            <!-- List Table -->
+            <div class="p-0 overflow-y-auto custom-scrollbar bg-gray-50">
+                <table class="min-w-full text-left">
+                    <thead class="bg-gray-200 text-gray-600 border-b border-gray-300 sticky top-0 shadow-sm z-10">
+                        <tr>
+                            <th class="p-3 font-black text-[10px] uppercase tracking-wider w-10">#</th>
+                            <th class="p-3 font-black text-[10px] uppercase tracking-wider">Nama Camaba</th>
+                            <th class="p-3 font-black text-[10px] uppercase tracking-wider">Prodi Pilihan</th>
+                            <th class="p-3 font-black text-[10px] uppercase tracking-wider text-center">Status</th>
+                            <th class="p-3 font-black text-[10px] uppercase tracking-wider text-right">Tgl Daftar</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        @forelse($detailList as $item)
+                            <tr class="hover:bg-blue-50 transition">
+                                <td class="p-3 font-bold text-gray-400 text-xs">{{ $loop->iteration }}</td>
+                                <td class="p-3">
+                                    <div class="font-bold text-unmaris-blue text-sm">{{ $item->user->name }}</div>
+                                    <div class="text-[10px] text-gray-500 font-bold">{{ $item->user->email }}</div>
+                                </td>
+                                <td class="p-3 text-xs font-bold text-gray-600">{{ $item->pilihan_prodi_1 }}</td>
+                                <td class="p-3 text-center">
+                                    @php
+                                        $statusClass = match($item->status_pendaftaran) {
+                                            'lulus' => 'bg-green-100 text-green-800 border-green-500',
+                                            'submit' => 'bg-yellow-100 text-yellow-800 border-yellow-500',
+                                            'verifikasi' => 'bg-blue-100 text-blue-800 border-blue-500',
+                                            default => 'bg-gray-100 text-gray-600 border-gray-300'
+                                        };
+                                    @endphp
+                                    <span class="px-2 py-0.5 rounded border {{ $statusClass }} text-[10px] font-black uppercase inline-block">
+                                        {{ $item->status_pendaftaran }}
+                                    </span>
+                                </td>
+                                <td class="p-3 text-right text-xs font-bold text-gray-500">
+                                    {{ $item->created_at->format('d/m/Y') }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="p-6 text-center text-gray-400 italic text-sm">Tidak ada data detail.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-4 bg-white border-t-2 border-gray-200 flex justify-end shrink-0 gap-2">
+                <!-- Tombol Download Excel -->
+                <button wire:click="exportDetail('{{ $detailReferrerName }}', '{{ $detailReferrerHp ?? '' }}')" 
+                        wire:loading.attr="disabled" 
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xs uppercase transition flex items-center gap-2">
+                    <span wire:loading.remove wire:target="exportDetail">📥 Download Excel</span>
+                    <span wire:loading wire:target="exportDetail">⏳ Processing...</span>
+                </button>
+
+                <button wire:click="closeDetailModal" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-lg text-xs uppercase transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+    @endif
 
 </div>
