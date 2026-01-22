@@ -148,6 +148,7 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
 
         Route::get('/admin/payment-report', \App\Livewire\Admin\PaymentReport::class)->name('payment-report');
+        Route::get('/admin/referral', \App\Livewire\Admin\ReferralReport::class)->name('referral');
     });
 
 // ====================================================

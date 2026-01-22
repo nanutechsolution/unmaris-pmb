@@ -28,6 +28,9 @@ class PendaftaranWizard extends Component
     // STEP 1: Biodata
     public $jalur_pendaftaran = 'reguler';
     public $scholarship_id;
+    public $sumber_informasi;
+    public $nama_referensi;
+
     public $nisn, $nik, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $alamat, $agama, $nomor_hp;
 
     // STEP 2: Akademik
@@ -126,8 +129,13 @@ class PendaftaranWizard extends Component
             'jenis_kelamin' => 'required|in:L,P',
             'agama' => 'required',
             'alamat' => 'required|string|min:5',
+            'sumber_informasi' => 'required',
+            'nama_referensi' => 'nullable|string|max:100',
         ];
 
+        if (in_array($this->sumber_informasi, ['mahasiswa', 'alumni', 'dosen', 'kerabat'])) {
+            $rules['nama_referensi'] = 'required|string|min:3';
+        }
         if ($this->jalur_pendaftaran == 'beasiswa') {
             $rules['scholarship_id'] = 'required|exists:scholarships,id';
         }
@@ -227,6 +235,8 @@ class PendaftaranWizard extends Component
                 array_merge([
                     'jalur_pendaftaran' => $this->jalur_pendaftaran,
                     'scholarship_id' => ($this->jalur_pendaftaran == 'beasiswa') ? $this->scholarship_id : null,
+                    'sumber_informasi' => $this->sumber_informasi,
+                    'nama_referensi' => $this->nama_referensi,
                     'nisn' => $this->nisn,
                     'nik' => $this->nik,
                     'tempat_lahir' => $this->tempat_lahir,
@@ -282,6 +292,8 @@ class PendaftaranWizard extends Component
             Pendaftar::updateOrCreate(
                 ['user_id' => Auth::id()],
                 [
+                    'sumber_informasi' => $this->sumber_informasi,
+                    'nama_referensi' => $this->nama_referensi,
                     'jalur_pendaftaran' => $this->jalur_pendaftaran,
                     'scholarship_id' => ($this->jalur_pendaftaran == 'beasiswa') ? $this->scholarship_id : null,
                     'nisn' => $this->nisn,
