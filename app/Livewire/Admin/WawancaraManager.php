@@ -79,7 +79,7 @@ class WawancaraManager extends Component
     {
         return view('livewire.admin.wawancara-manager', [
             'peserta' => $this->getPendaftarQuery()->paginate(10)
-        ]);
+        ])->layout('layouts.admin');
     }
 
     // --- EKSEKUSI JADWAL MASSAL ---

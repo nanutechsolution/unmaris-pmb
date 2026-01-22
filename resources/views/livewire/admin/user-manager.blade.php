@@ -8,12 +8,17 @@
                 <span>👥</span> Manajemen Akun
             </h2>
             
-            <!-- FILTER DROPDOWN -->
-            <select wire:model.live="filterStatus" class="bg-white text-black font-bold text-sm rounded-lg border-2 border-black focus:shadow-neo transition-all py-2 px-3 cursor-pointer">
-                <option value="">Semua Status</option>
-                <option value="belum_isi">❌ Belum Isi Form</option>
-                <option value="sudah_isi">✅ Sudah Isi Form</option>
-            </select>
+            <!-- TABS SWITCHER -->
+            <div class="bg-black/20 p-1 rounded-lg flex items-center">
+                <button wire:click="$set('activeTab', 'camaba')" 
+                        class="px-4 py-1.5 rounded-md text-xs font-black uppercase transition-all {{ $activeTab === 'camaba' ? 'bg-yellow-400 text-black shadow-sm' : 'text-white hover:bg-white/10' }}">
+                    🎓 Camaba
+                </button>
+                <button wire:click="$set('activeTab', 'petugas')" 
+                        class="px-4 py-1.5 rounded-md text-xs font-black uppercase transition-all {{ $activeTab === 'petugas' ? 'bg-yellow-400 text-black shadow-sm' : 'text-white hover:bg-white/10' }}">
+                    👮 Petugas
+                </button>
+            </div>
         </div>
 
         <div class="flex gap-2 w-full md:w-auto">
@@ -21,11 +26,26 @@
             <input wire:model.live.debounce="search" type="text" placeholder="Cari Nama / Email / No HP..." 
                    class="w-full bg-white border-2 border-black rounded-lg px-4 py-2 font-bold focus:shadow-neo transition-all text-sm">
             
-            <!-- TOMBOL EXPORT -->
-            <button wire:click="exportFiltered" wire:loading.attr="disabled" class="bg-green-500 hover:bg-green-600 text-white font-black px-4 py-2 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all flex items-center gap-2 whitespace-nowrap text-sm">
-                <span wire:loading.remove wire:target="exportFiltered">📥 Export Excel</span>
-                <span wire:loading wire:target="exportFiltered">⏳ Proses...</span>
-            </button>
+            <!-- TOMBOL TAMBAH PETUGAS (Hanya di Tab Petugas) -->
+            @if($activeTab === 'petugas')
+                <button wire:click="create" class="bg-yellow-400 hover:bg-yellow-500 text-black font-black px-4 py-2 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all flex items-center gap-2 whitespace-nowrap text-sm">
+                    <span>+</span> Tambah Petugas
+                </button>
+            @endif
+
+            <!-- TOMBOL EXPORT & FILTER (Hanya di Tab Camaba) -->
+            @if($activeTab === 'camaba')
+                <select wire:model.live="filterStatus" class="bg-white text-black font-bold text-sm rounded-lg border-2 border-black focus:shadow-neo transition-all py-2 px-3 cursor-pointer">
+                    <option value="">Semua Status</option>
+                    <option value="belum_isi">❌ Belum Isi</option>
+                    <option value="sudah_isi">✅ Sudah Isi</option>
+                </select>
+
+                <button wire:click="exportFiltered" wire:loading.attr="disabled" class="bg-green-500 hover:bg-green-600 text-white font-black px-4 py-2 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all flex items-center gap-2 whitespace-nowrap text-sm">
+                    <span wire:loading.remove wire:target="exportFiltered">📥 Excel</span>
+                    <span wire:loading wire:target="exportFiltered">⏳...</span>
+                </button>
+            @endif
         </div>
 
     </div>
@@ -33,6 +53,12 @@
     @if (session()->has('message'))
         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 font-bold shadow-sm animate-pulse flex items-center gap-2">
             <span>✅</span> {{ session('message') }}
+        </div>
+    @endif
+    
+    @if (session()->has('error'))
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 font-bold shadow-sm animate-pulse flex items-center gap-2">
+            <span>🚫</span> {{ session('error') }}
         </div>
     @endif
 
@@ -44,9 +70,8 @@
                     <tr>
                         <th class="p-4 font-black uppercase text-sm">Nama & Email</th>
                         <th class="p-4 font-black uppercase text-sm">Kontak (WA)</th>
-                        <th class="p-4 font-black uppercase text-sm">Terdaftar Sejak</th>
-                        <th class="p-4 font-black uppercase text-center text-sm">Status Form</th>
-                        <th class="p-4 font-black uppercase text-right text-sm">Aksi Akun</th>
+                        <th class="p-4 font-black uppercase text-sm text-center">Role / Status</th>
+                        <th class="p-4 font-black uppercase text-right text-sm">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y-2 divide-gray-100">
@@ -57,6 +82,7 @@
                             <td class="p-4 align-top">
                                 <div class="font-black text-unmaris-blue text-base md:text-lg">{{ $user->name }}</div>
                                 <div class="text-xs font-bold text-gray-500">{{ $user->email }}</div>
+                                <div class="text-[10px] text-gray-400 mt-1">Daftar: {{ $user->created_at->format('d M Y') }}</div>
                             </td>
 
                             <!-- Kontak (WA) -->
@@ -64,7 +90,7 @@
                                 @if($user->nomor_hp)
                                     <div class="flex items-center gap-2">
                                         <span class="font-bold text-gray-700 text-sm">{{ $user->nomor_hp }}</span>
-                                        <a href="https://wa.me/{{ preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $user->nomor_hp)) }}?text=Halo%20{{ urlencode($user->name) }},%20kami%20dari%20panitia%20PMB%20Unmaris.%20Ada%20kendala%20saat%20pengisian%20formulir?" 
+                                        <a href="https://wa.me/{{ preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $user->nomor_hp)) }}?text=Halo%20{{ urlencode($user->name) }}..." 
                                            target="_blank" 
                                            class="bg-green-500 text-white p-1 rounded-full hover:bg-green-600 transition shadow-sm border border-green-700"
                                            title="Chat WhatsApp">
@@ -76,43 +102,44 @@
                                 @endif
                             </td>
 
-                            <!-- Tanggal Daftar -->
-                            <td class="p-4 align-top font-medium text-gray-600 text-sm">
-                                {{ $user->created_at->format('d M Y') }}
-                                <br><span class="text-[10px] text-gray-400">{{ $user->created_at->format('H:i') }}</span>
-                            </td>
-
-                            <!-- Status Form (UPDATED: LINK KE DETAIL) -->
+                            <!-- Role / Status Form -->
                             <td class="p-4 align-top text-center">
-                                @if($user->pendaftar)
-                                    @php
-                                        $statusClass = match($user->pendaftar->status_pendaftaran) {
-                                            'lulus' => 'bg-green-100 text-green-800 border-green-500',
-                                            'submit' => 'bg-yellow-100 text-yellow-800 border-yellow-500',
-                                            'verifikasi' => 'bg-blue-100 text-blue-800 border-blue-500',
-                                            default => 'bg-gray-100 text-gray-800 border-gray-400',
-                                        };
-                                    @endphp
-                                    <a href="{{ route('admin.pendaftar.show', $user->pendaftar->id) }}" 
-                                       class="inline-block px-2 py-1 {{ $statusClass }} text-[10px] font-black rounded border uppercase hover:scale-105 transition-transform cursor-pointer"
-                                       title="Klik untuk lihat detail pendaftaran">
-                                        {{ $user->pendaftar->status_pendaftaran == 'submit' ? 'MENUNGGU VERIF' : $user->pendaftar->status_pendaftaran }} ↗
-                                    </a>
+                                @if($activeTab === 'camaba')
+                                    @if($user->pendaftar)
+                                        @php
+                                            $statusClass = match($user->pendaftar->status_pendaftaran) {
+                                                'lulus' => 'bg-green-100 text-green-800 border-green-500',
+                                                'submit' => 'bg-yellow-100 text-yellow-800 border-yellow-500',
+                                                'verifikasi' => 'bg-blue-100 text-blue-800 border-blue-500',
+                                                default => 'bg-gray-100 text-gray-800 border-gray-400',
+                                            };
+                                        @endphp
+                                        <a href="{{ route('admin.pendaftar.show', $user->pendaftar->id) }}" 
+                                           class="inline-block px-2 py-1 {{ $statusClass }} text-[10px] font-black rounded border uppercase hover:scale-105 transition-transform cursor-pointer"
+                                           title="Klik untuk lihat detail pendaftaran">
+                                            {{ $user->pendaftar->status_pendaftaran == 'submit' ? 'MENUNGGU VERIF' : $user->pendaftar->status_pendaftaran }} ↗
+                                        </a>
+                                    @else
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 text-[10px] font-black rounded border border-red-500 uppercase animate-pulse">
+                                            BELUM ISI FORM
+                                        </span>
+                                    @endif
                                 @else
-                                    <span class="px-2 py-1 bg-red-100 text-red-800 text-[10px] font-black rounded border border-red-500 uppercase animate-pulse">
-                                        BELUM ISI FORM
+                                    <!-- Jika Tab Petugas, tampilkan Role -->
+                                    <span class="px-3 py-1 bg-gray-800 text-white text-[10px] font-black rounded border border-black uppercase">
+                                        {{ $user->role }}
                                     </span>
                                 @endif
                             </td>
 
-                            <!-- Aksi (UPDATED: TAMBAH EDIT) -->
+                            <!-- Aksi -->
                             <td class="p-4 align-top text-right">
                                 <div class="flex flex-col gap-2 justify-end">
-                                    {{-- <button wire:click="edit({{ $user->id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold border-2 border-black shadow-neo-sm hover:shadow-none transition-all text-xs flex items-center justify-center gap-1">
-                                        <span>✏️</span> Edit Data
-                                    </button> --}}
+                                    <button wire:click="edit({{ $user->id }})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold border-2 border-black shadow-neo-sm hover:shadow-none transition-all text-xs flex items-center justify-center gap-1">
+                                        <span>✏️</span> Edit
+                                    </button>
                                     <button wire:click="confirmReset({{ $user->id }})" class="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1.5 rounded-lg font-bold border-2 border-black shadow-neo-sm hover:shadow-none transition-all text-xs flex items-center justify-center gap-1">
-                                        <span>🔑</span> Reset Pass
+                                        <span>🔑</span> Reset
                                     </button>
                                     <button wire:click="delete({{ $user->id }})" onclick="return confirm('Hapus akun ini selamanya? Data pendaftaran juga akan hilang.')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold border-2 border-black shadow-neo-sm hover:shadow-none transition-all text-xs flex items-center justify-center gap-1">
                                         <span>🗑️</span> Hapus
@@ -137,42 +164,68 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT USER (BARU) -->
-    @if($isEditModalOpen)
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in-up" x-data @keydown.escape.window="$wire.closeEditModal()">
+    <!-- MODAL EDIT/CREATE USER -->
+    @if($isEditModalOpen || $isCreateModalOpen)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in-up" x-data @keydown.escape.window="$wire.closeModal()">
         <div class="bg-white w-full max-w-md rounded-2xl border-4 border-unmaris-blue shadow-neo-lg overflow-hidden relative">
             <div class="bg-blue-500 p-4 border-b-4 border-unmaris-blue flex justify-between items-center text-white">
-                <h3 class="font-black text-lg uppercase">✏️ Edit Data User</h3>
-                <button wire:click="closeEditModal" class="font-black hover:text-yellow-300 text-xl">&times;</button>
+                <h3 class="font-black text-lg uppercase">
+                    {{ $isCreateModalOpen ? '➕ Tambah Petugas' : '✏️ Edit Data User' }}
+                </h3>
+                <button wire:click="closeModal" class="font-black hover:text-yellow-300 text-xl">&times;</button>
             </div>
+            
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-xs font-black text-unmaris-blue mb-1 uppercase">Nama Lengkap</label>
-                    <input type="text" wire:model="editName" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none">
-                    @error('editName') <span class="text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
+                    <input type="text" wire:model="name" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none">
+                    @error('name') <span class="text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
                 </div>
                 <div>
                     <label class="block text-xs font-black text-unmaris-blue mb-1 uppercase">Email</label>
-                    <input type="email" wire:model="editEmail" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none">
-                    @error('editEmail') <span class="text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
+                    <input type="email" wire:model="email" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none">
+                    @error('email') <span class="text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
                 </div>
                 <div>
                     <label class="block text-xs font-black text-unmaris-blue mb-1 uppercase">No. HP (WhatsApp)</label>
-                    <input type="text" wire:model="editPhone" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none">
-                    @error('editPhone') <span class="text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
+                    <input type="text" wire:model="nomor_hp" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none">
+                    @error('nomor_hp') <span class="text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
                 </div>
+                
+                <!-- Role Selection (UPDATED: Sembunyikan Admin) -->
+                <div>
+                    <label class="block text-xs font-black text-unmaris-blue mb-1 uppercase">Role / Hak Akses</label>
+                    <select wire:model="role" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none bg-white">
+                        <option value="camaba">🎓 Calon Mahasiswa</option>
+                        <!-- Opsi Admin disembunyikan agar tidak sembarangan dibuat -->
+                        {{-- <option value="admin">👮 Super Admin</option> --}} 
+                        <option value="keuangan">💸 Staf Keuangan</option>
+                        <option value="akademik">🏫 Staf Akademik</option>
+                    </select>
+                    @error('role') <span class="text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <!-- Password (Only for Create) -->
+                @if($isCreateModalOpen)
+                <div>
+                    <label class="block text-xs font-black text-unmaris-blue mb-1 uppercase">Password Awal</label>
+                    <input type="text" wire:model="password" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none">
+                    @error('password') <span class="text-red-600 text-xs font-bold block mt-1">{{ $message }}</span> @enderror
+                </div>
+                @endif
             </div>
+
             <div class="p-4 bg-gray-100 border-t-4 border-unmaris-blue flex justify-end gap-2">
-                <button wire:click="closeEditModal" class="px-4 py-2 font-bold text-gray-600 hover:text-gray-800 text-sm">Batal</button>
-                <button wire:click="updateUser" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-black border-2 border-black shadow-neo-sm hover:shadow-none hover:bg-blue-700 transition-all text-sm uppercase">
-                    Simpan Perubahan
+                <button wire:click="closeModal" class="px-4 py-2 font-bold text-gray-600 hover:text-gray-800 text-sm">Batal</button>
+                <button wire:click="{{ $isCreateModalOpen ? 'store' : 'update' }}" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-black border-2 border-black shadow-neo-sm hover:shadow-none hover:bg-blue-700 transition-all text-sm uppercase">
+                    {{ $isCreateModalOpen ? 'Simpan Baru' : 'Simpan Perubahan' }}
                 </button>
             </div>
         </div>
     </div>
     @endif
 
-    <!-- MODAL RESET PASSWORD (EXISTING) -->
+    <!-- MODAL RESET PASSWORD (Tetap Sama) -->
     @if($confirmingUserReset)
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in-up" x-data @keydown.escape.window="$wire.closeModal()">
         <div class="bg-white w-full max-w-md rounded-2xl border-4 border-unmaris-blue shadow-neo-lg overflow-hidden relative">
@@ -185,7 +238,6 @@
                     Masukkan password baru untuk user ini. <br>
                     <span class="text-red-500">Penting:</span> Harap dicatat sebelum disimpan karena tidak bisa dilihat lagi.
                 </p>
-                
                 <label class="block text-xs font-black text-unmaris-blue mb-1 uppercase">Password Baru</label>
                 <input type="text" wire:model="newPassword" placeholder="Min. 8 Karakter" class="w-full border-2 border-unmaris-blue rounded px-3 py-2 font-bold focus:shadow-neo transition-all outline-none text-gray-800">
                 @error('newPassword') <span class="text-red-600 text-xs font-bold block mt-1 bg-red-50 p-1 rounded">{{ $message }}</span> @enderror

@@ -12,13 +12,13 @@ class SeleksiManager extends Component
     use WithPagination;
 
     public $search = '';
-    
+
     // --- FITUR FILTER (AGAR TIDAK PUSING) ---
     public $filterStatus = 'belum_jadwal'; // Default tampilkan yang perlu dikerjakan duluan
-    
+
     // --- FITUR BULK ACTION ---
-    public $selected = []; 
-    public $selectAll = false; 
+    public $selected = [];
+    public $selectAll = false;
     public $bulk_jadwal_ujian;
     public $bulk_lokasi_ujian;
 
@@ -31,9 +31,19 @@ class SeleksiManager extends Component
     public $isModalOpen = false;
 
     // Hook: Reset seleksi & page jika filter berubah
-    public function updatingPage() { $this->resetSelection(); }
-    public function updatingSearch() { $this->resetSelection(); }
-    public function updatingFilterStatus() { $this->resetSelection(); $this->resetPage(); }
+    public function updatingPage()
+    {
+        $this->resetSelection();
+    }
+    public function updatingSearch()
+    {
+        $this->resetSelection();
+    }
+    public function updatingFilterStatus()
+    {
+        $this->resetSelection();
+        $this->resetPage();
+    }
 
     public function resetSelection()
     {
@@ -69,20 +79,20 @@ class SeleksiManager extends Component
 
         // Search Logic
         if ($this->search) {
-            $query->whereHas('user', function($q) {
-                $q->where('name', 'like', '%'.$this->search.'%');
+            $query->whereHas('user', function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%');
             });
         }
-        
+
         // Sorting: Prioritaskan yang belum selesai
-        return $query->latest(); 
+        return $query->latest();
     }
 
     public function render()
     {
         return view('livewire.admin.seleksi-manager', [
             'peserta' => $this->getPendaftarQuery()->paginate(10)
-        ]);
+        ])->layout('layouts.admin');
     }
 
     // --- EKSEKUSI JADWAL MASSAL ---
@@ -102,9 +112,9 @@ class SeleksiManager extends Component
         $count = count($this->selected);
         $this->resetSelection();
         $this->reset(['bulk_jadwal_ujian', 'bulk_lokasi_ujian']);
-        
+
         // Ubah filter ke 'sudah_jadwal' agar admin bisa lihat hasilnya
-        $this->filterStatus = 'sudah_jadwal'; 
+        $this->filterStatus = 'sudah_jadwal';
 
         session()->flash('message', "Sukses! $count peserta berhasil dijadwalkan.");
     }
@@ -130,7 +140,7 @@ class SeleksiManager extends Component
         ]);
 
         $p = Pendaftar::find($this->selectedPendaftarId);
-        
+
         $p->update([
             'jadwal_ujian' => $this->jadwal_ujian,
             'lokasi_ujian' => $this->lokasi_ujian,

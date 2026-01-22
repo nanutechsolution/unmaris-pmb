@@ -8,28 +8,56 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Seed the application's database.
+     */
     public function run(): void
     {
-        // Buat 1 Akun Admin
-        User::create([
-            'name' => 'Administrator PMB',
-            'email' => 'admin@unmaris.ac.id',
-            'nomor_hp' => '081234567890',
-            'role' => 'admin',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password'),
-        ]);
+        // 1. Akun Super Admin (Akses Penuh)
+        User::firstOrCreate(
+            ['email' => 'admin@unmaris.ac.id'],
+            [
+                'name' => 'Administrator PMB',
+                'nomor_hp' => '081234567890',
+                'role' => 'admin',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'), // Segera ganti setelah deploy!
+            ]
+        );
 
-        // Buat 1 Akun Camaba Dummy
-        User::create([
-            'name' => 'Calon Mahasiswa 1',
-            'email' => 'camaba@gmail.com',
-            'nomor_hp' => '089876543210',
-            'role' => 'camaba',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password'),
-        ]);
+        // 2. Akun Bagian Keuangan (Verifikasi Pembayaran & Laporan)
+        User::firstOrCreate(
+            ['email' => 'keuangan@unmaris.ac.id'],
+            [
+                'name' => 'Staf Keuangan',
+                'nomor_hp' => '081234567891',
+                'role' => 'keuangan',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+            ]
+        );
 
-        $this->call([DummyPendaftarLulusSeeder::class, GelombangSeeder::class, DummyCamabaSeeder::class, FacilitySlideSeeder::class, SiteSettingSeeder::class]);
+        // 3. Akun Bagian Akademik (Verifikasi Berkas & Seleksi)
+        User::firstOrCreate(
+            ['email' => 'akademik@unmaris.ac.id'],
+            [
+                'name' => 'Staf Akademik',
+                'nomor_hp' => '081234567892',
+                'role' => 'akademik',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+            ]
+        );
+
+        // CATATAN: Akun Dummy Camaba dihapus untuk persiapan Live/Production.
+
+        // Panggil Seeder Master Data (Wajib Ada untuk Operasional)
+        $this->call([
+            SiteSettingSeeder::class,           // Data Setting Website (Nama Kampus, Biaya, Kontak)
+            GelombangSeeder::class,             // Data Jadwal Pendaftaran
+            FacilitySlideSeeder::class,         // Data Slider Fasilitas
+            DummyCamabaSeeder::class,        // Dihapus (Non-aktifkan)
+            DummyPendaftarLulusSeeder::class,// Dihapus (Non-aktifkan)
+        ]);
     }
 }

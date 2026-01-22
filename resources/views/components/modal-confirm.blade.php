@@ -4,7 +4,7 @@
     'color',
     'prodi',
     'action',
-    'pilihan' => null, // <-- tambahkan ini
+    'pilihan' => null,
 ]);
 
 <div>

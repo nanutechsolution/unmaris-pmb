@@ -330,7 +330,7 @@
             @if (!in_array($pendaftar->status_pendaftaran, ['lulus', 'gagal']))
                 <div class="bg-white border-t-4 border-unmaris-blue p-6 rounded-xl shadow-neo relative" x-data="{ openP1: false, openP2: false, openRek: false }">
                     <div class="absolute -top-4 left-6 bg-unmaris-blue text-white px-4 py-1 font-black text-xs uppercase rounded shadow-sm">
-                        ADMIN ACTION ZONE
+                        ADMIN ACTION ZONE 
                     </div>
 
                     <div class="flex flex-col md:flex-row gap-4 items-center justify-between">

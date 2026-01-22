@@ -22,7 +22,7 @@
 
 <body class="font-sans antialiased bg-gray-100">
     <!-- Root x-data untuk mengontrol state sidebar -->
-    <div x-data="{ sidebarOpen: false }" class="min-h-screen flex relative">
+    <div x-data="{ sidebarOpen: false }" class="min-h-screen flex relative ">
 
         <!-- MOBILE OVERLAY (Layar Gelap saat sidebar buka) -->
         <div x-show="sidebarOpen" @click="sidebarOpen = false"

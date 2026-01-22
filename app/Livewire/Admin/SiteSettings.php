@@ -122,7 +122,7 @@ class SiteSettings extends Component
 
     public function render()
     {
-        return view('livewire.admin.site-settings');
+        return view('livewire.admin.site-settings')->layout('layouts.admin');
     }
 
 
