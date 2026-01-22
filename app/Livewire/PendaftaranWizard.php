@@ -30,6 +30,7 @@ class PendaftaranWizard extends Component
     public $scholarship_id;
     public $sumber_informasi;
     public $nama_referensi;
+    public $nomor_hp_referensi; 
 
     public $nisn, $nik, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $alamat, $agama, $nomor_hp;
 
@@ -131,10 +132,12 @@ class PendaftaranWizard extends Component
             'alamat' => 'required|string|min:5',
             'sumber_informasi' => 'required',
             'nama_referensi' => 'nullable|string|max:100',
+             'nomor_hp_referensi' => 'nullable|numeric|digits_between:10,15',
         ];
 
         if (in_array($this->sumber_informasi, ['mahasiswa', 'alumni', 'dosen', 'kerabat'])) {
             $rules['nama_referensi'] = 'required|string|min:3';
+              $rules['nomor_hp_referensi'] = 'required|numeric';
         }
         if ($this->jalur_pendaftaran == 'beasiswa') {
             $rules['scholarship_id'] = 'required|exists:scholarships,id';
@@ -237,6 +240,7 @@ class PendaftaranWizard extends Component
                     'scholarship_id' => ($this->jalur_pendaftaran == 'beasiswa') ? $this->scholarship_id : null,
                     'sumber_informasi' => $this->sumber_informasi,
                     'nama_referensi' => $this->nama_referensi,
+                    'nomor_hp_referensi' => $this->nomor_hp_referensi,
                     'nisn' => $this->nisn,
                     'nik' => $this->nik,
                     'tempat_lahir' => $this->tempat_lahir,
@@ -294,6 +298,7 @@ class PendaftaranWizard extends Component
                 [
                     'sumber_informasi' => $this->sumber_informasi,
                     'nama_referensi' => $this->nama_referensi,
+                       'nomor_hp_referensi' => $this->nomor_hp_referensi,
                     'jalur_pendaftaran' => $this->jalur_pendaftaran,
                     'scholarship_id' => ($this->jalur_pendaftaran == 'beasiswa') ? $this->scholarship_id : null,
                     'nisn' => $this->nisn,

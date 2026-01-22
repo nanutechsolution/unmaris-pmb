@@ -253,6 +253,7 @@
                             @enderror
                         </div>
                     </div>
+                    <!-- REFERRAL SECTION (BARU) -->
                     <div class="md:col-span-2 border-t-2 border-dashed border-unmaris-blue my-4 pt-4">
                         <h3 class="font-black text-unmaris-blue text-sm uppercase mb-4">📢 Sumber Informasi</h3>
 
@@ -277,34 +278,53 @@
                                 @enderror
                             </div>
 
-                            <!-- Input Nama Perekomendasi (Muncul Dinamis) -->
+                            <!-- Input Nama & HP Perekomendasi (Muncul Dinamis) -->
                             @if (in_array($sumber_informasi, ['mahasiswa', 'alumni', 'dosen', 'kerabat']))
-                                <div class="animate-fade-in-down @error('nama_referensi') has-error @enderror">
-                                    <label class="block text-sm font-bold text-green-700 mb-1">
-                                        Nama Perekomendasi * <span
-                                            class="text-[10px] text-gray-500 font-normal">(Digunakan untuk pencatatan
-                                            internal)</span>
-                                    </label>
-                                    <input type="text" wire:model="nama_referensi"
-                                        placeholder="Masukkan nama lengkap..."
-                                        class="w-full bg-green-50 border-2 border-green-500 rounded-lg py-3 px-4 font-bold text-green-900 text-sm focus:ring-green-500 focus:border-green-600">
-                                    @error('nama_referensi')
-                                        <span
-                                            class="validation-error text-red-600 font-bold text-xs mt-1 block">{{ $message }}</span>
-                                    @enderror
+                                <div
+                                    class="col-span-1 md:col-span-2 bg-green-50 p-4 rounded-lg border border-green-300 animate-fade-in-down">
+                                    <h4 class="font-bold text-green-800 text-sm mb-3 flex items-center gap-2">
+                                        <span>🤝</span> Data Pemberi Rekomendasi
+                                    </h4>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="@error('nama_referensi') has-error @enderror">
+                                            <label class="block text-xs font-bold text-green-700 mb-1">
+                                                Nama Lengkap *
+                                            </label>
+                                            <input type="text" wire:model="nama_referensi"
+                                                placeholder="Contoh: Pak Budi Santoso"
+                                                class="w-full bg-white border-2 border-green-400 rounded-lg py-2 px-3 font-bold text-sm focus:ring-green-500 focus:border-green-600">
+                                            @error('nama_referensi')
+                                                <span
+                                                    class="validation-error text-red-600 font-bold text-xs mt-1 block">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+
+                                        <div class="@error('nomor_hp_referensi') has-error @enderror">
+                                            <label class="block text-xs font-bold text-green-700 mb-1">
+                                                Nomor WA Perekomendasi * <span
+                                                    class="text-green-500 font-normal">(Untuk verifikasi reward)</span>
+                                            </label>
+                                            <input type="tel" wire:model="nomor_hp_referensi" placeholder="08..."
+                                                class="w-full bg-white border-2 border-green-400 rounded-lg py-2 px-3 font-bold text-sm focus:ring-green-500 focus:border-green-600">
+                                            @error('nomor_hp_referensi')
+                                                <span
+                                                    class="validation-error text-red-600 font-bold text-xs mt-1 block">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
                         </div>
-                    </div>
 
-                    <div class="mt-8 flex justify-end">
-                        <button wire:click="validateStep1" wire:loading.attr="disabled"
-                            class="w-full md:w-auto bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-3 px-8 rounded-lg border-2 border-unmaris-blue shadow-neo hover:shadow-neo-hover transition-all transform uppercase tracking-wider flex items-center justify-center gap-2">
-                            <span wire:loading.remove wire:target="validateStep1">Lanjut ke Akademik 👉</span>
-                            <span wire:loading wire:target="validateStep1">Memproses... ⏳</span>
-                        </button>
+                        <div class="mt-8 flex justify-end">
+                            <button wire:click="validateStep1" wire:loading.attr="disabled"
+                                class="w-full md:w-auto bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-3 px-8 rounded-lg border-2 border-unmaris-blue shadow-neo hover:shadow-neo-hover transition-all transform uppercase tracking-wider flex items-center justify-center gap-2">
+                                <span wire:loading.remove wire:target="validateStep1">Lanjut ke Akademik 👉</span>
+                                <span wire:loading wire:target="validateStep1">Memproses... ⏳</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
         @endif
 
         <!-- ==================== STEP 2 ==================== -->

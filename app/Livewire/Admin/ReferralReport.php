@@ -6,38 +6,40 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Pendaftar;
 use Illuminate\Support\Facades\DB;
+use App\Exports\ReferralExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReferralReport extends Component
 {
     use WithPagination;
 
     public $search = '';
-    public $filterSumber = ''; // Filter: Mahasiswa, Dosen, Alumni, dll
-    public $rewardPerSiswa = 50000; // Contoh: Komisi Rp 50.000 per siswa
+    public $filterSumber = ''; 
+    public $rewardPerSiswa = 50000; 
 
     public function render()
     {
         // Query Grouping: Siapa merekomendasikan berapa orang
+        // UPDATED: Group by nomor_hp_referensi juga
         $referrals = Pendaftar::select(
                 'nama_referensi', 
+                'nomor_hp_referensi', // <--- Tambahan
                 'sumber_informasi', 
-                DB::raw('count(*) as total_rekrut'),
-                // Ambil ID pendaftar yang direkrut (group_concat di MySQL)
-                DB::raw('GROUP_CONCAT(user_id) as users_ids') 
+                DB::raw('count(*) as total_rekrut')
             )
             ->whereNotNull('nama_referensi')
-            ->where('nama_referensi', '!=', '') // Hindari data kosong
-            ->where('nama_referensi', 'like', '%' . $this->search . '%')
+            ->where('nama_referensi', '!=', '')
+            ->where(function($q) {
+                $q->where('nama_referensi', 'like', '%' . $this->search . '%')
+                  ->orWhere('nomor_hp_referensi', 'like', '%' . $this->search . '%');
+            })
             ->when($this->filterSumber, function($q) {
                 $q->where('sumber_informasi', $this->filterSumber);
             })
-            ->groupBy('nama_referensi', 'sumber_informasi')
+            ->groupBy('nama_referensi', 'nomor_hp_referensi', 'sumber_informasi') // <--- Group by HP juga
             ->orderByDesc('total_rekrut')
             ->paginate(15);
 
-        // Ambil detail pendaftar (untuk menampilkan nama-nama yang direkrut)
-        // Kita loop manual di view nanti atau ambil relation jika perlu
-        
         // Statistik Global
         $totalReferral = Pendaftar::whereNotNull('nama_referensi')->where('nama_referensi', '!=', '')->count();
         $topReferral = $referrals->first();
@@ -47,5 +49,11 @@ class ReferralReport extends Component
             'totalReferral' => $totalReferral,
             'topReferralName' => $topReferral ? $topReferral->nama_referensi : '-'
         ])->layout('layouts.admin');
+    }
+
+    public function export()
+    {
+        $fileName = 'Laporan_Referral_PMB_'.date('d-m-Y').'.xlsx';
+        return Excel::download(new ReferralExport($this->search, $this->filterSumber, $this->rewardPerSiswa), $fileName);
     }
 }
