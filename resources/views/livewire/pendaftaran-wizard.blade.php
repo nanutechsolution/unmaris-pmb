@@ -166,7 +166,7 @@
                     @endif
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="@error('nisn') has-error @enderror">
+                        {{-- <div class="@error('nisn') has-error @enderror">
                             <label class="block text-sm font-bold text-unmaris-blue mb-1">NISN</label>
                             <input type="text" inputmode="numeric" wire:model="nisn"
                                 class="w-full bg-gray-50 border-2 border-unmaris-blue rounded-lg py-3 px-4 font-medium text-unmaris-blue text-sm"
@@ -175,7 +175,7 @@
                                 <span
                                     class="validation-error text-red-600 font-bold text-xs mt-1 block">{{ $message }}</span>
                             @enderror
-                        </div>
+                        </div> --}}
                         <div class="@error('nik') has-error @enderror">
                             <label class="block text-sm font-bold text-unmaris-blue mb-1">NIK (KTP) *</label>
                             <input type="text" inputmode="numeric" maxlength="16" wire:model="nik"
