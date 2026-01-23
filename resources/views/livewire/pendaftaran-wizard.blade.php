@@ -265,7 +265,7 @@
                                     class="w-full bg-white border-2 border-unmaris-blue rounded-lg py-3 px-4 font-bold cursor-pointer text-unmaris-blue text-sm">
                                     <option value="">-- Pilih Sumber --</option>
                                     <option value="brosur">📄 Brosur / Baliho</option>
-                                    <option value="medsos">📱 Facebook / Instagram / TikTok</option>
+                                    <option value="medsos">📱 Media Sosial</option>
                                     <option value="sekolah">🏫 Sosialisasi Sekolah</option>
                                     <option value="mahasiswa">🎓 Mahasiswa Aktif UNMARIS</option>
                                     <option value="alumni">🎓 Alumni</option>
