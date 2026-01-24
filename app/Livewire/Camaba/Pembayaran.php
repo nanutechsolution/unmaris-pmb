@@ -7,6 +7,10 @@ use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SiteSetting;
+use App\Models\User;
+use App\Notifications\NotifPembayaran;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class Pembayaran extends Component
 {
@@ -65,6 +69,31 @@ class Pembayaran extends Component
             'status_pembayaran' => 'menunggu_verifikasi'
         ]);
 
+
+        try {
+            // 1. Cari user yang role-nya BUKAN 'admin' (super admin) dan BUKAN 'camaba'
+            //    Biasanya ini role 'keuangan', 'akademik', atau 'panitia'
+            $panitia = User::whereNotIn('role', ['admin', 'camaba'])
+                ->whereNotNull('nomor_hp') // Pastikan punya nomor HP
+                ->get();
+
+            if ($panitia->count() > 0) {
+                // Kirim ke semua user yang ditemukan
+                Notification::send($panitia, new NotifPembayaran(Auth::user()->name, $this->biaya_pendaftaran));
+            } else {
+                // Fallback: Jika tidak ada user panitia di DB, kirim ke nomor backup di .env
+                if (env('NO_WA_PANITIA')) {
+                    Notification::route('whatsapp', env('NO_WA_PANITIA'))
+                        ->notify(new NotifPembayaran(Auth::user()->name, $this->biaya_pendaftaran));
+                }
+            }
+        } catch (\Exception $e) {
+            // Error silent agar user tidak error 500 jika WA gagal
+            Log::error('Gagal kirim notif pembayaran: ' . $e->getMessage());
+        }
+
+
+
         $this->reset('bukti_transfer');
         session()->flash('message', 'Bukti pembayaran berhasil diperbarui! Admin akan mengecek ulang.');
     }
@@ -73,6 +102,6 @@ class Pembayaran extends Component
     {
         return view('livewire.camaba.pembayaran', [
             'pendaftar' => Auth::user()->pendaftar
-        ])->layout('layouts.camaba'); 
+        ])->layout('layouts.camaba');
     }
 }
