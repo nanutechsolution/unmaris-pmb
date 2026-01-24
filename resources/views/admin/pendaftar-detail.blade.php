@@ -352,6 +352,13 @@
                                         <span class="text-xs font-black uppercase">Berkas Valid & Terverifikasi</span>
                                     </div>
                                 @endif
+                                <!-- menunggu_verifikasi -->
+                        
+                            @elseif($pendaftar->status_pembayaran == 'menunggu_verifikasi')
+                                <div class="flex items-center gap-2 text-yellow-600 bg-yellow-50 p-3 rounded-lg border border-yellow-200 opacity-75">
+                                    <span class="text-xl">⌛</span>
+                                    <span class="text-xs font-black uppercase">Menunggu Verifikasi Pembayaran</span>
+                                </div>
                             @else
                                 <div class="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg border border-red-200 opacity-75">
                                     <span class="text-xl">⏳</span>
