@@ -235,25 +235,36 @@
                         <img src="{{asset('images/pddikti.png')}}"
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=PDDIKTI'"
                             class="h-10 md:h-14 object-contain hover:scale-110 transition-transform" alt="PDDikti">
+
+                            <!-- logo Kampus -->
+
+                        <img src="{{asset('images/logo.png')}}"
+                            onerror="this.src='https://placehold.co/150x80/transparent/000?text=logo'"
+                            class="h-10 md:h-14 object-contain hover:scale-110 transition-transform" alt="PDDikti">
+
                     </div>
 
-                    <!-- LOGO SET 2 (DUPLIKAT UNTUK LOOPING) -->
                     <div
                         class="flex items-center justify-around w-1/2 gap-16 grayscale hover:grayscale-0 transition-all duration-500">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg/400px-Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg.png"
                             class="h-16 md:h-20 object-contain hover:scale-110 transition-transform" alt="Kemdikbud">
 
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Logo_Kampus_Merdeka_Kemendikbud.png/800px-Logo_Kampus_Merdeka_Kemendikbud.png"
+                        <img src="{{ asset('images/kampusmerdeka.jpg') }}"
                             class="h-12 md:h-16 object-contain hover:scale-110 transition-transform"
                             alt="Kampus Merdeka">
 
-                        <img src="https://1.bp.blogspot.com/-pictMWBnFp8/X6bd5gW6JQI/AAAAAAAACek/y1XIwzIwmh0HbCKsTDilLWL8V-Bs8lcCgCLcBGAsYHQ/s16000/Logo%2BBAN-PT.png"
+                        <img src=" {{ asset('images/banpt.png') }}"
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=BAN-PT'"
                             class="h-14 md:h-18 object-contain hover:scale-110 transition-transform" alt="BAN-PT">
 
                         <img src="https://pddikti.kemdikbud.go.id/asset/gambar/logopddikti.png"
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=PDDIKTI'"
                             class="h-10 md:h-14 object-contain hover:scale-110 transition-transform" alt="PDDikti">
+
+                            <!-- logo Kampus    -->
+                        <img src="{{asset('images/logo.png')}}"
+                            onerror="this.src='https://placehold.co/150x80/transparent/000?text=logo'"
+                            class="h-10 md:h-14 object-contain hover:scale-110 transition-transform" alt="Logo Kampus">
                     </div>
                 </div>
             </div>
