@@ -17,7 +17,7 @@ class ReferralReport extends Component
 
     public $search = '';
     public $filterSumber = '';
-    public $rewardPerSiswa = 50000;
+    public $rewardPerSiswa = 100000;
 
     // --- PROPERTI UNTUK MODAL DETAIL ---
     public $showDetailModal = false;
