@@ -1,5 +1,7 @@
 <div class="min-h-screen bg-gray-50/50 pb-20">
-      <!-- DATA PREPARATION -->
+  
+
+    <!-- DATA PREPARATION -->
     @php
         $steps = [
             1 => ['label' => 'Pembayaran', 'desc' => 'Verifikasi Adm'],
@@ -16,6 +18,7 @@
         if ($pendaftar->status_pendaftaran == 'lulus') $currentStep = 4;
         if ($pendaftar->is_synced) $currentStep = 5;
         if ($pendaftar->status_pendaftaran == 'gagal') $currentStep = 99; 
+        if ($pendaftar->status_pendaftaran == 'perbaikan') $currentStep = 2; 
 
         // LIST DOKUMEN
         $documents = [
@@ -36,17 +39,27 @@
         // Jika sudah diverifikasi/lulus, anggap semua terceklis
         $isVerified = in_array($pendaftar->status_pendaftaran, ['verifikasi', 'lulus']);
         $initialChecked = $isVerified ? array_column($uploadedDocs, 'id') : [];
+
+        // Ambil data rejection history
+        $docStatus = $pendaftar->doc_status ?? [];
     @endphp
 
-    <!-- PERBAIKAN: Gunakan kutip satu (') untuk x-data -->
     <div x-data='{ 
             checkedDocs: @json($initialChecked), 
             totalDocs: {{ $uploadedDocsCount }},
             activeTab: "berkas",
+            
+            // Modal Tolak
             showRejectModal: false,
             rejectDocId: null,
             rejectDocLabel: "",
             rejectReason: "",
+
+            // Modal Lulus
+            showLulusModal: false,
+            lulusChoice: null,
+            lulusProdiName: "",
+
             isComplete() {
                 if (this.totalDocs === 0) return true;
                 return this.checkedDocs.length >= this.totalDocs;
@@ -56,6 +69,11 @@
                 this.rejectDocLabel = label;
                 this.rejectReason = "";
                 this.showRejectModal = true;
+            },
+            openLulusModal(choice, prodiName) {
+                this.lulusChoice = choice;
+                this.lulusProdiName = prodiName;
+                this.showLulusModal = true;
             }
          }'>
         
@@ -74,6 +92,8 @@
                             {{ $pendaftar->user->name }}
                             @if($currentStep == 99)
                                 <span class="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-700">TIDAK LULUS</span>
+                            @elseif($pendaftar->status_pendaftaran == 'perbaikan')
+                                <span class="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-bold text-orange-700 border border-orange-200">⏳ MENUNGGU PERBAIKAN</span>
                             @else
                                 <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">{{ $steps[$currentStep]['label'] ?? 'Proses' }}</span>
                             @endif
@@ -88,7 +108,7 @@
                 </div>
             </div>
             
-            <!-- NOTIFIKASI LIVEWIRE -->
+            <!-- NOTIFIKASI -->
             @if (session()->has('success'))
                 <div class="bg-green-100 px-4 py-2 text-center text-sm font-bold text-green-700">
                     ✅ {{ session('success') }}
@@ -112,6 +132,7 @@
                             <li class="relative md:flex md:flex-1">
                                 @php
                                     $status = ($currentStep > $key) ? 'complete' : (($currentStep == $key) ? 'current' : 'upcoming');
+                                    if($pendaftar->status_pendaftaran == 'perbaikan' && $key == 2) $status = 'current';
                                 @endphp
                                 <a href="#" class="group flex w-full items-center">
                                     <span class="flex items-center px-6 py-4 text-sm font-medium">
@@ -156,62 +177,97 @@
 
                 @elseif($currentStep == 2)
                     <!-- STEP 2: VERIFIKASI BERKAS -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-300"
-                         :class="isComplete() ? 'border-green-400 ring-1 ring-green-100' : 'border-yellow-300'">
-                        
-                        <div class="flex items-start gap-4">
-                            <div class="rounded-full p-3 transition-colors" :class="isComplete() ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'">
-                                <span x-show="!isComplete()">📂</span>
-                                <span x-show="isComplete()" style="display: none">✅</span>
-                            </div>
-                            <div>
-                                <h3 class="text-base font-semibold text-gray-900">Validasi Dokumen</h3>
-                                <div class="mt-1 text-sm text-gray-600">
-                                    Checklist: <span class="font-bold" :class="isComplete() ? 'text-green-600' : 'text-red-500'" x-text="checkedDocs.length"></span> / {{ $uploadedDocsCount }}
+                    @if($pendaftar->status_pendaftaran == 'perbaikan')
+                        <div class="bg-orange-50 rounded-xl shadow-sm border border-orange-200 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div class="flex items-start gap-4">
+                                <div class="rounded-full bg-orange-100 p-3 text-orange-600">⚠️</div>
+                                <div>
+                                    <h3 class="text-base font-bold text-orange-900">Menunggu Perbaikan Peserta</h3>
+                                    <p class="text-sm text-orange-800">Menunggu peserta mengunggah ulang dokumen.</p>
                                 </div>
-                                <p class="text-xs text-gray-400 mt-1" x-show="!isComplete()">Centang semua dokumen "Valid" di bawah untuk lanjut. Jika dokumen bermasalah, gunakan tombol "Tolak" di daftar.</p>
+                            </div>
+                            <div class="w-full md:w-auto">
+                                <button disabled class="bg-gray-300 text-white font-bold py-2 px-4 rounded cursor-not-allowed text-sm">Menunggu Upload...</button>
                             </div>
                         </div>
-
-                        <!-- LIVEWIRE ACTION -->
-                        <button type="button"
-                                wire:click="updateStatus('verifikasi')" 
-                                :disabled="!isComplete()"
-                                wire:loading.attr="disabled"
-                                :class="isComplete() ? 'bg-green-600 hover:bg-green-700 shadow-sm cursor-pointer' : 'bg-gray-300 cursor-not-allowed'"
-                                class="inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-bold text-white transition-all disabled:opacity-50">
+                    @else
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-300"
+                             :class="isComplete() ? 'border-green-400 ring-1 ring-green-100' : 'border-yellow-300'">
                             
-                            <span wire:loading.remove wire:target="updateStatus('verifikasi')" x-text="isComplete() ? 'Nyatakan Valid & Lanjut' : 'Lengkapi Checklist Dulu'"></span>
-                            <span wire:loading wire:target="updateStatus('verifikasi')">Memproses...</span>
-                        </button>
-                    </div>
+                            <div class="flex items-start gap-4">
+                                <div class="rounded-full p-3 transition-colors" :class="isComplete() ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'">
+                                    <span x-show="!isComplete()">📂</span>
+                                    <span x-show="isComplete()" style="display: none">✅</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-semibold text-gray-900">Validasi Dokumen</h3>
+                                    <div class="mt-1 text-sm text-gray-600">
+                                        Checklist: <span class="font-bold" :class="isComplete() ? 'text-green-600' : 'text-red-500'" x-text="checkedDocs.length"></span> / {{ $uploadedDocsCount }}
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1" x-show="!isComplete()">Centang semua dokumen "Valid" di bawah.</p>
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                    wire:click="updateStatus('verifikasi')" 
+                                    :disabled="!isComplete()"
+                                    wire:loading.attr="disabled"
+                                    :class="isComplete() ? 'bg-green-600 hover:bg-green-700 shadow-sm cursor-pointer' : 'bg-gray-300 cursor-not-allowed'"
+                                    class="inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-bold text-white transition-all disabled:opacity-50">
+                                <span wire:loading.remove wire:target="updateStatus('verifikasi')" x-text="isComplete() ? 'Nyatakan Valid & Lanjut' : 'Lengkapi Checklist Dulu'"></span>
+                                <span wire:loading wire:target="updateStatus('verifikasi')">Memproses...</span>
+                            </button>
+                        </div>
+                    @endif
 
                 @elseif($currentStep == 3)
                     <!-- STEP 3: SELEKSI -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <div class="flex items-center justify-between mb-6">
+                        <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">Keputusan Seleksi</h3>
                                 <p class="text-sm text-gray-500">Berkas valid. Tentukan kelulusan berdasarkan nilai.</p>
                             </div>
-                            <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium {{ $pendaftar->nilai_ujian > 0 ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700' }}">
-                                {{ $pendaftar->nilai_ujian > 0 ? 'Nilai Ujian: ' . $pendaftar->nilai_ujian : 'Nilai Belum Diinput' }}
-                            </span>
+                            
+                            <!-- NILAI TULIS & WAWANCARA -->
+                            <div class="flex gap-3">
+                                <div class="text-right">
+                                    <span class="block text-[10px] font-bold text-gray-400 uppercase">Ujian Tulis</span>
+                                    <span class="inline-flex items-center rounded-md px-2.5 py-1 text-sm font-black {{ $pendaftar->nilai_ujian > 0 ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-gray-100 text-gray-400 border border-gray-200' }}">
+                                        {{ $pendaftar->nilai_ujian > 0 ? $pendaftar->nilai_ujian : '-' }}
+                                    </span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="block text-[10px] font-bold text-gray-400 uppercase">Wawancara</span>
+                                    <span class="inline-flex items-center rounded-md px-2.5 py-1 text-sm font-black {{ $pendaftar->nilai_wawancara > 0 ? 'bg-orange-50 text-orange-700 border border-orange-100' : 'bg-gray-100 text-gray-400 border border-gray-200' }}">
+                                        {{ $pendaftar->nilai_wawancara > 0 ? $pendaftar->nilai_wawancara : '-' }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" x-data="{ openGagal: false }">
                             @if($pendaftar->nilai_ujian > 0)
-                                <button type="button" wire:click="lulusPilihan(1)" wire:confirm="Luluskan di Pilihan 1?" class="block w-full rounded-lg border-2 border-dashed border-gray-300 p-4 hover:border-green-500 hover:bg-green-50 text-left transition">
+                                <button type="button" @click="openLulusModal(1, '{{ $pendaftar->pilihan_prodi_1 }}')" class="block w-full rounded-lg border-2 border-dashed border-gray-300 p-4 hover:border-green-500 hover:bg-green-50 text-left transition group">
                                     <span class="block text-sm font-semibold text-gray-900 group-hover:text-green-700">Lulus Pilihan 1</span>
                                     <span class="block text-xs text-gray-500">{{ $pendaftar->pilihan_prodi_1 }}</span>
                                 </button>
 
                                 @if($pendaftar->pilihan_prodi_2)
-                                <button type="button" wire:click="lulusPilihan(2)" wire:confirm="Luluskan di Pilihan 2?" class="block w-full rounded-lg border-2 border-dashed border-gray-300 p-4 hover:border-green-500 hover:bg-green-50 text-left transition">
-                                    <span class="block text-sm font-semibold text-gray-900">Lulus Pilihan 2</span>
+                                <button type="button" @click="openLulusModal(2, '{{ $pendaftar->pilihan_prodi_2 }}')" class="block w-full rounded-lg border-2 border-dashed border-gray-300 p-4 hover:border-green-500 hover:bg-green-50 text-left transition group">
+                                    <span class="block text-sm font-semibold text-gray-900 group-hover:text-green-700">Lulus Pilihan 2</span>
                                     <span class="block text-xs text-gray-500">{{ $pendaftar->pilihan_prodi_2 }}</span>
                                 </button>
                                 @endif
+                                
+                                <!-- OPSI REKOMENDASI -->
+                                @if($pendaftar->rekomendasi_prodi)
+                                <button type="button" @click="openLulusModal(3, '{{ $pendaftar->rekomendasi_prodi }}')" class="block w-full rounded-lg border-2 border-dashed border-purple-300 bg-purple-50 p-4 hover:border-purple-500 hover:bg-purple-100 text-left transition group">
+                                    <span class="block text-sm font-bold text-purple-900 group-hover:text-purple-700">⭐ Lulus Rekomendasi</span>
+                                    <span class="block text-xs text-purple-600">{{ $pendaftar->rekomendasi_prodi }}</span>
+                                </button>
+                                @endif
+
                             @else
                                 <div class="col-span-2 p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-sm text-gray-500">
                                     ⚠️ Input <strong>Nilai Ujian</strong> di tab "Akademik" di bawah untuk membuka opsi kelulusan.
@@ -223,37 +279,49 @@
                                 <span class="block text-xs text-gray-500">Tolak Pendaftaran</span>
                             </button>
                         </div>
-                    </div>
 
+                        <!-- FORM INPUT REKOMENDASI (DI BAWAH GRID) -->
+                        @if($pendaftar->nilai_ujian > 0)
+                        <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-5">
+                            <h4 class="text-sm font-bold text-yellow-900 mb-3 flex items-center gap-2">
+                                <span>💡</span> Opsi Alternatif (Rekomendasi Prodi)
+                            </h4>
+                            <form wire:submit.prevent="simpanRekomendasi" class="flex flex-col md:flex-row gap-4 items-end">
+                                <div class="w-full">
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase mb-1">Pilih Prodi Rekomendasi</label>
+                                    <select wire:model="rekomendasi_prodi" class="w-full text-sm border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500">
+                                        <option value="">-- Pilih Prodi --</option>
+                                        @foreach($prodiList as $prodi) 
+                                            <option value="{{ $prodi->name }}">{{ $prodi->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase mb-1">Catatan Panitia</label>
+                                    <input type="text" wire:model="catatan_seleksi" class="w-full text-sm border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500" placeholder="Alasan rekomendasi...">
+                                </div>
+                                <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-md text-sm shadow-sm whitespace-nowrap transition">
+                                    Simpan
+                                </button>
+                            </form>
+                        </div>
+                        @endif
+                    </div>
                 @elseif($currentStep == 4)
-                    <!-- STEP 4: INTEGRASI (ADMIN ONLY) -->
+                    <!-- STEP 4: INTEGRASI -->
                     <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
                         <div class="flex items-start gap-4">
                             <div class="rounded-full bg-indigo-100 p-3 text-indigo-600">🚀</div>
                             <div>
                                 <h3 class="text-lg font-bold text-indigo-900">Siap Sinkronisasi</h3>
-                                <p class="text-sm text-indigo-700">
-                                    Lulus di <strong>{{ $pendaftar->prodi_diterima }}</strong>. 
-                                    @if(auth()->user()->role === 'admin')
-                                        Kirim data ke SIAKAD untuk generate NIM.
-                                    @else
-                                        Menunggu <strong>Admin Pusat</strong> untuk sinkronisasi.
-                                    @endif
-                                </p>
+                                <p class="text-sm text-indigo-700">Lulus di <strong>{{ $pendaftar->prodi_diterima }}</strong>. 
+                                @if(auth()->user()->role === 'admin') Kirim data ke SIAKAD. @else Menunggu Admin Pusat. @endif</p>
                             </div>
                         </div>
-
-                        <!-- TOMBOL HANYA UNTUK ROLE ADMIN -->
                         @if(auth()->user()->role === 'admin')
                             <form wire:submit.prevent="syncToSiakad">
-                                <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 transition" onclick="return confirm('Kirim sekarang?')">
-                                    Push ke SIAKAD
-                                </button>
+                                <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 transition" onclick="return confirm('Kirim sekarang?')">Push ke SIAKAD</button>
                             </form>
-                        @else
-                             <div class="px-4 py-2 bg-white text-indigo-600 text-xs font-bold rounded-lg border border-indigo-200 shadow-sm flex items-center gap-2">
-                                <span>⏳</span> Menunggu Eksekusi Admin
-                             </div>
                         @endif
                     </div>
                 @endif
@@ -261,17 +329,12 @@
 
             <!-- 3. DATA CONTENT (GRID LAYOUT) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- LEFT COLUMN: PROFILE CARD -->
+                <!-- LEFT: PROFILE -->
                 <div class="lg:col-span-1 space-y-6">
                     <div class="bg-white shadow-lg border border-gray-100 rounded-2xl overflow-hidden group">
                         <!-- Decorative Header -->
-                        <div class="h-24 bg-gradient-to-br from-indigo-500 to-purple-600 relative">
-                            <div class="absolute inset-0 bg-white/10"></div>
-                        </div>
-                        
+                        <div class="h-24 bg-gradient-to-br from-indigo-500 to-purple-600 relative"><div class="absolute inset-0 bg-white/10"></div></div>
                         <div class="relative px-6 pb-6 text-center -mt-12">
-                            <!-- Pas Foto -->
                             <div class="relative inline-block mb-4">
                                 @if ($pendaftar->foto_path)
                                     <div class="relative w-32 h-40 mx-auto rounded-lg shadow-xl overflow-hidden border-4 border-white bg-gray-200 group-hover:scale-105 transition duration-300 cursor-zoom-in" onclick="window.open('{{ asset('storage/' . $pendaftar->foto_path) }}', '_blank')">
@@ -279,13 +342,10 @@
                                     </div>
                                 @else
                                     <div class="w-32 h-40 mx-auto rounded-lg shadow-xl border-4 border-white bg-gray-100 flex flex-col items-center justify-center text-gray-400">
-                                        <svg class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                                         <span class="text-[10px] font-bold uppercase tracking-wider">No Foto</span>
                                     </div>
                                 @endif
-                                <span class="absolute bottom-2 right-2 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded backdrop-blur-sm">PAS FOTO</span>
                             </div>
-
                             <h3 class="text-lg font-bold text-gray-900 leading-tight">{{ $pendaftar->user->name }}</h3>
                             <p class="text-sm text-gray-500 font-medium">{{ $pendaftar->user->email }}</p>
                             
@@ -310,7 +370,7 @@
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN: TABS CONTENT -->
+                <!-- RIGHT: TABS -->
                 <div class="lg:col-span-2">
                     <div class="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden min-h-[500px]">
                         <div class="border-b border-gray-200 px-4">
@@ -322,9 +382,9 @@
                         </div>
 
                         <div class="p-6">
-                            <!-- TAB BERKAS (CHECKLIST) -->
+                            <!-- TAB BERKAS (CHECKLIST FIX) -->
                             <div x-show="activeTab === 'berkas'">
-                                @if($uploadedDocsCount > 0 && $currentStep == 2)
+                                @if($uploadedDocsCount > 0 && $currentStep == 2 && $pendaftar->status_pendaftaran != 'perbaikan')
                                 <div class="mb-4 p-3 bg-blue-50 text-blue-700 rounded-md border border-blue-100 text-xs flex items-center gap-2">
                                     <span>ℹ️ Centang kotak "Valid" setelah memeriksa dokumen asli.</span>
                                 </div>
@@ -332,6 +392,11 @@
 
                                 <ul role="list" class="divide-y divide-gray-100 rounded-lg border border-gray-100">
                                     @foreach($documents as $doc)
+                                        @php
+                                            // FIX LOGIKA REJECT: Cek histori penolakan
+                                            $isRejected = isset($docStatus[$doc['id']]) && $docStatus[$doc['id']]['status'] == 'rejected';
+                                            $rejectReason = $isRejected ? $docStatus[$doc['id']]['reason'] : '';
+                                        @endphp
                                     <li class="flex items-center justify-between py-4 px-4 hover:bg-gray-50 transition">
                                         <div class="flex items-center gap-3">
                                             <span class="text-xl">{{ $doc['icon'] }}</span>
@@ -340,17 +405,27 @@
                                                 @if(!$doc['file'])
                                                     <p class="text-[10px] text-red-500 font-bold uppercase">Belum Upload</p>
                                                 @else
-                                                    @if($currentStep == 2)
-                                                    <div class="flex items-center gap-2 mt-1">
-                                                        <label class="inline-flex items-center cursor-pointer">
-                                                            <input type="checkbox" value="{{ $doc['id'] }}" x-model="checkedDocs" class="rounded border-gray-300 text-indigo-600 shadow-sm w-4 h-4">
-                                                            <span class="ml-2 text-xs font-bold text-gray-500">Nyatakan Valid</span>
-                                                        </label>
-                                                    </div>
-                                                    <!-- TOMBOL TOLAK PER ITEM -->
-                                                    <button type="button" @click="openRejectModal('{{ $doc['id'] }}', '{{ $doc['label'] }}')" class="text-[10px] text-red-500 font-bold hover:text-red-700 hover:underline mt-1">
-                                                        Tolak / Bermasalah?
-                                                    </button>
+                                                    @if($isRejected && $pendaftar->status_pendaftaran == 'perbaikan')
+                                                        <p class="text-[10px] text-red-600 font-bold uppercase mt-1">⚠️ Revisi: {{ $rejectReason }}</p>
+                                                    @else
+                                                        @if($isRejected)
+                                                            <div class="flex items-center gap-2 mt-1 mb-1">
+                                                                <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">REVISI MASUK</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($currentStep == 2 && $pendaftar->status_pendaftaran != 'perbaikan')
+                                                            <div class="flex items-center gap-2 mt-1">
+                                                                <label class="inline-flex items-center cursor-pointer">
+                                                                    <input type="checkbox" value="{{ $doc['id'] }}" x-model="checkedDocs" class="rounded border-gray-300 text-indigo-600 shadow-sm w-4 h-4">
+                                                                    <span class="ml-2 text-xs font-bold text-gray-500">Valid</span>
+                                                                </label>
+                                                            </div>
+                                                            <!-- TOMBOL TOLAK -->
+                                                            <button type="button" @click="openRejectModal('{{ $doc['id'] }}', '{{ $doc['label'] }}')" class="text-[10px] text-red-500 font-bold hover:text-red-700 hover:underline mt-1 block">
+                                                                {{ $isRejected ? 'Tolak Lagi?' : 'Tolak / Bermasalah?' }}
+                                                            </button>
+                                                        @endif
                                                     @endif
                                                 @endif
                                             </div>
@@ -369,14 +444,10 @@
 
                             <!-- TAB BIODATA -->
                             <div x-show="activeTab === 'biodata'" x-cloak>
-                                <!-- Bagian 1: Data Pribadi -->
-                                <div class="px-4 py-5 sm:px-6">
-                                    <h3 class="text-base font-semibold leading-6 text-gray-900">Informasi Pribadi</h3>
-                                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Detail lengkap data diri calon mahasiswa.</p>
-                                </div>
+                                <div class="px-4 py-5 sm:px-6"><h3 class="text-base font-semibold leading-6 text-gray-900">Informasi Pribadi</h3></div>
                                 <div class="border-t border-gray-100">
                                     <dl class="divide-y divide-gray-100">
-                                        <!-- Pas Foto di dalam list -->
+                                        <!-- Pas Foto -->
                                         @if($pendaftar->foto_path)
                                         <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
                                             <dt class="text-sm font-medium text-gray-500">Pas Foto</dt>
@@ -388,98 +459,103 @@
                                             </dd>
                                         </div>
                                         @endif
-                                        
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Nomor Induk Kependudukan (NIK)</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 font-mono tracking-wide">{{ $pendaftar->nik }}</dd>
-                                        </div>
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Tempat, Tanggal Lahir</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $pendaftar->tempat_lahir }}, {{ $pendaftar->tgl_lahir instanceof \DateTime ? $pendaftar->tgl_lahir->format('d F Y') : $pendaftar->tgl_lahir }}</dd>
-                                        </div>
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Jenis Kelamin</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $pendaftar->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</dd>
-                                        </div>
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Agama</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $pendaftar->agama ?? '-' }}</dd>
-                                        </div>
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Alamat Domisili</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $pendaftar->alamat }}</dd>
-                                        </div>
+                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"><dt class="text-sm font-medium text-gray-500">NIK</dt><dd class="mt-1 text-sm text-gray-900 sm:col-span-2">{{ $pendaftar->nik }}</dd></div>
+                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"><dt class="text-sm font-medium text-gray-500">TTL</dt><dd class="mt-1 text-sm text-gray-900 sm:col-span-2">{{ $pendaftar->tempat_lahir }}, {{ $pendaftar->tgl_lahir instanceof \DateTime ? $pendaftar->tgl_lahir->format('d F Y') : $pendaftar->tgl_lahir }}</dd></div>
+                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"><dt class="text-sm font-medium text-gray-500">Alamat</dt><dd class="mt-1 text-sm text-gray-900 sm:col-span-2">{{ $pendaftar->alamat }}</dd></div>
                                     </dl>
                                 </div>
-
-                                <!-- Bagian 2: Data Orang Tua -->
-                                <div class="px-4 py-5 sm:px-6 mt-6 border-t-4 border-gray-50">
-                                    <h3 class="text-base font-semibold leading-6 text-gray-900">Data Orang Tua / Wali</h3>
-                                </div>
+                                <div class="px-4 py-5 sm:px-6 mt-6 border-t-4 border-gray-50"><h3 class="text-base font-semibold leading-6 text-gray-900">Data Orang Tua</h3></div>
                                 <div class="border-t border-gray-100">
                                     <dl class="divide-y divide-gray-100">
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Nama Ayah</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $pendaftar->nama_ayah }}</dd>
-                                        </div>
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Pekerjaan Ayah</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $pendaftar->pekerjaan_ayah ?? '-' }}</dd>
-                                        </div>
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Nama Ibu</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $pendaftar->nama_ibu }}</dd>
-                                        </div>
-                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 hover:bg-gray-50/50 transition">
-                                            <dt class="text-sm font-medium text-gray-500">Pekerjaan Ibu</dt>
-                                            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $pendaftar->pekerjaan_ibu ?? '-' }}</dd>
-                                        </div>
+                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"><dt class="text-sm font-medium text-gray-500">Ayah</dt><dd class="mt-1 text-sm text-gray-900 sm:col-span-2">{{ $pendaftar->nama_ayah }}</dd></div>
+                                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"><dt class="text-sm font-medium text-gray-500">Ibu</dt><dd class="mt-1 text-sm text-gray-900 sm:col-span-2">{{ $pendaftar->nama_ibu }}</dd></div>
                                     </dl>
                                 </div>
                             </div>
-
+                            
                             <!-- TAB AKADEMIK -->
                             <div x-show="activeTab === 'akademik'" x-cloak>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div class="p-4 border rounded-lg bg-gray-50">
-                                        <span class="text-xs text-gray-500 uppercase">Pilihan 1</span>
-                                        <p class="font-bold">{{ $pendaftar->pilihan_prodi_1 }}</p>
-                                    </div>
+                                    <div class="p-4 border rounded-lg bg-gray-50"><span class="text-xs text-gray-500 uppercase">Pilihan 1</span><p class="font-bold">{{ $pendaftar->pilihan_prodi_1 }}</p></div>
                                     @if($pendaftar->pilihan_prodi_2)
-                                    <div class="p-4 border rounded-lg bg-gray-50">
-                                        <span class="text-xs text-gray-500 uppercase">Pilihan 2</span>
-                                        <p class="font-bold">{{ $pendaftar->pilihan_prodi_2 }}</p>
-                                    </div>
+                                    <div class="p-4 border rounded-lg bg-gray-50"><span class="text-xs text-gray-500 uppercase">Pilihan 2</span><p class="font-bold">{{ $pendaftar->pilihan_prodi_2 }}</p></div>
                                     @endif
                                 </div>
+                                <!-- TAMBAHAN: RINCIAN NILAI DI TAB AKADEMIK -->
+                                <div class="mt-6 border-t border-gray-100 pt-6">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-4">Hasil Seleksi</h4>
+                                    <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                                        <div>
+                                            <dt class="text-xs font-medium text-gray-500">Nilai Ujian Tulis</dt>
+                                            <dd class="mt-1 text-sm font-bold text-gray-900">{{ $pendaftar->nilai_ujian > 0 ? $pendaftar->nilai_ujian : '-' }}</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-xs font-medium text-gray-500">Nilai Wawancara</dt>
+                                            <dd class="mt-1 text-sm font-bold text-gray-900">{{ $pendaftar->nilai_wawancara > 0 ? $pendaftar->nilai_wawancara : '-' }}</dd>
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <dt class="text-xs font-medium text-gray-500">Catatan Pewawancara</dt>
+                                            <dd class="mt-1 text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100 italic">
+                                                {{ $pendaftar->catatan_wawancara ?? 'Tidak ada catatan.' }}
+                                            </dd>
+                                        </div>
+                                    </dl>
+                                </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- MODAL TOLAK DOKUMEN -->
+        <!-- MODAL TOLAK -->
         <div x-show="showRejectModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" x-cloak>
             <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm transform transition-all">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-red-600">Tolak Dokumen</h3>
-                    <button @click="showRejectModal = false" class="text-gray-400 hover:text-gray-600">✕</button>
-                </div>
-                
+                <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold text-red-600">Tolak Dokumen</h3><button @click="showRejectModal = false" class="text-gray-400 hover:text-gray-600">✕</button></div>
                 <p class="text-sm text-gray-700 mb-2">Dokumen: <strong x-text="rejectDocLabel"></strong></p>
-                <p class="text-xs text-gray-500 mb-3">Jelaskan mengapa dokumen ini ditolak agar peserta dapat memperbaikinya.</p>
-                
-                <textarea x-model="rejectReason" class="w-full border-gray-300 rounded-lg text-sm focus:border-red-500 focus:ring-red-500 mb-4" rows="3" placeholder="Contoh: Tulisan tidak terbaca, dokumen terpotong..."></textarea>
-                
+                <p class="text-xs text-gray-500 mb-3">Jelaskan alasan penolakan.</p>
+                <textarea x-model="rejectReason" class="w-full border-gray-300 rounded-lg text-sm mb-4" rows="3" placeholder="Contoh: Tulisan blur..."></textarea>
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="showRejectModal=false" class="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg font-bold hover:bg-gray-200">Batal</button>
-                    <!-- Pastikan method rejectDocument ada di backend -->
+                    <button type="button" wire:click="rejectDocument(rejectDocId, rejectReason)" @click="showRejectModal = false" :disabled="!rejectReason" class="px-4 py-2 text-sm text-white bg-red-600 rounded-lg font-bold hover:bg-red-700 disabled:opacity-50">Kirim Penolakan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL KONFIRMASI LULUS -->
+        <div x-show="showLulusModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm" x-cloak>
+            <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm transform transition-all">
+                <div class="text-center mb-6">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-4">
+                        <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">Konfirmasi Kelulusan</h3>
+                    <p class="text-sm text-gray-500 mt-2">
+                        Apakah Anda yakin meluluskan peserta ini pada Program Studi:
+                    </p>
+                    <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <span class="block text-lg font-black text-green-800" x-text="lulusProdiName"></span>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center gap-3">
+                    <button type="button" @click="showLulusModal=false" class="px-4 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">Batal</button>
+                    
+                    <!-- FIX: Gunakan @click dan $wire untuk logika dinamis -->
                     <button type="button" 
-                            @click="$wire.rejectDocument(rejectDocId, rejectReason); showRejectModal = false;"
-                            :disabled="!rejectReason"
-                            class="px-4 py-2 text-sm text-white bg-red-600 rounded-lg font-bold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Kirim Penolakan
+                            @click="
+                                if (lulusChoice === 3) {
+                                    $wire.lulusRekomendasi();
+                                } else {
+                                    $wire.lulusPilihan(lulusChoice);
+                                }
+                                showLulusModal = false;
+                            "
+                            class="px-6 py-2 text-sm font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5">
+                        Ya, Luluskan!
                     </button>
                 </div>
             </div>

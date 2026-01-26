@@ -11,10 +11,16 @@ class Pendaftar extends Model
 
     protected $guarded = ['id'];
 
-      // Tambahkan casting datetime agar mudah diformat
+    // Casting tipe data otomatis
     protected $casts = [
         'jadwal_ujian' => 'datetime',
-        'jadwal_wawancara' => 'datetime', 
+        'jadwal_wawancara' => 'datetime',
+        'tgl_lahir' => 'date',
+        'is_locked' => 'boolean',
+        'is_synced' => 'boolean',
+        'nilai_ujian' => 'integer',
+        'nilai_wawancara' => 'integer',
+        'doc_status' => 'array',
     ];
 
 
@@ -30,5 +36,17 @@ class Pendaftar extends Model
     }
 
 
-    public function scholarship() { return $this->belongsTo(Scholarship::class); }
+    public function scholarship()
+    {
+        return $this->belongsTo(Scholarship::class);
+    }
+
+
+    /**
+     * Helper: Cek apakah sudah lulus
+     */
+    public function isLulus()
+    {
+        return $this->status_pendaftaran === 'lulus';
+    }
 }

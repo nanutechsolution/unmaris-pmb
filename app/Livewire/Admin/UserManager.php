@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\UserFilterExport;
 use Illuminate\Validation\Rule;
-use App\Services\Logger; // 1. Import Logger
+use App\Services\Logger;
 
 class UserManager extends Component
 {
@@ -21,13 +21,15 @@ class UserManager extends Component
 
     public $isEditModalOpen = false;
     public $isCreateModalOpen = false;
-    public $userIdBeingEdited;
-    
-    public $name, $email, $nomor_hp, $role, $password;
-
+    public $isDeleteModalOpen = false; 
     public $confirmingUserReset = false;
+
+    public $userIdBeingEdited;
+    public $userIdBeingDeleted; 
+    public $userNameBeingDeleted; // Properti baru untuk menyimpan nama
     public $userToResetId;
-    public $newPassword;
+    
+    public $name, $email, $nomor_hp, $role, $password, $newPassword;
 
     public function updatingSearch() { $this->resetPage(); }
     public function updatingFilterStatus() { $this->resetPage(); }
@@ -39,7 +41,6 @@ class UserManager extends Component
 
         if ($this->activeTab === 'camaba') {
             $query->where('role', 'camaba');
-            
             if ($this->filterStatus === 'sudah_isi') {
                 $query->has('pendaftar');
             } elseif ($this->filterStatus === 'belum_isi') {
@@ -55,17 +56,14 @@ class UserManager extends Component
               ->orWhere('nomor_hp', 'like', '%'.$this->search.'%');
         });
 
-        $users = $query->with('pendaftar')->latest()->paginate(10);
-
         return view('livewire.admin.user-manager', [
-            'users' => $users
+            'users' => $query->with('pendaftar')->latest()->paginate(10)
         ])->layout('layouts.admin');
     }
 
     public function create()
     {
         $this->resetInputFields();
-        // Default role selain admin untuk keamanan
         $this->role = 'akademik'; 
         $this->isCreateModalOpen = true;
     }
@@ -76,11 +74,11 @@ class UserManager extends Component
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'nomor_hp' => 'required|numeric',
-            'role' => 'required|in:keuangan,akademik', // Hapus admin dari validasi create
+            'role' => 'required|in:keuangan,akademik',
             'password' => 'required|min:8',
         ]);
 
-        $user = User::create([
+        User::create([
             'name' => $this->name,
             'email' => $this->email,
             'nomor_hp' => $this->nomor_hp,
@@ -89,12 +87,9 @@ class UserManager extends Component
             'email_verified_at' => now(), 
         ]);
 
-        // 2. Log Activity
-        Logger::record('CREATE', 'Manajemen User', "Menambahkan petugas baru: {$this->name} sebagai {$this->role}");
-
-        $this->isCreateModalOpen = false;
-        session()->flash('message', 'Petugas baru berhasil ditambahkan.');
-        $this->resetInputFields();
+        Logger::record('CREATE', 'Manajemen User', "Menambahkan petugas: {$this->name}");
+        $this->closeModal();
+        session()->flash('message', 'Petugas berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -110,7 +105,6 @@ class UserManager extends Component
 
     public function update()
     {
-        // Validasi, ijinkan admin jika sedang edit data admin
         $this->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($this->userIdBeingEdited)],
@@ -119,8 +113,6 @@ class UserManager extends Component
         ]);
 
         $user = User::findOrFail($this->userIdBeingEdited);
-        $oldRole = $user->role;
-        
         $user->update([
             'name' => $this->name,
             'email' => $this->email,
@@ -128,31 +120,34 @@ class UserManager extends Component
             'role' => $this->role,
         ]);
 
-        // 3. Log Activity
-        Logger::record('UPDATE', 'Manajemen User', "Update data user #{$user->id}: {$user->name} (Role: $oldRole -> {$this->role})");
-
-        $this->isEditModalOpen = false;
-        session()->flash('message', 'Data pengguna berhasil diperbarui.');
-        $this->resetInputFields();
+        Logger::record('UPDATE', 'Manajemen User', "Update user #{$user->id}");
+        $this->closeModal();
+        session()->flash('message', 'Data berhasil diperbarui.');
     }
 
-    public function delete($id)
+    public function openDeleteModal($id)
     {
         if ($id == auth()->id()) {
-            $this->dispatch('error', 'Anda tidak bisa menghapus akun sendiri!');
+            session()->flash('error', 'Anda tidak bisa menghapus akun sendiri!');
             return;
         }
 
-        $user = User::find($id);
+        $user = User::findOrFail($id);
+        $this->userIdBeingDeleted = $id;
+        $this->userNameBeingDeleted = $user->name; // Ambil nama user
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function delete()
+    {
+        $user = User::find($this->userIdBeingDeleted);
         if ($user) {
-            $userName = $user->name;
+            $name = $user->name;
             $user->delete();
-
-            // 4. Log Activity
-            Logger::record('DELETE', 'Manajemen User', "Menghapus user: {$userName}");
-
-            session()->flash('message', 'Akun pengguna berhasil dihapus permanen.');
+            Logger::record('DELETE', 'Manajemen User', "Menghapus user: {$name}");
+            session()->flash('message', 'Akun berhasil dihapus.');
         }
+        $this->closeModal();
     }
 
     public function confirmReset($id)
@@ -165,55 +160,36 @@ class UserManager extends Component
     public function resetPassword()
     {
         $this->validate(['newPassword' => 'required|min:8']);
-        
         $user = User::find($this->userToResetId);
         $user->update(['password' => Hash::make($this->newPassword)]);
         
-        // 5. Log Activity
-        Logger::record('SECURITY', 'Manajemen User', "Reset password user: {$user->name}");
-
-        $this->confirmingUserReset = false;
-        session()->flash('message', "Password untuk {$user->name} berhasil direset.");
+        Logger::record('SECURITY', 'Manajemen User', "Reset password: {$user->name}");
+        $this->closeModal();
+        session()->flash('message', "Password berhasil direset.");
     }
 
-    public function exportFiltered()
-    {
-        if ($this->activeTab !== 'camaba') {
-             session()->flash('error', 'Fitur export saat ini hanya untuk data Camaba.');
-             return;
-        }
-
-        $query = User::where('role', 'camaba')
-            ->when($this->filterStatus === 'sudah_isi', function($q) {
-                $q->has('pendaftar');
-            })
-            ->when($this->filterStatus === 'belum_isi', function($q) {
-                $q->doesntHave('pendaftar');
-            });
-
-        $statusName = $this->filterStatus ? $this->filterStatus : 'semua';
-        $fileName = 'data_camaba_' . $statusName . '_' . date('Y-m-d') . '.xlsx';
-        
-        Logger::record('EXPORT', 'Manajemen User', "Export data camaba filter: {$statusName}");
-
-        return Excel::download(new UserFilterExport($query), $fileName);
-    }
-    
     public function closeModal()
     {
         $this->isEditModalOpen = false;
         $this->isCreateModalOpen = false;
+        $this->isDeleteModalOpen = false;
         $this->confirmingUserReset = false;
         $this->resetInputFields();
     }
 
     private function resetInputFields()
     {
-        $this->name = '';
-        $this->email = '';
-        $this->nomor_hp = '';
-        $this->role = '';
-        $this->password = '';
-        $this->userIdBeingEdited = null;
+        $this->name = $this->email = $this->nomor_hp = $this->role = $this->password = $this->newPassword = '';
+        $this->userIdBeingEdited = $this->userIdBeingDeleted = $this->userNameBeingDeleted = $this->userToResetId = null;
+    }
+
+    public function exportFiltered()
+    {
+        $query = User::where('role', 'camaba')
+            ->when($this->filterStatus === 'sudah_isi', fn($q) => $q->has('pendaftar'))
+            ->when($this->filterStatus === 'belum_isi', fn($q) => $q->doesntHave('pendaftar'));
+
+        Logger::record('EXPORT', 'Manajemen User', "Export data camaba");
+        return Excel::download(new UserFilterExport($query), 'data_camaba_'.date('Ymd').'.xlsx');
     }
 }

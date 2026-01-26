@@ -56,8 +56,8 @@ class DatabaseSeeder extends Seeder
             SiteSettingSeeder::class,           // Data Setting Website (Nama Kampus, Biaya, Kontak)
             GelombangSeeder::class,             // Data Jadwal Pendaftaran
             FacilitySlideSeeder::class,         // Data Slider Fasilitas
-            // DummyCamabaSeeder::class,        // Dihapus (Non-aktifkan)
-            // DummyPendaftarLulusSeeder::class,// Dihapus (Non-aktifkan)
+            DummyCamabaSeeder::class,        // Dihapus (Non-aktifkan)
+            DummyPendaftarLulusSeeder::class,// Dihapus (Non-aktifkan)
         ]);
     }
 }

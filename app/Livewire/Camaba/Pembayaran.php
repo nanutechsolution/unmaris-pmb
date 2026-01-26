@@ -29,73 +29,69 @@ class Pembayaran extends Component
         $settings = SiteSetting::first();
         $this->biaya_pendaftaran = $settings->biaya_pendaftaran ?? 250000;
 
-        if (!empty($settings->bank_accounts)) {
-            $this->bank_accounts = $settings->bank_accounts;
-        } else {
-            $this->bank_accounts = [[
-                'bank' => $settings->nama_bank ?? 'Bank Kampus',
-                'rekening' => $settings->nomor_rekening ?? '0000-0000-0000',
-                'atas_nama' => $settings->atas_nama_rekening ?? 'Yayasan'
-            ]];
-        }
+        // Fallback jika setting bank kosong
+        $this->bank_accounts = $settings->bank_accounts ?? [[
+            'bank' => 'Bank Mandiri',
+            'rekening' => '123-456-7890',
+            'atas_nama' => 'Yayasan Universitas'
+        ]];
     }
 
     public function save()
     {
-        // PERBAIKAN VALIDASI: Max 1MB (1024 KB) & Mimes PDF/Images
+        // VALIDASI: Wajib Gambar, Max 2MB
         $this->validate([
-            'bukti_transfer' => 'required|file|mimes:pdf,jpg,jpeg,png|max:1024',
+            'bukti_transfer' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ], [
-            'bukti_transfer.required' => 'Bukti transfer wajib diunggah.',
-            'bukti_transfer.mimes' => 'Format file harus JPG, PNG, atau PDF.',
-            'bukti_transfer.max' => 'Ukuran file maksimal 1MB.',
+            'bukti_transfer.required' => 'Mohon unggah foto bukti transfer.',
+            'bukti_transfer.image' => 'File harus berupa gambar (JPG/PNG).',
+            'bukti_transfer.max' => 'Ukuran foto maksimal 2MB.',
         ]);
 
         $pendaftar = Auth::user()->pendaftar;
 
+        // Security Check
         if ($pendaftar->status_pembayaran === 'lunas') {
-            $this->addError('bukti_transfer', 'Pembayaran sudah lunas. Tidak dapat diubah.');
+            $this->addError('bukti_transfer', 'Pembayaran sudah lunas. Data terkunci.');
             return;
         }
 
-        $path = $this->bukti_transfer->store('uploads/pembayaran', 'public');
-
+        // Hapus file lama jika ada
         if ($pendaftar->bukti_pembayaran && Storage::disk('public')->exists($pendaftar->bukti_pembayaran)) {
             Storage::disk('public')->delete($pendaftar->bukti_pembayaran);
         }
+
+        // Simpan file baru
+        $path = $this->bukti_transfer->store('uploads/pembayaran', 'public');
 
         $pendaftar->update([
             'bukti_pembayaran' => $path,
             'status_pembayaran' => 'menunggu_verifikasi'
         ]);
 
+        // Kirim Notifikasi ke Panitia
+        $this->notifyAdmin();
 
+        $this->reset('bukti_transfer');
+        session()->flash('message', 'Bukti pembayaran berhasil dikirim! Mohon tunggu verifikasi admin 1x24 jam.');
+    }
+
+    private function notifyAdmin()
+    {
         try {
-            // 1. Cari user yang role-nya BUKAN 'admin' (super admin) dan BUKAN 'camaba'
-            //    Biasanya ini role 'keuangan', 'akademik', atau 'panitia'
-            $panitia = User::whereNotIn('role', ['admin', 'camaba'])
-                ->whereNotNull('nomor_hp') // Pastikan punya nomor HP
+            $panitia = User::whereIn('role', ['keuangan', 'admin'])
+                ->whereNotNull('nomor_hp')
                 ->get();
 
             if ($panitia->count() > 0) {
-                // Kirim ke semua user yang ditemukan
                 Notification::send($panitia, new NotifPembayaran(Auth::user()->name, $this->biaya_pendaftaran));
-            } else {
-                // Fallback: Jika tidak ada user panitia di DB, kirim ke nomor backup di .env
-                if (env('NO_WA_PANITIA')) {
-                    Notification::route('whatsapp', env('NO_WA_PANITIA'))
-                        ->notify(new NotifPembayaran(Auth::user()->name, $this->biaya_pendaftaran));
-                }
+            } elseif (env('NO_WA_PANITIA')) {
+                Notification::route('whatsapp', env('NO_WA_PANITIA'))
+                    ->notify(new NotifPembayaran(Auth::user()->name, $this->biaya_pendaftaran));
             }
         } catch (\Exception $e) {
-            // Error silent agar user tidak error 500 jika WA gagal
-            Log::error('Gagal kirim notif pembayaran: ' . $e->getMessage());
+            Log::error('Notif Pembayaran Error: ' . $e->getMessage());
         }
-
-
-
-        $this->reset('bukti_transfer');
-        session()->flash('message', 'Bukti pembayaran berhasil diperbarui! Admin akan mengecek ulang.');
     }
 
     public function render()

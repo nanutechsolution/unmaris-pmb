@@ -9,6 +9,7 @@ use App\Livewire\Camaba\Pembayaran;
 // Import Livewire Components Baru
 use App\Livewire\Camaba\Dashboard as CamabaDashboard;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\PendaftarDetail;
 use App\Models\FacilitySlide;
 use App\Models\Gelombang;
 use App\Models\SiteSetting;
@@ -27,7 +28,7 @@ Route::get('/', function () {
     $facilitySlides = FacilitySlide::where('is_active', true)
         ->orderBy('sort_order', 'asc')
         ->get();
-    
+
     return view('welcome', compact('gelombangs', 'settings', 'facilitySlides'));
 });
 
@@ -64,17 +65,20 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        
+
         // --- 1. SHARED (Akses Semua Petugas) ---
         Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
-        
+
         // Pendaftar (View Only / Basic Actions)
         Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar.index');
-        Route::get('/pendaftar/{id}', [PendaftarController::class, 'show'])->name('pendaftar.show');
-        
+        // Route::get('/pendaftar/{id}', [PendaftarController::class, 'show'])->name('pendaftar.show');
+        Route::get('/pendaftar/{id}', PendaftarDetail::class)->name('pendaftar.show');
+
+
         // Update Status & Verifikasi Berkas (Bisa diakses Akademik/Admin)
-        Route::patch('/pendaftar/{id}/status', [PendaftarController::class, 'updateStatus'])->name('pendaftar.update-status');
-        
+        // Route::patch('/pendaftar/{id}/status', [PendaftarController::class, 'updateStatus'])->name('pendaftar.update-status');
+        Route::patch('/pendaftar/{id}/update-status', [PendaftarController::class, 'updateStatus'])->name('pendaftar.update-status');
+
         // Export Data (Semua Petugas Butuh)
         Route::get('/export', [PendaftarController::class, 'export'])->name('export');
 
@@ -83,10 +87,10 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
         Route::middleware(['role:keuangan,admin'])->group(function () {
             // Verifikasi Pembayaran
             Route::patch('/pendaftar/{id}/verify-payment', [PendaftarController::class, 'verifyPayment'])->name('pendaftar.verify-payment');
-            
+
             // Laporan Keuangan
             Route::get('/payment-report', \App\Livewire\Admin\PaymentReport::class)->name('payment-report');
-            
+
             // Laporan Referral (Terkait Komisi)
             Route::get('/referral', \App\Livewire\Admin\ReferralReport::class)->name('referral');
         });
@@ -96,21 +100,22 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
         Route::middleware(['role:akademik,admin'])->group(function () {
             // Seleksi & Nilai
             Route::get('/seleksi', \App\Livewire\Admin\SeleksiManager::class)->name('seleksi.index');
-            
+
             // Wawancara
             Route::get('/wawancara', \App\Livewire\Admin\WawancaraManager::class)->name('wawancara.index');
-            
+
             // Manajemen Gelombang
-            Route::get('/gelombang', function () { return view('admin.gelombang'); })->name('gelombang.index');
-            
+            Route::get('/gelombang', function () {
+                return view('admin.gelombang');
+            })->name('gelombang.index');
+
             // Manajemen Prodi
             Route::get('/prodi', \App\Livewire\Admin\ProdiManager::class)->name('prodi.index');
-
             // Keputusan Kelulusan
             Route::patch('/pendaftar/{id}/lulus-pilihan', [PendaftarController::class, 'lulusPilihan'])->name('pendaftar.lulus-pilihan');
             Route::patch('/pendaftar/{id}/rekomendasi', [PendaftarController::class, 'simpanRekomendasi'])->name('pendaftar.rekomendasi');
             Route::patch('/pendaftar/{pendaftar}/lulus-rekomendasi', [PendaftarController::class, 'lulusRekomendasi'])->name('pendaftar.lulus-rekomendasi');
-            
+
             // Sync SIAKAD
             Route::post('/pendaftar/{id}/sync', [PendaftarController::class, 'pushToSiakad'])->name('pendaftar.sync');
         });
@@ -118,7 +123,7 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
         // --- 4. KHUSUS SUPER ADMIN (SYSTEM OWNER) ---
         Route::middleware(['role:admin'])->group(function () {
-            
+
             // Manajemen User (Petugas & Camaba)
             Route::get('/users', \App\Livewire\Admin\UserManager::class)->name('users.index');
 
@@ -130,20 +135,27 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
             Route::get('/facilities', \App\Livewire\Admin\FacilityManager::class)->name('facilities');
 
             // System Logs & Geo
-            Route::get('/activity-logs', function () { return view('admin.logs'); })->name('logs.index');
+            Route::get('/activity-logs', function () {
+                return view('admin.logs');
+            })->name('logs.index');
             Route::get('/geographic-stats', App\Livewire\Admin\GeographicStats::class)->name('geographic.index');
-            
+
             // Pengumuman & Helpdesk & Laporan Global
-            Route::get('/pengumuman-admin', function () { return view('admin.announcements'); })->name('announcements.index');
-            Route::get('/helpdesk', function () { return view('admin.helpdesk'); })->name('helpdesk.index');
-            
+            Route::get('/pengumuman-admin', function () {
+                return view('admin.announcements');
+            })->name('announcements.index');
+            Route::get('/helpdesk', function () {
+                return view('admin.helpdesk');
+            })->name('helpdesk.index');
+
             // Laporan PDF
             Route::get('/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('laporan.index');
             Route::get('/laporan/cetak', [\App\Http\Controllers\Admin\LaporanController::class, 'cetak'])->name('laporan.cetak');
-            
-            Route::get('/beasiswa', function () { return view('admin.beasiswa'); })->name('beasiswa.index');
-        });
 
+            Route::get('/beasiswa', function () {
+                return view('admin.beasiswa');
+            })->name('beasiswa.index');
+        });
     });
 
 

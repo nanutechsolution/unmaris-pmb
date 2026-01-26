@@ -27,7 +27,7 @@
                         <div
                             class="bg-blue-50 border-2 border-unmaris-blue rounded-xl p-6 mb-8 max-w-md mx-auto transform rotate-1">
                             <p class="text-sm font-bold text-gray-500 uppercase">Diterima pada Program Studi:</p>
-                            <p class="text-2xl font-black text-unmaris-blue mt-1">{{ $pendaftar->pilihan_prodi_1 }}</p>
+                            <p class="text-2xl font-black text-unmaris-blue mt-1">{{ $pendaftar->prodi_diterima }}</p>
                         </div>
 
                         <div class="flex flex-col md:flex-row justify-center gap-4">

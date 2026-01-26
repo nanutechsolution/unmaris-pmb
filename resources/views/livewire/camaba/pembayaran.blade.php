@@ -28,7 +28,7 @@
                         <div>
                             <div class="text-xs font-bold text-yellow-300 uppercase">{{ $b['bank'] }}</div>
                             <div class="text-xl font-black tracking-wider font-mono">{{ $b['rekening'] }}</div>
-                            <div class="text--[10px] font-bold text-gray-300">a.n {{ $b['atas_nama'] }}</div>
+                            <div class="text-[10px] font-bold text-gray-300">a.n {{ $b['atas_nama'] }}</div>
                         </div>
                         <button onclick="navigator.clipboard.writeText('{{ $b['rekening'] }}'); alert('No. Rekening Disalin!')" 
                                 class="bg-black/40 hover:bg-black/60 text-white p-2 rounded-lg transition" title="Salin No. Rekening">
@@ -52,15 +52,15 @@
         </div>
 
         <!-- FORM UPLOAD (KANAN) -->
-        <div class="bg-white p-6 rounded-xl border-4 border-unmaris-blue shadow-neo">
+        <div class="bg-white p-6 rounded-xl border-4 border-unmaris-blue shadow-neo h-fit">
             
             <h3 class="font-black text-unmaris-blue text-lg mb-4 uppercase border-b-2 border-unmaris-blue pb-2">
                 📤 Konfirmasi Pembayaran
             </h3>
 
             @if(session('message'))
-                <div class="bg-green-100 border-2 border-green-500 text-green-700 p-3 rounded font-bold mb-4 text-sm">
-                    {{ session('message') }}
+                <div class="bg-green-100 border-2 border-green-500 text-green-700 p-3 rounded font-bold mb-4 text-sm animate-pulse">
+                    ✅ {{ session('message') }}
                 </div>
             @endif
 
@@ -81,14 +81,7 @@
                         <p class="font-bold text-gray-500 text-sm mt-2">Admin sedang mengecek bukti transfer Anda.</p>
                         
                         <div class="mt-4 mb-6">
-                            @if (str_ends_with($pendaftar->bukti_pembayaran, '.pdf'))
-                                <a href="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" target="_blank" class="flex flex-col items-center justify-center p-4 bg-gray-50 border-2 border-black rounded shadow-sm hover:bg-gray-100">
-                                    <span class="text-2xl">📄</span>
-                                    <span class="text-xs font-bold mt-1 text-blue-600 underline">Lihat PDF Bukti</span>
-                                </a>
-                            @else
-                                <img src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="h-32 mx-auto border-2 border-black rounded shadow-sm object-cover">
-                            @endif
+                            <img src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="h-32 mx-auto border-2 border-black rounded shadow-sm object-cover bg-gray-100">
                             <span class="text-xs text-gray-400 font-bold block mt-2">Bukti terkirim</span>
                         </div>
 
@@ -97,67 +90,12 @@
                         </button>
                     </div>
 
-                    <!-- Form Ganti File -->
-                    <div x-show="gantiFile" x-transition class="mt-4"
-                         x-data="{ uploading: false, progress: 0 }"
-                         x-on:livewire-upload-start="uploading = true"
-                         x-on:livewire-upload-finish="uploading = false"
-                         x-on:livewire-upload-error="uploading = false"
-                         x-on:livewire-upload-progress="progress = $event.detail.progress">
-                        
-                        <form wire:submit.prevent="save">
-                            <div class="mb-4">
-                                <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group overflow-hidden">
-                                    
-                                    <!-- PROGRESS BAR OVERLAY -->
-                                    <div x-show="uploading" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur transition-all">
-                                        <div class="text-4xl mb-2 animate-bounce">🚀</div>
-                                        <div class="w-3/4 bg-gray-200 rounded-full h-4 mb-2 overflow-hidden border border-gray-300">
-                                            <div class="bg-unmaris-blue h-full rounded-full transition-all duration-300" :style="'width: ' + progress + '%'"></div>
-                                        </div>
-                                        <span class="text-sm font-black text-unmaris-blue" x-text="'Mengunggah... ' + progress + '%'"></span>
-                                    </div>
-
-                                    @if ($bukti_transfer)
-                                        @if ($bukti_transfer->isPreviewable())
-                                            <img src="{{ $bukti_transfer->temporaryUrl() }}" class="h-40 mx-auto rounded shadow-sm border-2 border-black object-cover">
-                                        @elseif ($bukti_transfer->getMimeType() === 'application/pdf')
-                                            <div class="flex flex-col items-center justify-center py-4">
-                                                <span class="text-4xl">📄</span>
-                                                <p class="text-sm font-black text-unmaris-blue mt-2">File PDF Terpilih</p>
-                                                <p class="text-xs text-gray-500">{{ $bukti_transfer->getClientOriginalName() }}</p>
-                                            </div>
-                                        @else
-                                            <div class="flex flex-col items-center justify-center py-4">
-                                                <span class="text-4xl">📁</span>
-                                                <p class="text-sm font-black text-unmaris-blue mt-2">File Siap Upload</p>
-                                            </div>
-                                        @endif
-                                    @else
-                                        <span class="text-4xl block">📸</span>
-                                        <p class="text-xs font-bold text-unmaris-blue mt-2">Pilih File Baru (PDF/JPG/PNG)</p>
-                                    @endif
-                                    <input type="file" wire:model="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                </div>
-                                <span class="text-[10px] font-bold text-gray-400 mt-1 block">Max Size: 1MB</span>
-                                @error('bukti_transfer') <span class="text-red-600 font-bold text-xs mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="flex gap-2">
-                                <button type="button" @click="gantiFile = false" class="flex-1 py-2 rounded-lg border-2 border-gray-400 font-bold text-gray-600 hover:bg-gray-100">
-                                    Batal
-                                </button>
-                                <button type="submit" 
-                                        :disabled="uploading"
-                                        wire:loading.attr="disabled" 
-                                        wire:target="save" 
-                                        class="flex-1 bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-2 rounded-lg border-2 border-unmaris-blue shadow-neo hover:shadow-neo-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <span x-show="!uploading" wire:loading.remove wire:target="save">KIRIM ULANG</span>
-                                    <span x-show="uploading">UPLOADING...</span>
-                                    <span wire:loading wire:target="save" style="display:none;">MENYIMPAN...</span>
-                                </button>
-                            </div>
-                        </form>
+                    <!-- Form Ganti File (Inline Re-upload) -->
+                    <div x-show="gantiFile" x-transition class="mt-4">
+                        @include('livewire.camaba.partials.inline-upload-logic')
+                        <button type="button" @click="gantiFile = false" class="mt-2 w-full py-2 rounded-lg border-2 border-gray-400 font-bold text-gray-600 hover:bg-gray-100 text-xs uppercase">
+                            Batal Ganti
+                        </button>
                     </div>
                 </div>
 
@@ -171,63 +109,8 @@
                     </div>
                 @endif
 
-                <form wire:submit.prevent="save" 
-                      x-data="{ uploading: false, progress: 0 }"
-                      x-on:livewire-upload-start="uploading = true"
-                      x-on:livewire-upload-finish="uploading = false"
-                      x-on:livewire-upload-error="uploading = false"
-                      x-on:livewire-upload-progress="progress = $event.detail.progress">
-                    
-                    <div class="mb-4">
-                        <label class="block text-sm font-bold text-unmaris-blue mb-2">Upload Bukti Transfer</label>
-                        <span class="text-xs font-bold text-gray-400 mb-2 block">Format: JPG, PNG, PDF (Max 1MB)</span>
-                        
-                        <div class="border-2 border-dashed border-unmaris-blue bg-blue-50 rounded-lg p-6 text-center hover:bg-white transition cursor-pointer relative group overflow-hidden">
-                            
-                            <!-- PROGRESS BAR OVERLAY -->
-                            <div x-show="uploading" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur transition-all">
-                                <div class="text-4xl mb-2 animate-bounce">🚀</div>
-                                <div class="w-3/4 bg-gray-200 rounded-full h-4 mb-2 overflow-hidden border border-gray-300">
-                                    <div class="bg-unmaris-blue h-full rounded-full transition-all duration-300" :style="'width: ' + progress + '%'"></div>
-                                </div>
-                                <span class="text-sm font-black text-unmaris-blue" x-text="'Mengunggah... ' + progress + '%'"></span>
-                            </div>
-
-                            @if ($bukti_transfer)
-                                @if ($bukti_transfer->isPreviewable())
-                                    <img src="{{ $bukti_transfer->temporaryUrl() }}" class="h-40 mx-auto rounded shadow-sm border-2 border-black object-cover">
-                                @elseif ($bukti_transfer->getMimeType() === 'application/pdf')
-                                    <div class="flex flex-col items-center justify-center py-4">
-                                        <span class="text-4xl">📄</span>
-                                        <p class="text-sm font-black text-unmaris-blue mt-2">File PDF Terpilih</p>
-                                        <p class="text-xs text-gray-500">{{ $bukti_transfer->getClientOriginalName() }}</p>
-                                    </div>
-                                @else
-                                    <div class="flex flex-col items-center justify-center py-4">
-                                        <span class="text-4xl">📁</span>
-                                        <p class="text-sm font-black text-gray-600 mt-2">File Siap Upload</p>
-                                    </div>
-                                @endif
-                            @else
-                                <span class="text-4xl group-hover:scale-110 transition-transform block">📸</span>
-                                <p class="text-xs font-bold text-unmaris-blue mt-2">Klik untuk pilih gambar/PDF</p>
-                            @endif
-                            
-                            <input type="file" wire:model="bukti_transfer" accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                        </div>
-                        @error('bukti_transfer') <span class="text-red-600 font-bold text-xs mt-1 block bg-red-100 p-1 border border-red-500 rounded">{{ $message }}</span> @enderror
-                    </div>
-
-                    <button type="submit" 
-                            :disabled="uploading"
-                            wire:loading.attr="disabled" 
-                            wire:target="save" 
-                            class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-3 px-6 rounded-lg border-2 border-unmaris-blue shadow-neo hover:shadow-neo-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span x-show="!uploading" wire:loading.remove wire:target="save">KIRIM BUKTI BAYAR 🚀</span>
-                        <span x-show="uploading">MENUNGGU UPLOAD SELESAI...</span>
-                        <span wire:loading wire:target="save" style="display:none;">MENYIMPAN DATA... ⏳</span>
-                    </button>
-                </form>
+                <!-- Upload Form Utama -->
+                @include('livewire.camaba.partials.inline-upload-logic')
             @endif
 
         </div>

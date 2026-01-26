@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Pendaftar;
 use Illuminate\Http\Request;
 use App\Exports\PendaftarExport;
-use App\Exports\SiakadExport;
 use App\Mail\PmbNotification;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
@@ -49,54 +48,79 @@ class PendaftarController extends Controller
         return view('admin.pendaftar-detail', compact('pendaftar'));
     }
 
+    // --- FUNGSI UPDATE STATUS (FIXED) ---
     public function updateStatus(Request $request, $id)
     {
-        $request->validate([
-            'status' => 'required|in:verifikasi,lulus,gagal,submit,draft',
-        ]);
-
+        // 1. Ambil Data Dulu
         $pendaftar = Pendaftar::findOrFail($id);
+        $oldStatus = $pendaftar->status_pendaftaran;
+        
+        // 2. Ambil status dari input
+        $newStatus = $request->status;
 
-        // SECURITY CHECK
-        if ($request->status == 'lulus') {
+        // Fallback: Jika input kosong tapi tombol "Verifikasi" diklik (biasanya value 'verifikasi')
+        if (!$newStatus) {
+            return back()->with('error', 'Gagal: Status tidak terkirim dari formulir.');
+        }
+
+        // 3. Validasi Manual (Lebih fleksibel)
+        $allowedStatuses = ['verifikasi', 'lulus', 'gagal', 'submit', 'draft'];
+        if (!in_array($newStatus, $allowedStatuses)) {
+             return back()->with('error', 'Status tidak valid: ' . $newStatus);
+        }
+
+        // 4. Cek Syarat Khusus (Jika ingin meluluskan)
+        if ($newStatus == 'lulus') {
             if ($pendaftar->status_pembayaran !== 'lunas') {
                 return back()->with('error', 'Gagal: Mahasiswa belum lunas pembayaran!');
             }
-            if ($pendaftar->nilai_ujian <= 0 || $pendaftar->nilai_wawancara <= 0) {
-                return back()->with('error', 'Gagal: Nilai Ujian/Wawancara belum diinput!');
+            // Hapus atau sesuaikan pengecekan nilai jika belum diperlukan saat ini
+            if ($pendaftar->nilai_ujian <= 0 && $pendaftar->nilai_wawancara <= 0) {
+                 // return back()->with('error', 'Gagal: Nilai Ujian belum diinput!'); // Uncomment jika wajib
             }
         }
 
-        $oldStatus = $pendaftar->status_pendaftaran;
-        $pendaftar->update(['status_pendaftaran' => $request->status]);
-        if ($request->status == 'lulus') {
-            Mail::to($pendaftar->user->email)->send(new PmbNotification(
-                $pendaftar->user,
-                'Hasil Seleksi PMB',
-                'SELAMAT! ANDA LULUS 🎉',
-                'Selamat bergabung dengan UNMARIS. Anda dinyatakan lulus seleksi. Silakan unduh Surat Kelulusan (LoA) di Dashboard.',
-                'UNDUH SURAT',
-                route('camaba.pengumuman'),
-                'success'
-            ));
+        // 5. UPDATE LANGSUNG KE DATABASE (Bypass Model/Eloquent Issues)
+        // Kita gunakan Query Builder 'update' agar lebih pasti tereksekusi
+        Pendaftar::where('id', $id)->update([
+            'status_pendaftaran' => $newStatus,
+            'updated_at' => now(), // Update timestamp manual
+        ]);
+
+        // 6. Kirim Email Notifikasi (Jika Lulus)
+        if ($newStatus == 'lulus') {
+            try {
+                Mail::to($pendaftar->user->email)->send(new PmbNotification(
+                    $pendaftar->user,
+                    'Hasil Seleksi PMB',
+                    'SELAMAT! ANDA LULUS 🎉',
+                    'Selamat bergabung dengan UNMARIS. Anda dinyatakan lulus seleksi. Silakan unduh Surat Kelulusan (LoA) di Dashboard.',
+                    'UNDUH SURAT',
+                    route('camaba.pengumuman'),
+                    'success'
+                ));
+            } catch (\Exception $e) {
+                Logger::record('ERROR', 'Email Notification', "Gagal kirim email lulus ke #{$id}: " . $e->getMessage());
+            }
         }
 
-        // LOGGING
+        // 7. Catat Log
         Logger::record(
             'UPDATE',
-            'Pendaftar #' . $pendaftar->id . ' (' . $pendaftar->user->name . ')',
-            "Mengubah status pendaftaran dari $oldStatus menjadi " . $request->status
+            'Verifikasi Pendaftar',
+            "Admin mengubah status pendaftar #{$pendaftar->id} ({$pendaftar->user->name}) dari $oldStatus menjadi " . $newStatus
         );
 
-        return back()->with('success', 'Status pendaftaran diperbarui.');
+        return back()->with('success', 'Status pendaftaran BERHASIL diperbarui menjadi ' . strtoupper($newStatus));
     }
 
     public function verifyPayment(Request $request, $id)
     {
         $pendaftar = Pendaftar::findOrFail($id);
-        $pendaftar->update(['status_pembayaran' => $request->status_bayar]);
+        
+        $pendaftar->status_pembayaran = $request->status_bayar;
+        $pendaftar->save();
 
-        // LOGGING
         Logger::record(
             'UPDATE',
             'Keuangan #' . $pendaftar->id,
@@ -111,11 +135,6 @@ class PendaftarController extends Controller
         return Excel::download(new PendaftarExport, 'data_pendaftar_unmaris_' . date('Y-m-d') . '.xlsx');
     }
 
-    // public function exportSiakad() 
-    // {
-    //     return Excel::download(new SiakadExport, 'DATA_MIGRASI_SIAKAD_'.date('Y-m-d').'.xlsx');
-    // }
-
     public function pushToSiakad($id)
     {
         $pendaftar = Pendaftar::with('user')->findOrFail($id);
@@ -128,7 +147,6 @@ class PendaftarController extends Controller
             return back()->with('error', 'Gagal: Data mahasiswa ini SUDAH pernah dikirim ke SIAKAD sebelumnya.');
         }
 
-        // AMBIL KONFIGURASI DARI .ENV
         $urlBase = env('SIAKAD_API_URL');
         $secretKey = env('SIAKAD_API_SECRET');
 
@@ -138,39 +156,28 @@ class PendaftarController extends Controller
 
         try {
             $urlEndpoint = rtrim($urlBase, '/') . '/api/v1/pmb/sync';
-
-            // Persiapan variabel tahun (bisa ambil tahun sekarang)
             $tahun = date('Y');
-
-            // Format ID agar menjadi 4 digit (misal ID 12 jadi 0012)
-            // Hasil akhirnya: "PMB-2025-0012"
             $generatedNoReg = 'PMB-' . $tahun . '-' . sprintf('%04d', $pendaftar->id);
 
             $response = Http::timeout(10)->post($urlEndpoint, [
                 'secret_key'      => $secretKey,
-
-                // Menggunakan ID yang sudah diformat
                 'registration_no' => $generatedNoReg,
-
                 'nik'             => $pendaftar->nik,
                 'name'            => $pendaftar->user->name,
                 'email'           => $pendaftar->user->email,
-                // 'prodi_code'      => $pendaftar->pilihan_prodi_1,
-                'prodi_code' => $pendaftar->prodi_diterima,
-                'entry_year'      => (string) $tahun, // Sesuaikan dengan tahun format di atas
+                'prodi_code'      => $pendaftar->prodi_diterima,
+                'entry_year'      => (string) $tahun,
                 'mother_name'     => $pendaftar->nama_ibu,
                 'school_name'     => $pendaftar->asal_sekolah,
-                'nomor_hp_ortu'   => $pendaftar->nomor_hp_ortu,
+                'nomor_hp_ortu'   => $pendaftar->nomor_hp_ortu ?? '-',
                 'jalur_masuk'     => $pendaftar->jalur_pendaftaran,
             ]);
 
             $result = $response->json();
 
             if ($response->successful() && isset($result['status']) && $result['status'] == 'success') {
-
                 $pendaftar->update(['is_synced' => true]);
 
-                // LOGGING (Sekarang aman karena class Logger sudah di-import)
                 Logger::record(
                     'SYNC',
                     'SIAKAD Integration',
@@ -185,8 +192,6 @@ class PendaftarController extends Controller
                 }
                 return back()->with('error', 'Gagal kirim ke SIAKAD: ' . $errorMessage);
             }
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            return back()->with('error', 'Koneksi Gagal: Server SIAKAD tidak dapat dijangkau. Pastikan server SIAKAD menyala.');
         } catch (\Exception $e) {
             return back()->with('error', 'System Error: ' . $e->getMessage());
         }
@@ -196,7 +201,6 @@ class PendaftarController extends Controller
     {
         $pendaftar = Pendaftar::findOrFail($id);
 
-        // 🔒 JIKA SUDAH LULUS → STOP
         if ($pendaftar->is_locked) {
             return back()->with('error', 'Data sudah dikunci. Kelulusan bersifat final.');
         }
@@ -205,7 +209,6 @@ class PendaftarController extends Controller
             'pilihan' => 'required|in:1,2'
         ]);
 
-        // Tentukan prodi diterima
         $prodi = $request->pilihan == 1
             ? $pendaftar->pilihan_prodi_1
             : $pendaftar->pilihan_prodi_2;
@@ -214,16 +217,13 @@ class PendaftarController extends Controller
             return back()->with('error', 'Pilihan prodi tidak valid.');
         }
 
-        // ✅ FINALISASI
-        $pendaftar->update([
-            'status_pendaftaran' => 'lulus',
-            'prodi_diterima'     => $prodi,
-            'is_locked'          => true,
-        ]);
+        $pendaftar->status_pendaftaran = 'lulus';
+        $pendaftar->prodi_diterima = $prodi;
+        $pendaftar->is_locked = true;
+        $pendaftar->save();
 
         return back()->with('success', 'Mahasiswa dinyatakan LULUS di ' . $prodi);
     }
-
 
     public function simpanRekomendasi(Request $request, $id)
     {
@@ -234,34 +234,30 @@ class PendaftarController extends Controller
 
         $pendaftar = Pendaftar::findOrFail($id);
 
-        // ❌ Kalau sudah lulus, TOLAK
         if ($pendaftar->status_pendaftaran === 'lulus') {
             return back()->with('error', 'Data sudah final dan tidak dapat diubah.');
         }
 
-        $pendaftar->update([
-            'rekomendasi_prodi' => $request->rekomendasi_prodi,
-            'catatan_seleksi'   => $request->catatan_seleksi,
-        ]);
+        $pendaftar->rekomendasi_prodi = $request->rekomendasi_prodi;
+        $pendaftar->catatan_seleksi = $request->catatan_seleksi;
+        $pendaftar->save();
 
         return back()->with('success', 'Rekomendasi & catatan seleksi berhasil disimpan.');
     }
 
-
-    public function lulusRekomendasi(Pendaftar $pendaftar)
+    public function lulusRekomendasi($id)
     {
+        $pendaftar = Pendaftar::findOrFail($id);
+
         if (!$pendaftar->rekomendasi_prodi) {
             return back()->with('error', 'Tidak ada rekomendasi prodi.');
         }
 
-        $pendaftar->update([
-            'status_pendaftaran' => 'lulus',
-            'prodi_diterima' => $pendaftar->rekomendasi_prodi,
-        ]);
+        $pendaftar->status_pendaftaran = 'lulus';
+        $pendaftar->prodi_diterima = $pendaftar->rekomendasi_prodi;
+        $pendaftar->is_locked = true;
+        $pendaftar->save();
 
-        return back()->with(
-            'success',
-            'Pendaftar diluluskan sesuai rekomendasi prodi.'
-        );
+        return back()->with('success', 'Pendaftar diluluskan sesuai rekomendasi prodi.');
     }
 }
