@@ -36,6 +36,7 @@ class ReferralReport extends Component
     
     public function render()
     {
+        // 1. Query Utama untuk Tabel (Paginated)
         $referrals = Pendaftar::select(
             'nama_referensi',
             'nomor_hp_referensi',
@@ -55,13 +56,26 @@ class ReferralReport extends Component
             ->orderByDesc('total_rekrut')
             ->paginate(15);
 
+        // 2. Statistik Total
         $totalReferral = Pendaftar::whereNotNull('nama_referensi')->where('nama_referensi', '!=', '')->count();
-        $topReferral = $referrals->first();
+        
+        // 3. FIX: Top Referrer Sejati (Query Terpisah)
+        // Mengambil ranking 1 tertinggi tanpa terpengaruh pagination tabel
+        $realTopReferral = Pendaftar::select('nama_referensi', DB::raw('count(*) as total_rekrut'))
+            ->whereNotNull('nama_referensi')
+            ->where('nama_referensi', '!=', '')
+            ->when($this->filterSumber, function ($q) {
+                // Tetap menghormati filter sumber jika dipilih
+                $q->where('sumber_informasi', $this->filterSumber);
+            })
+            ->groupBy('nama_referensi', 'nomor_hp_referensi') // Grouping konsisten dengan tabel
+            ->orderByDesc('total_rekrut')
+            ->first();
 
         return view('livewire.admin.referral-report', [
             'referrals' => $referrals,
             'totalReferral' => $totalReferral,
-            'topReferralName' => $topReferral ? $topReferral->nama_referensi : '-'
+            'topReferralName' => $realTopReferral ? $realTopReferral->nama_referensi : '-'
         ])->layout('layouts.admin');
     }
 
