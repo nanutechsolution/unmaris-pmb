@@ -29,11 +29,11 @@ class ReferralReport extends Component
     public function mount()
     {
         // Pastikan hanya role 'admin' atau 'keuangan' yang bisa akses
-        // Sesuaikan dengan nama role di database Anda
         if (!in_array(Auth::user()->role, ['admin', 'keuangan'])) {
             abort(403, 'Akses Ditolak. Halaman ini khusus Admin/Keuangan.');
         }
     }
+    
     public function render()
     {
         $referrals = Pendaftar::select(
@@ -79,26 +79,30 @@ class ReferralReport extends Component
         return Excel::download(new ReferralDetailExport($nama, $hp), $fileName);
     }
 
-    // --- UPDATED: PENCARIAN DETAIL LEBIH KETAT ---
+    // --- UPDATED: PENCARIAN DETAIL PRIORITAS NO HP ---
     public function showDetails($nama, $hp = null)
     {
         $this->detailReferrerName = $nama;
         $this->detailReferrerHp = $hp;
 
-        $this->detailList = Pendaftar::with('user')
-            ->where('nama_referensi', $nama)
-            // Logic pencocokan HP yang ketat
-            ->where(function ($q) use ($hp) {
-                if ($hp) {
-                    $q->where('nomor_hp_referensi', $hp);
-                } else {
-                    // Jika di list HP kosong, di detail juga cari yang kosong
-                    $q->whereNull('nomor_hp_referensi')->orWhere('nomor_hp_referensi', '');
-                }
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Pendaftar::with('user');
 
+        // LOGIKA BARU: 
+        // 1. Jika ada Nomor HP, gunakan itu sebagai kunci pencarian utama (lebih akurat untuk Dosen/Staf).
+        // 2. Jika tidak ada HP, baru gunakan Nama sebagai kunci, tapi pastikan kolom HP di DB juga kosong 
+        //    agar tidak tertukar dengan orang lain yang punya nama sama tapi punya HP.
+        
+        if (!empty($hp)) {
+            $query->where('nomor_hp_referensi', $hp);
+        } else {
+            $query->where('nama_referensi', $nama)
+                  ->where(function($q) {
+                      $q->whereNull('nomor_hp_referensi')
+                        ->orWhere('nomor_hp_referensi', '');
+                  });
+        }
+
+        $this->detailList = $query->orderBy('created_at', 'desc')->get();
         $this->showDetailModal = true;
     }
 
