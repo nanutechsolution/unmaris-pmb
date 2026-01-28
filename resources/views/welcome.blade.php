@@ -917,7 +917,7 @@
                     class="h-12 w-12 border-2 border-black rounded-full bg-white">
                 <div>
                     <h4 class="font-black text-unmaris-blue uppercase text-lg">Universitas Stella Maris Sumba</h4>
-                    <p class="text-xs font-bold text-gray-500">Jl. Soekarno Hatta No.05, Tambolaka, NTT</p>
+                    <p class="text-xs font-bold text-gray-500">Jl. Karya Kasih No. 5, Tambolaka – Kab. Sumba Barat Daya.</p>
                 </div>
             </div>
 
