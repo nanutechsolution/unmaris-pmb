@@ -45,7 +45,7 @@ class ReferralManager extends Component
 
     public function mount()
     {
-        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'keuangan','akademik'])) {
+        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'keuangan', 'akademik'])) {
             abort(403);
         }
     }
@@ -79,14 +79,14 @@ class ReferralManager extends Component
 
         $pendaftars = [];
         $schemes = [];
-        
-        if($this->showModal) {
+
+        if ($this->showModal) {
             $pendaftars = Pendaftar::query()
                 ->join('users', 'pendaftars.user_id', '=', 'users.id')
                 ->orderBy('users.name')
                 ->select('pendaftars.id', 'users.name')
                 ->get();
-            
+
             $schemes = ReferralScheme::orderBy('name')->get();
         }
 
@@ -132,7 +132,7 @@ class ReferralManager extends Component
         DB::transaction(function () {
             $action = $this->rewardId ? 'UPDATE' : 'CREATE';
             $actor = Auth::user()->name;
-            
+
             $reward = ReferralReward::updateOrCreate(
                 ['id' => $this->rewardId],
                 [
@@ -159,7 +159,7 @@ class ReferralManager extends Component
             $reward = ReferralReward::findOrFail($id);
             $oldStatus = $reward->status;
             $actor = Auth::user()->name;
-            
+
             $reward->update([
                 'status' => 'paid',
                 'paid_at' => now(),
@@ -178,16 +178,16 @@ class ReferralManager extends Component
         DB::transaction(function () use ($id) {
             $reward = ReferralReward::findOrFail($id);
             $actor = Auth::user()->name;
-            
+
             // LOGGING DENGAN NAMA USER
             Logger::record('DELETE', 'Hapus Reward', "User ($actor) menghapus Reward #{$id} milik pendaftar #{$reward->pendaftar_id}");
-            
+
             $reward->delete();
         });
 
         session()->flash('success', 'Data Reward berhasil dihapus.');
     }
-    
+
     public function closeModal()
     {
         $this->showModal = false;
