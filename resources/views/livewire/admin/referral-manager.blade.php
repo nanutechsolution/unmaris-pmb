@@ -14,11 +14,14 @@
             Manajemen Komisi Referral
         </h1>
 
-        <button wire:click="create"
-            class="px-4 py-2 bg-yellow-400 border-2 border-black rounded-xl font-bold uppercase text-sm
-                   shadow-[3px_3px_0px_0px_#000] hover:-translate-y-1 hover:shadow-[5px_5px_0px_0px_#000] transition active:translate-y-0 active:shadow-none">
-            + Tambah Reward
-        </button>
+        {{-- HANYA ADMIN YANG BISA TAMBAH --}}
+        @if(auth()->user()->role === 'admin')
+            <button wire:click="create"
+                class="px-4 py-2 bg-yellow-400 border-2 border-black rounded-xl font-bold uppercase text-sm
+                    shadow-[3px_3px_0px_0px_#000] hover:-translate-y-1 hover:shadow-[5px_5px_0px_0px_#000] transition active:translate-y-0 active:shadow-none">
+                + Tambah Reward
+            </button>
+        @endif
     </div>
 
     {{-- FILTER --}}
@@ -109,11 +112,16 @@
                             </td>
                             
                             <td class="px-4 py-3 text-center space-x-1 whitespace-nowrap">
-                                <button wire:click="edit({{ $reward->id }})" 
-                                    class="px-2 py-1 border border-black rounded bg-white hover:bg-gray-100 text-xs font-bold transition">
-                                    Edit
-                                </button>
                                 
+                                {{-- HANYA ADMIN YANG BISA EDIT --}}
+                                @if(auth()->user()->role === 'admin')
+                                    <button wire:click="edit({{ $reward->id }})" 
+                                        class="px-2 py-1 border border-black rounded bg-white hover:bg-gray-100 text-xs font-bold transition">
+                                        Edit
+                                    </button>
+                                @endif
+                                
+                                {{-- TOMBOL PAY TETAP MUNCUL UNTUK SEMUA YG PUNYA AKSES HALAMAN INI (MISAL: KEUANGAN) --}}
                                 @if($reward->status !== 'paid')
                                     <button wire:click="markAsPaid({{ $reward->id }})" 
                                         wire:confirm="Yakin tandai sebagai PAID?"
@@ -122,11 +130,14 @@
                                     </button>
                                 @endif
 
-                                <button wire:click="delete({{ $reward->id }})" 
-                                    wire:confirm="Yakin ingin menghapus data ini?"
-                                    class="px-2 py-1 bg-red-500 text-white border border-black rounded text-xs font-bold hover:bg-red-600 transition">
-                                    Del
-                                </button>
+                                {{-- HANYA ADMIN YANG BISA HAPUS --}}
+                                @if(auth()->user()->role === 'admin')
+                                    <button wire:click="delete({{ $reward->id }})" 
+                                        wire:confirm="Yakin ingin menghapus data ini?"
+                                        class="px-2 py-1 bg-red-500 text-white border border-black rounded text-xs font-bold hover:bg-red-600 transition">
+                                        Del
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                     @empty
