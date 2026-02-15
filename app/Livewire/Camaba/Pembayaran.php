@@ -79,7 +79,7 @@ class Pembayaran extends Component
     private function notifyAdmin()
     {
         try {
-            $panitia = User::whereIn('role', ['keuangan', 'admin'])
+            $panitia = User::whereIn('role', ['keuangan', 'admin','akademik'])
                 ->whereNotNull('nomor_hp')
                 ->get();
 
