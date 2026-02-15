@@ -65,7 +65,6 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-
         // --- 1. SHARED (Akses Semua Petugas) ---
         Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
         Route::get('/referral-manager', \App\Livewire\Admin\ReferralManager::class)
