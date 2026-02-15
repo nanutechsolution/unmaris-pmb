@@ -7,6 +7,7 @@ use Livewire\WithPagination;
 use App\Models\ReferralReward;
 use App\Models\ReferralScheme;
 use App\Models\Pendaftar;
+use App\Services\Logger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -44,13 +45,11 @@ class ReferralManager extends Component
 
     public function mount()
     {
-        // Pastikan role sesuai (sesuaikan dengan logic middleware Anda)
         if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'keuangan'])) {
             abort(403);
         }
     }
 
-    // --- FIX UTAMA: Reset Pagination saat Filter Berubah ---
     public function updatingSearch()
     {
         $this->resetPage();
@@ -60,7 +59,6 @@ class ReferralManager extends Component
     {
         $this->resetPage();
     }
-    // -------------------------------------------------------
 
     public function render()
     {
@@ -79,7 +77,6 @@ class ReferralManager extends Component
             ->latest()
             ->paginate($this->perPage);
 
-        // Data untuk Dropdown di Modal
         $pendaftars = [];
         $schemes = [];
         
@@ -133,7 +130,10 @@ class ReferralManager extends Component
         $this->validate();
 
         DB::transaction(function () {
-            ReferralReward::updateOrCreate(
+            $action = $this->rewardId ? 'UPDATE' : 'CREATE';
+            $actor = Auth::user()->name;
+            
+            $reward = ReferralReward::updateOrCreate(
                 ['id' => $this->rewardId],
                 [
                     'pendaftar_id' => $this->pendaftar_id,
@@ -144,6 +144,9 @@ class ReferralManager extends Component
                     'processed_by' => Auth::id(),
                 ]
             );
+
+            // LOGGING DENGAN NAMA USER
+            Logger::record($action, 'Manajemen Reward', "User ($actor) menyimpan Reward #{$reward->id} untuk Pendaftar #{$this->pendaftar_id} dengan status: {$this->status}");
         });
 
         $this->showModal = false;
@@ -152,19 +155,37 @@ class ReferralManager extends Component
 
     public function markAsPaid($id)
     {
-        ReferralReward::where('id', $id)->update([
-            'status' => 'paid',
-            'paid_at' => now(),
-            'processed_by' => Auth::id(),
-        ]);
+        DB::transaction(function () use ($id) {
+            $reward = ReferralReward::findOrFail($id);
+            $oldStatus = $reward->status;
+            $actor = Auth::user()->name;
+            
+            $reward->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+                'processed_by' => Auth::id(),
+            ]);
+
+            // LOGGING DENGAN NAMA USER
+            Logger::record('UPDATE', 'Pembayaran Reward', "User ($actor) menandai Reward #{$id} sebagai PAID (Status lama: $oldStatus)");
+        });
 
         session()->flash('success', 'Status berhasil diubah menjadi PAID.');
     }
 
     public function delete($id)
     {
-        // ReferralReward::findOrFail($id)->delete();
-        session()->flash('success', 'Data tidak bisa dihapus.');
+        DB::transaction(function () use ($id) {
+            $reward = ReferralReward::findOrFail($id);
+            $actor = Auth::user()->name;
+            
+            // LOGGING DENGAN NAMA USER
+            Logger::record('DELETE', 'Hapus Reward', "User ($actor) menghapus Reward #{$id} milik pendaftar #{$reward->pendaftar_id}");
+            
+            $reward->delete();
+        });
+
+        session()->flash('success', 'Data Reward berhasil dihapus.');
     }
     
     public function closeModal()

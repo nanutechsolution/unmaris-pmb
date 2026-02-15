@@ -68,7 +68,8 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
         // --- 1. SHARED (Akses Semua Petugas) ---
         Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
-
+        Route::get('/referral-manager', \App\Livewire\Admin\ReferralManager::class)
+            ->name('referral-manager.index');
         // Pendaftar (View Only / Basic Actions)
         Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar.index');
         // Route::get('/pendaftar/{id}', [PendaftarController::class, 'show'])->name('pendaftar.show');
@@ -93,8 +94,6 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
             // Laporan Referral (Terkait Komisi)
             Route::get('/referral', \App\Livewire\Admin\ReferralReport::class)->name('referral');
-            Route::get('/referral-manager', \App\Livewire\Admin\ReferralManager::class)
-                ->name('referral-manager.index');
         });
 
 
