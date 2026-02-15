@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PmbNotification;
+use App\Models\ReferralReward;
+use App\Models\ReferralScheme;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Exception;
@@ -30,7 +32,7 @@ class PendaftaranWizard extends Component
     public $scholarship_id;
     public $sumber_informasi;
     public $nama_referensi;
-    public $nomor_hp_referensi; 
+    public $nomor_hp_referensi;
 
     public $nisn, $nik, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $alamat, $agama, $nomor_hp;
 
@@ -66,7 +68,7 @@ class PendaftaranWizard extends Component
     public function mount()
     {
         $pendaftar = Auth::user()->pendaftar;
-        
+
         if ($pendaftar) {
             // FIX: Izinkan akses jika status 'draft' ATAU 'perbaikan'
             if (!in_array($pendaftar->status_pendaftaran, ['draft', 'perbaikan'])) {
@@ -168,7 +170,6 @@ class PendaftaranWizard extends Component
         $this->currentStep = 3;
     }
 
-    // --- SUBMIT FINAL (VALIDASI STEP 3 & FILE) ---
     public function submit()
     {
         // 1. Validasi Data Ortu
@@ -179,7 +180,7 @@ class PendaftaranWizard extends Component
         ];
 
         // 2. Validasi File (Hanya wajib jika belum ada di DB / dihapus oleh admin saat reject)
-        
+
         if (!$this->existingFotoPath) {
             $rules['foto'] = 'required|image|max:2048';
         }
@@ -255,14 +256,36 @@ class PendaftaranWizard extends Component
                     'status_pendaftaran' => 'submit', // FIX: Kembalikan ke 'submit' agar diverifikasi admin lagi
                 ], $paths)
             );
-            
+
             // Jika sebelumnya ada catatan penolakan dokumen, kita bisa reset JSON doc_status (opsional)
             // $pendaftar->update(['doc_status' => null]);
 
             if ($user->nomor_hp !== $this->nomor_hp) {
                 $user->update(['nomor_hp' => $this->nomor_hp]);
             }
+            if ($this->nama_referensi && $this->nomor_hp_referensi) {
+                // Cari scheme aktif sesuai jalur pendaftaran
+                $scheme = ReferralScheme::where('is_active', 1)
+                    ->where('jalur', $this->jalur_pendaftaran)
+                    ->whereDate('start_date', '<=', now())
+                    ->where(function ($q) {
+                        $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+                    })
+                    ->first();
 
+                if ($scheme) {
+                    ReferralReward::updateOrCreate(
+                        [
+                            'pendaftar_id' => $pendaftar->id,
+                            'referral_scheme_id' => $scheme->id
+                        ],
+                        [
+                            'reward_amount' => $scheme->reward_amount,
+                            'status' => 'eligible'
+                        ]
+                    );
+                }
+            }
             DB::commit();
 
             // Kirim Email Notifikasi
@@ -291,8 +314,6 @@ class PendaftaranWizard extends Component
     public function saveDraft()
     {
         try {
-            // FIX: Jika statusnya 'perbaikan', jangan ubah jadi 'draft' agar notifikasi revisi di dashboard tidak hilang
-            // sampai user benar-benar klik tombol Submit akhir.
             $pendaftar = Auth::user()->pendaftar;
             $statusToSave = ($pendaftar && $pendaftar->status_pendaftaran == 'perbaikan') ? 'perbaikan' : 'draft';
 
@@ -319,7 +340,7 @@ class PendaftaranWizard extends Component
                     'nama_ayah' => $this->nama_ayah,
                     'nama_ibu' => $this->nama_ibu,
                     'jenis_dokumen' => $this->jenis_dokumen,
-                    'status_pendaftaran' => $statusToSave, // FIX: Gunakan logika status di atas
+                    'status_pendaftaran' => $statusToSave,
                 ]
             );
         } catch (Exception $e) {

@@ -93,6 +93,8 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
             // Laporan Referral (Terkait Komisi)
             Route::get('/referral', \App\Livewire\Admin\ReferralReport::class)->name('referral');
+            Route::get('/referral-manager', \App\Livewire\Admin\ReferralManager::class)
+                ->name('referral-manager.index');
         });
 
 
@@ -123,10 +125,9 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
         // --- 4. KHUSUS SUPER ADMIN (SYSTEM OWNER) ---
         Route::middleware(['role:admin'])->group(function () {
-
+            Route::get('/admin/referral-scheme', \App\Livewire\Admin\ReferralScheme\Index::class)->name('referral-scheme');
             // Manajemen User (Petugas & Camaba)
             Route::get('/users', \App\Livewire\Admin\UserManager::class)->name('users.index');
-
             // Pengaturan Website (CMS)
             Route::get('/settings', \App\Livewire\Admin\SiteSettings::class)->name('settings.index'); // Alias lama
             Route::get('/settings-panel', \App\Livewire\Admin\SiteSettings::class)->name('settings'); // Alias baru

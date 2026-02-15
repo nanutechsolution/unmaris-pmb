@@ -51,7 +51,7 @@
             <span>Command Center</span>
 
             @if (request()->routeIs('admin.dashboard'))
-                <span class="absolute right-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span>
+            <span class="absolute right-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span>
             @endif
         </a>
 
@@ -73,23 +73,42 @@
 
         <!-- ROLE: KEUANGAN & ADMIN (Laporan Keuangan & Referral) -->
         @if (in_array(Auth::user()->role, ['admin', 'keuangan']))
-            <a href="{{ route('admin.payment-report') }}"
-                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
+        <a href="{{ route('admin.payment-report') }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
                {{ request()->routeIs('admin.payment-report')
                    ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
                    : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
-                <span class="text-lg mr-3 group-hover:scale-110 transition-transform">💰</span>
-                Laporan Keuangan
-            </a>
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">💰</span>
+            Laporan Keuangan
+        </a>
 
-            <a href="{{ route('admin.referral') }}"
-                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
+        <a href="{{ route('admin.referral') }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
                {{ request()->routeIs('admin.referral')
                    ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
                    : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
-                <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🤝</span>
-                Data Referral
-            </a>
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🤝</span>
+            Data Referral
+        </a>
+
+        <a href="{{ route('admin.referral-manager.index') }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
+   {{ request()->routeIs('admin.referral-manager*')
+       ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
+       : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🧾</span>
+            Manajemen Komisi
+        </a>
+        <a href="{{ route('admin.referral-scheme') }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
+   {{ request()->routeIs('admin.referral-scheme*')
+       ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
+       : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
+
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">📊</span>
+            Referral Scheme
+        </a>
+
         @endif
 
         <a href="{{ route('admin.beasiswa.index') }}"
@@ -103,116 +122,116 @@
 
         <!-- ROLE: AKADEMIK & ADMIN (Seleksi & Master Data) -->
         @if (in_array(Auth::user()->role, ['admin', 'akademik']))
-            <div class="pt-4 pb-1 px-2 flex items-center gap-2">
-                <div class="h-px bg-white/20 flex-1"></div>
-                <p class="text-[9px] text-yellow-400 font-black uppercase tracking-widest">Akademik</p>
-                <div class="h-px bg-white/20 flex-1"></div>
-            </div>
+        <div class="pt-4 pb-1 px-2 flex items-center gap-2">
+            <div class="h-px bg-white/20 flex-1"></div>
+            <p class="text-[9px] text-yellow-400 font-black uppercase tracking-widest">Akademik</p>
+            <div class="h-px bg-white/20 flex-1"></div>
+        </div>
 
-            <a href="{{ route('admin.gelombang.index') ?? '#' }}"
-                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
+        <a href="{{ route('admin.gelombang.index') ?? '#' }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
             {{ request()->routeIs('admin.gelombang*')
                 ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
                 : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
-                <span class="text-lg mr-3 group-hover:animate-wave">🌊</span>
-                Gelombang PMB
-            </a>
-            @if (in_array(Auth::user()->role, ['admin']))
-                <a href="{{ route('admin.prodi.index') ?? '#' }}"
-                    class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
+            <span class="text-lg mr-3 group-hover:animate-wave">🌊</span>
+            Gelombang PMB
+        </a>
+        @if (in_array(Auth::user()->role, ['admin']))
+        <a href="{{ route('admin.prodi.index') ?? '#' }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
             {{ request()->routeIs('admin.prodi*')
                 ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
                 : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
-                    <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🏛️</span>
-                    Program Studi
-                </a>
-            @endif
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🏛️</span>
+            Program Studi
+        </a>
+        @endif
 
-            <a href="{{ route('admin.seleksi.index') }}"
-                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
+        <a href="{{ route('admin.seleksi.index') }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
        {{ request()->routeIs('admin.seleksi*')
            ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
            : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
-                <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🎯</span>
-                Seleksi & Nilai
-            </a>
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🎯</span>
+            Seleksi & Nilai
+        </a>
 
-            <a href="{{ route('admin.wawancara.index') }}"
-                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
+        <a href="{{ route('admin.wawancara.index') }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
        {{ request()->routeIs('admin.wawancara*')
            ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
            : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
-                <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🎤</span>
-                Wawancara
-            </a>
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🎤</span>
+            Wawancara
+        </a>
         @endif
 
         <!-- ROLE: SUPER ADMIN ONLY (System & Users) -->
         @if (Auth::user()->role === 'admin')
-            <div class="pt-4 pb-1 px-2 flex items-center gap-2">
-                <div class="h-px bg-white/20 flex-1"></div>
-                <p class="text-[9px] text-yellow-400 font-black uppercase tracking-widest">System Area</p>
-                <div class="h-px bg-white/20 flex-1"></div>
-            </div>
+        <div class="pt-4 pb-1 px-2 flex items-center gap-2">
+            <div class="h-px bg-white/20 flex-1"></div>
+            <p class="text-[9px] text-yellow-400 font-black uppercase tracking-widest">System Area</p>
+            <div class="h-px bg-white/20 flex-1"></div>
+        </div>
 
-            <!-- Fasilitas & Slider (Featured) -->
-            <a href="{{ route('admin.facilities') }}"
-                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200 bg-gray-800 text-white hover:bg-white hover:text-gray-900 hover:shadow-[3px_3px_0px_0px_#FACC15] hover:-translate-y-0.5
+        <!-- Fasilitas & Slider (Featured) -->
+        <a href="{{ route('admin.facilities') }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200 bg-gray-800 text-white hover:bg-white hover:text-gray-900 hover:shadow-[3px_3px_0px_0px_#FACC15] hover:-translate-y-0.5
                {{ request()->routeIs('admin.facilities*') ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-unmaris-blue' : '' }}">
-                <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🏢</span>
-                Slider & Fasilitas
-            </a>
+            <span class="text-lg mr-3 group-hover:scale-110 transition-transform">🏢</span>
+            Slider & Fasilitas
+        </a>
 
-            <!-- Settings (Featured) -->
-            <a href="{{ route('admin.settings') }}"
-                class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200 bg-gray-800 text-white hover:bg-white hover:text-gray-900 hover:shadow-[3px_3px_0px_0px_#FACC15] hover:-translate-y-0.5
+        <!-- Settings (Featured) -->
+        <a href="{{ route('admin.settings') }}"
+            class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200 bg-gray-800 text-white hover:bg-white hover:text-gray-900 hover:shadow-[3px_3px_0px_0px_#FACC15] hover:-translate-y-0.5
        {{ request()->routeIs('admin.settings*') ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-unmaris-blue' : '' }}">
-                <span class="text-lg mr-3 group-hover:rotate-90 transition-transform duration-500">⚙️</span>
-                Web Settings
-            </a>
+            <span class="text-lg mr-3 group-hover:rotate-90 transition-transform duration-500">⚙️</span>
+            Web Settings
+        </a>
 
-            <!-- Dropdown Menu Lainnya -->
-            <div x-data="{ open: false }"
-                class="mt-2 border-2 border-black rounded-xl bg-unmaris-blue/50 overflow-hidden">
-                <button @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2.5 text-[10px] font-black uppercase tracking-wider text-white/80 hover:text-white hover:bg-white/10 transition">
-                    <span class="flex items-center gap-2"><span class="text-sm">🛠️</span> Menu Lainnya</span>
-                    <svg :class="open ? 'rotate-180' : ''" class="w-3 h-3 transition-transform duration-300"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
+        <!-- Dropdown Menu Lainnya -->
+        <div x-data="{ open: false }"
+            class="mt-2 border-2 border-black rounded-xl bg-unmaris-blue/50 overflow-hidden">
+            <button @click="open = !open"
+                class="w-full flex items-center justify-between px-3 py-2.5 text-[10px] font-black uppercase tracking-wider text-white/80 hover:text-white hover:bg-white/10 transition">
+                <span class="flex items-center gap-2"><span class="text-sm">🛠️</span> Menu Lainnya</span>
+                <svg :class="open ? 'rotate-180' : ''" class="w-3 h-3 transition-transform duration-300"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
 
-                <div x-show="open" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0" class="space-y-1 p-2 bg-black/20">
+            <div x-show="open" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-y-2"
+                x-transition:enter-end="opacity-100 translate-y-0" class="space-y-1 p-2 bg-black/20">
 
-                    <a href="{{ route('admin.users.index') }}"
-                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
-                        <span>👥</span> User Management
-                    </a>
-                    <a href="{{ route('admin.helpdesk.index') }}"
-                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
-                        <span>💬</span> Helpdesk
-                    </a>
-                    <a href="{{ route('admin.laporan.index') }}"
-                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
-                        <span>🖨️</span> Laporan
-                    </a>
-                    <a href="{{ route('admin.geographic.index') }}"
-                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
-                        <span>🌍</span> Peta Sebaran
-                    </a>
-                    <a href="{{ route('admin.announcements.index') }}"
-                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
-                        <span>📢</span> Pengumuman
-                    </a>
-                    <a href="{{ route('admin.logs.index') }}"
-                        class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
-                        <span>🕵️‍♂️</span> Log Aktivitas
-                    </a>
-                </div>
+                <a href="{{ route('admin.users.index') }}"
+                    class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                    <span>👥</span> User Management
+                </a>
+                <a href="{{ route('admin.helpdesk.index') }}"
+                    class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                    <span>💬</span> Helpdesk
+                </a>
+                <a href="{{ route('admin.laporan.index') }}"
+                    class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                    <span>🖨️</span> Laporan
+                </a>
+                <a href="{{ route('admin.geographic.index') }}"
+                    class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                    <span>🌍</span> Peta Sebaran
+                </a>
+                <a href="{{ route('admin.announcements.index') }}"
+                    class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                    <span>📢</span> Pengumuman
+                </a>
+                <a href="{{ route('admin.logs.index') }}"
+                    class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
+                    <span>🕵️‍♂️</span> Log Aktivitas
+                </a>
             </div>
+        </div>
         @endif
 
         <!-- Logout Area -->
