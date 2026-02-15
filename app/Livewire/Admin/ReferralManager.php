@@ -45,9 +45,9 @@ class ReferralManager extends Component
 
     public function mount()
     {
-        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'keuangan','akademik'])) {
-            abort(403);
-        }
+        // if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'keuangan','akademik'])) {
+        //     abort(403);
+        // }
     }
 
     public function updatingSearch()
