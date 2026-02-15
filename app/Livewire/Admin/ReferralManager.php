@@ -14,7 +14,7 @@ class ReferralManager extends Component
 {
     use WithPagination;
 
-    protected $paginationTheme = 'bootstrap';
+    protected $paginationTheme = 'tailwind';
 
     public $search = '';
     public $filterStatus = '';
@@ -61,6 +61,7 @@ class ReferralManager extends Component
                         });
                 });
             })
+
             ->when($this->filterStatus, function ($q) {
                 $q->where('status', $this->filterStatus);
             })
