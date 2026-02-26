@@ -18,6 +18,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- logo --}}
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <meta name="google-site-verification" content="0VnvIW71PqVxscZScXyOmTWHBzVBzU2wyvt6kU7022w" />
 </head>
 
 <body
