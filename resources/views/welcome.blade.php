@@ -25,50 +25,60 @@
     class="font-sans antialiased bg-yellow-50 text-black selection:bg-unmaris-blue selection:text-white relative pb-20 md:pb-0">
 
     @php
-        // Cek apakah ada gelombang yang sedang aktif
-        // Asumsi $gelombangs dikirim dari Controller sebagai Collection
-        $isRegistrationOpen = $gelombangs->contains('is_active', true);
+    // Cek apakah ada gelombang yang sedang aktif
+    // Asumsi $gelombangs dikirim dari Controller sebagai Collection
+    $isRegistrationOpen = $gelombangs->contains('is_active', true);
     @endphp
 
     <!-- NAVBAR -->
     <nav
         class="fixed top-0 w-full z-50 bg-white border-b-4 border-black px-4 md:px-8 py-4 flex justify-between items-center shadow-sm">
+
+        <!-- Logo -->
         <div class="flex items-center gap-3">
             <img src="{{ asset('images/logo.png') }}"
                 onerror="this.src='https://ui-avatars.com/api/?name=UN&background=1e3a8a&color=facc15'"
-                class="h-10 w-10  rounded-full bg-white">
-            <span class="font-black text-xl tracking-tighter uppercase text-unmaris-blue hidden md:block">PMB
-                UNMARIS</span>
+                class="h-10 w-10 rounded-full bg-white">
+            <span class="font-black text-xl tracking-tighter uppercase text-unmaris-blue hidden md:block">
+                PMB UNMARIS
+            </span>
         </div>
 
-        <div class="flex gap-3">
-            @if (Route::has('login'))
-                @auth
-                    <a href="{{ url('/dashboard') }}"
-                        class="font-black text-sm uppercase px-4 py-2 border-2 border-black bg-unmaris-blue text-white hover:bg-blue-800 hover:shadow-neo transition-all rounded">
-                        Dashboard 🚀
-                    </a>
-                @else
-                    <a href="{{ route('login') }}"
-                        class="font-bold text-sm uppercase px-4 py-2 hover:underline decoration-4 underline-offset-4 decoration-unmaris-yellow text-unmaris-blue">
-                        Masuk
-                    </a>
+        <!-- Menu -->
+        <div class="flex items-center gap-2 md:gap-3">
 
-                    @if (Route::has('register'))
-                        @if ($isRegistrationOpen)
-                            <a href="{{ route('register') }}"
-                                class="hidden md:inline-block font-black text-sm uppercase px-4 py-2 border-2 border-black bg-unmaris-yellow text-unmaris-blue shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all rounded">
-                                Daftar Sekarang
-                            </a>
-                        @else
-                            <button disabled
-                                class="hidden md:inline-block font-black text-sm uppercase px-4 py-2 border-2 border-gray-400 bg-gray-200 text-gray-500 cursor-not-allowed rounded">
-                                Belum Dibuka
-                            </button>
-                        @endif
-                    @endif
-                @endauth
+            @if (Route::has('login'))
+            @auth
+            <a href="{{ url('/dashboard') }}"
+                class="font-black text-sm uppercase px-4 py-2 border-2 border-black bg-unmaris-blue text-white hover:bg-blue-800 hover:shadow-neo transition-all rounded">
+                Dashboard 🚀
+            </a>
+            @else
+
+            <!-- Login -->
+            <a href="{{ route('login') }}"
+                class="font-bold text-sm uppercase px-3 md:px-4 py-2 hover:underline decoration-4 underline-offset-4 decoration-unmaris-yellow text-unmaris-blue">
+                Masuk
+            </a>
+
+            <!-- Register -->
+            @if (Route::has('register'))
+            @if ($isRegistrationOpen)
+            <a href="{{ route('register') }}"
+                class="font-black text-sm uppercase px-3 md:px-4 py-2 border-2 border-black bg-unmaris-yellow text-unmaris-blue shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all rounded">
+                Daftar
+            </a>
+            @else
+            <button disabled
+                class="font-black text-sm uppercase px-3 md:px-4 py-2 border-2 border-gray-400 bg-gray-200 text-gray-500 cursor-not-allowed rounded">
+                Belum Dibuka
+            </button>
             @endif
+            @endif
+
+            @endauth
+            @endif
+
         </div>
     </nav>
 
@@ -142,19 +152,19 @@
             <!-- Action Buttons -->
             <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
                 @if ($isRegistrationOpen)
-                    <a href="{{ route('register') }}" class="group relative inline-block focus:outline-none focus:ring">
-                        <span
-                            class="absolute inset-0 translate-x-1.5 translate-y-1.5 bg-black transition-transform group-hover:translate-y-0 group-hover:translate-x-0 rounded-xl"></span>
-                        <span
-                            class="relative inline-flex items-center gap-2 px-8 py-4 text-lg md:text-xl font-black uppercase tracking-widest text-unmaris-blue bg-unmaris-yellow border-2 border-black rounded-xl group-active:text-opacity-75">
-                            🚀 Daftar Sekarang
-                        </span>
-                    </a>
+                <a href="{{ route('register') }}" class="group relative inline-block focus:outline-none focus:ring">
+                    <span
+                        class="absolute inset-0 translate-x-1.5 translate-y-1.5 bg-black transition-transform group-hover:translate-y-0 group-hover:translate-x-0 rounded-xl"></span>
+                    <span
+                        class="relative inline-flex items-center gap-2 px-8 py-4 text-lg md:text-xl font-black uppercase tracking-widest text-unmaris-blue bg-unmaris-yellow border-2 border-black rounded-xl group-active:text-opacity-75">
+                        🚀 Daftar Sekarang
+                    </span>
+                </a>
                 @else
-                    <button disabled
-                        class="bg-gray-200 text-gray-500 text-lg md:text-xl font-black py-4 px-8 border-2 border-gray-400 rounded-xl uppercase flex items-center justify-center gap-2 cursor-not-allowed">
-                        ⏳ Pendaftaran Segera Dibuka
-                    </button>
+                <button disabled
+                    class="bg-gray-200 text-gray-500 text-lg md:text-xl font-black py-4 px-8 border-2 border-gray-400 rounded-xl uppercase flex items-center justify-center gap-2 cursor-not-allowed">
+                    ⏳ Pendaftaran Segera Dibuka
+                </button>
                 @endif
 
                 <a href="#prodi" class="group relative inline-block focus:outline-none focus:ring">
@@ -237,7 +247,7 @@
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=PDDIKTI'"
                             class="h-10 md:h-14 object-contain hover:scale-110 transition-transform" alt="PDDikti">
 
-                            <!-- logo Kampus -->
+                        <!-- logo Kampus -->
 
                         <img src="{{asset('images/logo.png')}}"
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=logo'"
@@ -262,7 +272,7 @@
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=PDDIKTI'"
                             class="h-10 md:h-14 object-contain hover:scale-110 transition-transform" alt="PDDikti">
 
-                            <!-- logo Kampus    -->
+                        <!-- logo Kampus    -->
                         <img src="{{asset('images/logo.png')}}"
                             onerror="this.src='https://placehold.co/150x80/transparent/000?text=logo'"
                             class="h-10 md:h-14 object-contain hover:scale-110 transition-transform" alt="Logo Kampus">
@@ -539,49 +549,50 @@
 
                 <div class="space-y-4">
                     @forelse($gelombangs as $g)
-                        @php
-                            $isActive = $g->is_active;
-                            $isPast = \Carbon\Carbon::now()->gt($g->tgl_selesai);
-                            // Style Logic
-                            $borderColor = $isActive ? 'border-unmaris-blue' : 'border-gray-400';
-                            $bgColor = $isActive ? 'bg-white' : 'bg-gray-100 opacity-75';
-                            $scale = $isActive ? 'transform scale-105 border-l-8 border-l-unmaris-yellow' : '';
-                        @endphp
+                    @php
+                    $isActive = $g->is_active;
+                    $isPast = \Carbon\Carbon::now()->gt($g->tgl_selesai);
+                    // Style Logic
+                    $borderColor = $isActive ? 'border-unmaris-blue' : 'border-gray-400';
+                    $bgColor = $isActive ? 'bg-white' : 'bg-gray-100 opacity-75';
+                    $scale = $isActive ? 'transform scale-105 border-l-8 border-l-unmaris-yellow' : '';
+                    @endphp
 
-                        <div
-                            class="{{ $bgColor }} border-4 {{ $borderColor }} shadow-neo rounded-xl p-6 flex justify-between items-center {{ $scale }}">
-                            <div>
-                                <h4
-                                    class="font-black text-xl {{ $isActive ? 'text-unmaris-blue' : 'text-gray-600' }}">
-                                    {{ $g->nama_gelombang }}</h4>
-                                <p class="text-sm font-bold text-gray-500">
-                                    {{ \Carbon\Carbon::parse($g->tgl_mulai)->format('d M') }} -
-                                    {{ \Carbon\Carbon::parse($g->tgl_selesai)->format('d M Y') }}
-                                </p>
-                            </div>
-
-                            @if ($isActive)
-                                <span
-                                    class="bg-green-500 text-white px-3 py-1 rounded border-2 border-black font-black text-xs uppercase shadow-sm animate-pulse">
-                                    BUKA SEKARANG
-                                </span>
-                            @elseif($isPast)
-                                <span
-                                    class="bg-red-500 text-white px-3 py-1 rounded border-2 border-black font-black text-xs uppercase">
-                                    TUTUP
-                                </span>
-                            @else
-                                <span
-                                    class="bg-gray-300 text-gray-600 px-3 py-1 rounded border-2 border-gray-500 font-black text-xs uppercase">
-                                    SEGERA
-                                </span>
-                            @endif
+                    <div
+                        class="{{ $bgColor }} border-4 {{ $borderColor }} shadow-neo rounded-xl p-6 flex justify-between items-center {{ $scale }}">
+                        <div>
+                            <h4
+                                class="font-black text-xl {{ $isActive ? 'text-unmaris-blue' : 'text-gray-600' }}">
+                                {{ $g->nama_gelombang }}
+                            </h4>
+                            <p class="text-sm font-bold text-gray-500">
+                                {{ \Carbon\Carbon::parse($g->tgl_mulai)->format('d M') }} -
+                                {{ \Carbon\Carbon::parse($g->tgl_selesai)->format('d M Y') }}
+                            </p>
                         </div>
+
+                        @if ($isActive)
+                        <span
+                            class="bg-green-500 text-white px-3 py-1 rounded border-2 border-black font-black text-xs uppercase shadow-sm animate-pulse">
+                            BUKA SEKARANG
+                        </span>
+                        @elseif($isPast)
+                        <span
+                            class="bg-red-500 text-white px-3 py-1 rounded border-2 border-black font-black text-xs uppercase">
+                            TUTUP
+                        </span>
+                        @else
+                        <span
+                            class="bg-gray-300 text-gray-600 px-3 py-1 rounded border-2 border-gray-500 font-black text-xs uppercase">
+                            SEGERA
+                        </span>
+                        @endif
+                    </div>
                     @empty
-                        <div
-                            class="p-6 bg-yellow-100 border-2 border-yellow-400 rounded-lg text-yellow-800 text-center font-bold">
-                            Belum ada jadwal gelombang yang dirilis. Pantau terus ya!
-                        </div>
+                    <div
+                        class="p-6 bg-yellow-100 border-2 border-yellow-400 rounded-lg text-yellow-800 text-center font-bold">
+                        Belum ada jadwal gelombang yang dirilis. Pantau terus ya!
+                    </div>
                     @endforelse
                 </div>
 
@@ -978,15 +989,15 @@
             {{ $isRegistrationOpen ? 'Pendaftaran Dibuka!' : 'Pendaftaran Belum Dibuka' }}
         </div>
         @if ($isRegistrationOpen)
-            <a href="{{ route('register') }}"
-                class="bg-unmaris-yellow text-unmaris-blue font-black py-2 px-6 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all uppercase text-sm">
-                🔥 Daftar
-            </a>
+        <a href="{{ route('register') }}"
+            class="bg-unmaris-yellow text-unmaris-blue font-black py-2 px-6 rounded-lg border-2 border-black shadow-neo-sm hover:shadow-none transition-all uppercase text-sm">
+            🔥 Daftar
+        </a>
         @else
-            <button disabled
-                class="bg-gray-300 text-gray-500 font-black py-2 px-6 rounded-lg border-2 border-gray-500 uppercase text-sm cursor-not-allowed">
-                ⏳ Tutup
-            </button>
+        <button disabled
+            class="bg-gray-300 text-gray-500 font-black py-2 px-6 rounded-lg border-2 border-gray-500 uppercase text-sm cursor-not-allowed">
+            ⏳ Tutup
+        </button>
         @endif
     </div>
 
@@ -1007,33 +1018,33 @@
 
             <div class="space-y-2">
                 @if (!empty($settings->admin_contacts))
-                    @foreach ($settings->admin_contacts as $contact)
-                        <a href="https://wa.me/{{ $contact['phone'] }}?text=Halo%20{{ urlencode($contact['name']) }},%20saya%20mau%20tanya%20info%20PMB%20Unmaris"
-                            target="_blank"
-                            class="flex items-center gap-3 hover:bg-yellow-50 p-2 rounded border-2 border-transparent hover:border-black transition-all group">
+                @foreach ($settings->admin_contacts as $contact)
+                <a href="https://wa.me/{{ $contact['phone'] }}?text=Halo%20{{ urlencode($contact['name']) }},%20saya%20mau%20tanya%20info%20PMB%20Unmaris"
+                    target="_blank"
+                    class="flex items-center gap-3 hover:bg-yellow-50 p-2 rounded border-2 border-transparent hover:border-black transition-all group">
 
-                            <!-- Icon WA -->
-                            <div class="bg-green-500 text-white p-1 rounded-full border-2 border-black shrink-0">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
-                                </svg>
-                            </div>
-
-                            <!-- Nama & Info -->
-                            <div>
-                                <div class="font-bold text-sm leading-tight text-unmaris-blue">
-                                    {{ $contact['name'] }}
-                                </div>
-                                <div class="text-xs text-gray-500 font-bold">Panitia PMB</div>
-                            </div>
-                        </a>
-                    @endforeach
-                @else
-                    <!-- Fallback Jika Data Kosong -->
-                    <div class="text-center text-xs font-bold text-gray-500 py-2">
-                        Belum ada kontak tersedia.
+                    <!-- Icon WA -->
+                    <div class="bg-green-500 text-white p-1 rounded-full border-2 border-black shrink-0">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
+                        </svg>
                     </div>
+
+                    <!-- Nama & Info -->
+                    <div>
+                        <div class="font-bold text-sm leading-tight text-unmaris-blue">
+                            {{ $contact['name'] }}
+                        </div>
+                        <div class="text-xs text-gray-500 font-bold">Panitia PMB</div>
+                    </div>
+                </a>
+                @endforeach
+                @else
+                <!-- Fallback Jika Data Kosong -->
+                <div class="text-center text-xs font-bold text-gray-500 py-2">
+                    Belum ada kontak tersedia.
+                </div>
                 @endif
             </div>
         </div>
