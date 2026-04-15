@@ -9,6 +9,7 @@ use App\Livewire\Camaba\Pembayaran;
 // Import Livewire Components Baru
 use App\Livewire\Camaba\Dashboard as CamabaDashboard;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\PendaftarCreate;
 use App\Livewire\Admin\PendaftarDetail;
 use App\Models\FacilitySlide;
 use App\Models\Gelombang;
@@ -71,6 +72,8 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
             ->name('referral-manager.index');
         // Pendaftar (View Only / Basic Actions)
         Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar.index');
+          Route::get('/pendaftar/create', PendaftarCreate::class)->name('pendaftar.create');
+      
         // Route::get('/pendaftar/{id}', [PendaftarController::class, 'show'])->name('pendaftar.show');
         Route::get('/pendaftar/{id}', PendaftarDetail::class)->name('pendaftar.show');
 

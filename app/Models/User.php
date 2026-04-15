@@ -7,7 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Notifications\CustomVerifyEmail; 
+use App\Notifications\CustomVerifyEmail;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -23,7 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'nomor_hp',
-        'role',     // 'admin', 'camaba', 'keuangan', 'akademik'
+        'role',
     ];
 
     /**
@@ -65,7 +65,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * Override method bawaan Laravel untuk kirim email reset password.
      * Ini akan dipanggil otomatis saat user minta reset password.
      */
-    public function sendPasswordResetNotification($token) 
+    public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPassword($token));
     }
@@ -116,5 +116,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAkademik(): bool
     {
         return $this->role === 'akademik';
+    }
+
+
+    /**
+     * Menentukan nomor HP untuk notifikasi WhatsApp.
+     */
+    public function routeNotificationForWhatsApp()
+    {
+        // Mengambil nomor HP dari relasi pendaftar
+        return $this->pendaftar->nomor_hp ?? null;
     }
 }
