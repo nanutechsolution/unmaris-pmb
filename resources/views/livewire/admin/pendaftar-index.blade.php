@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50/50 pb-20 font-sans">
+<div class="min-h-screen bg-gray-50/50 pb-20 font-sans relative">
     <!-- Alpine & Header Logic -->
     <div x-data="{
             monitoring: false,
@@ -20,7 +20,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Data Pendaftar</h1>
-                        <p class="text-sm text-gray-500">Kelola data calon mahasiswa, verifikasi, dan sinkronisasi.</p>
+                        <p class="text-sm text-gray-500">Kelola data calon mahasiswa, verifikasi, sinkronisasi, dan penghapusan.</p>
                     </div>
                     
                     <div class="flex items-center gap-3">
@@ -48,6 +48,18 @@
         <!-- FILTERS & CONTENT -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
+            <!-- Notifikasi -->
+            @if (session()->has('success'))
+                <div class="bg-green-50 px-4 py-3 rounded-xl border border-green-200 text-sm font-bold text-green-700 mb-4 shadow-sm flex items-start gap-3">
+                    <span class="text-lg">✅</span> <p>{{ session('success') }}</p>
+                </div>
+            @endif
+            @if (session()->has('error'))
+                <div class="bg-red-50 px-4 py-3 rounded-xl border border-red-200 text-sm font-bold text-red-700 mb-4 shadow-sm flex items-start gap-3 whitespace-pre-line">
+                    <span class="text-lg">⚠️</span> <p>{{ session('error') }}</p>
+                </div>
+            @endif
+
             <!-- Filter Bar -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 <!-- Search -->
@@ -89,7 +101,16 @@
             </div>
 
             <!-- Table -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+                
+                <!-- Loading Overlay Table -->
+                <div wire:loading class="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
+                    <div class="bg-white p-3 rounded-lg shadow-lg flex items-center gap-3 font-bold text-indigo-600 text-sm">
+                        <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Memuat...
+                    </div>
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -112,9 +133,13 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
                                         <div class="h-10 w-10 flex-shrink-0">
-                                            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm border border-indigo-200">
-                                                {{ substr($p->user->name, 0, 1) }}
-                                            </div>
+                                            @if($p->foto_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($p->foto_path))
+                                                <img class="h-10 w-10 rounded-full object-cover border border-gray-200" src="{{ asset('storage/'.$p->foto_path) }}" alt="">
+                                            @else
+                                                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm border border-indigo-200">
+                                                    {{ substr($p->user->name, 0, 1) }}
+                                                </div>
+                                            @endif
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-bold text-gray-900">{{ $p->user->name }}</div>
@@ -150,7 +175,7 @@
                                             ];
                                             $regClass = $regColors[$p->status_pendaftaran] ?? $regColors['draft'];
                                         @endphp
-                                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ $regClass }}">
+                                        <span class="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold {{ $regClass }}">
                                             {{ strtoupper($p->status_pendaftaran) }}
                                         </span>
 
@@ -177,9 +202,25 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-right text-sm font-medium">
-                                    <a href="{{ route('admin.pendaftar.show', $p->id) }}" class="text-indigo-600 hover:text-indigo-900 font-bold hover:underline">
-                                        Detail &rarr;
-                                    </a>
+                                    <div class="flex items-center justify-end gap-3">
+                                        <a href="{{ route('admin.pendaftar.show', $p->id) }}" class="text-indigo-600 hover:text-indigo-900 font-bold hover:underline flex items-center gap-1">
+                                            Detail &rarr;
+                                        </a>
+                                        
+                                        <!-- TOMBOL CETAK SATUAN (BARU) -->
+                                        <a href="{{ route('admin.pendaftar.cetak', $p->id) }}"class="text-gray-500 hover:text-indigo-600 transition p-1 bg-white hover:bg-indigo-50 rounded-md border border-transparent hover:border-indigo-200" title="Cetak Formulir">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                        </a>
+
+                                        <!-- TOMBOL HAPUS SATUAN HANYA UNTUK ADMIN -->
+                                        @if(auth()->user()->role === 'admin')
+                                        <button wire:click="deletePendaftar({{ $p->id }})" 
+                                                wire:confirm="PERINGATAN!\n\nApakah Anda yakin ingin MENGHAPUS PERMANEN data mahasiswa ({{ $p->user->name }}) beserta akun dan semua file uploadnya?\n\nTindakan ini tidak bisa dibatalkan!"
+                                                class="text-gray-400 hover:text-red-600 transition p-1 bg-white hover:bg-red-50 rounded-md border border-transparent hover:border-red-200" title="Hapus Permanen">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -212,25 +253,50 @@
                  x-transition:leave-start="translate-y-0 opacity-100"
                  x-transition:leave-end="translate-y-full opacity-0"
                  class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-3xl px-4"
-                 style="display: none;">
+                 style="display: none;" x-cloak>
                 
-                <div class="bg-gray-900 text-white rounded-full shadow-2xl px-6 py-3 flex items-center justify-between gap-6 border border-gray-700/50 backdrop-blur-xl bg-opacity-95">
-                    <div class="flex items-center gap-3">
-                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white" x-text="$wire.selected.length"></span>
-                        <span class="text-sm font-medium">Item Terpilih</span>
+                <div class="bg-gray-900 text-white rounded-full shadow-2xl px-6 py-3 flex items-center justify-between gap-6 border border-gray-700/50 backdrop-blur-xl bg-opacity-95 flex-col sm:flex-row">
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white shrink-0" x-text="$wire.selected.length"></span>
+                        <span class="text-sm font-medium">Data Terpilih</span>
+                        <div class="flex-1 sm:hidden"></div>
+                        <button wire:click="resetSelection" class="sm:hidden px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-white transition">Batal</button>
                     </div>
                     
-                    <div class="flex items-center gap-2">
-                        <button wire:click="resetSelection" class="px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white transition">
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                        <button wire:click="resetSelection" class="hidden sm:block px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white transition">
                             Batal
                         </button>
-                        <div class="h-4 w-px bg-gray-700 mx-1"></div>
-                        <button wire:click="syncToSiakadBulk" 
-                                wire:loading.attr="disabled"
-                                class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition disabled:opacity-50">
-                            <span wire:loading.remove wire:target="syncToSiakadBulk">🚀 Kirim ke SIAKAD</span>
-                            <span wire:loading wire:target="syncToSiakadBulk">Memproses...</span>
-                        </button>
+                        
+                        <div class="hidden sm:block h-4 w-px bg-gray-700 mx-1"></div>
+                        
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <!-- TOMBOL CETAK MASSAL (BARU) -->
+                            <button wire:click="redirectCetakMassal" 
+                                    wire:loading.attr="disabled"
+                                    class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-full bg-white/10 text-white border border-white/20 px-4 py-1.5 text-xs font-bold hover:bg-white hover:text-gray-900 transition disabled:opacity-50">
+                                <span wire:loading.remove wire:target="redirectCetakMassal">🖨️ Cetak Massal</span>
+                                <span wire:loading wire:target="redirectCetakMassal">Memproses...</span>
+                            </button>
+
+                            <!-- TOMBOL BULK HAPUS HANYA UNTUK ADMIN -->
+                            @if(auth()->user()->role === 'admin')
+                            <button wire:click="bulkDelete" 
+                                    wire:confirm="PERINGATAN KRITIS!\n\nAnda yakin ingin MENGHAPUS SEMUA data yang dipilih?\nProses ini menghapus akun login dan SEMUA BERKAS mereka dari server.\n\nTindakan ini bersifat PERMANEN."
+                                    wire:loading.attr="disabled"
+                                    class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-full bg-red-600/20 text-red-400 border border-red-500/30 px-4 py-1.5 text-xs font-bold hover:bg-red-600 hover:text-white transition disabled:opacity-50">
+                                <span wire:loading.remove wire:target="bulkDelete">🗑️ Hapus Massal</span>
+                                <span wire:loading wire:target="bulkDelete">Menghapus...</span>
+                            </button>
+                            @endif
+
+                            <button wire:click="syncToSiakadBulk" 
+                                    wire:loading.attr="disabled"
+                                    class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-full bg-indigo-600 px-4 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 transition disabled:opacity-50">
+                                <span wire:loading.remove wire:target="syncToSiakadBulk">🚀 Push SIAKAD</span>
+                                <span wire:loading wire:target="syncToSiakadBulk">Memproses...</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

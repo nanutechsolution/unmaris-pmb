@@ -72,8 +72,13 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
             ->name('referral-manager.index');
         // Pendaftar (View Only / Basic Actions)
         Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar.index');
-          Route::get('/pendaftar/create', PendaftarCreate::class)->name('pendaftar.create');
-      
+        // --- TAMBAHAN ROUTE CETAK FORMULIR ---
+        Route::get('/pendaftar/cetak-massal', [\App\Http\Controllers\Admin\CetakFormulirController::class, 'cetakMassal'])->name('pendaftar.cetak-massal');
+        Route::get('/pendaftar/{id}/cetak', [\App\Http\Controllers\Admin\CetakFormulirController::class, 'cetakSatu'])->name('pendaftar.cetak');
+        // -------------------------------------
+
+        Route::get('/pendaftar/create', PendaftarCreate::class)->name('pendaftar.create');
+
         // Route::get('/pendaftar/{id}', [PendaftarController::class, 'show'])->name('pendaftar.show');
         Route::get('/pendaftar/{id}', PendaftarDetail::class)->name('pendaftar.show');
 

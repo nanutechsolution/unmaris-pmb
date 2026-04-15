@@ -6,8 +6,11 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Url;
 use App\Models\Pendaftar;
+use App\Models\User;
 use App\Services\Logger;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PendaftarIndex extends Component
 {
@@ -49,7 +52,7 @@ class PendaftarIndex extends Component
     {
         $this->resetPage();
         $this->resetSelection();
-    } // Reset saat filter sync berubah
+    } 
     public function updatingPage()
     {
         $this->resetSelection();
@@ -71,6 +74,19 @@ class PendaftarIndex extends Component
         }
     }
 
+    // --- TAMBAHAN FUNGSI CETAK MASSAL ---
+    public function redirectCetakMassal()
+    {
+        if (empty($this->selected)) {
+            session()->flash('error', 'Pilih minimal satu data untuk dicetak.');
+            return;
+        }
+
+        $ids = implode(',', $this->selected);
+        return redirect()->route('admin.pendaftar.cetak-massal', ['ids' => $ids]);
+    }
+    // ------------------------------------
+
     private function getPendaftarQuery()
     {
         $query = Pendaftar::with('user')->latest();
@@ -78,9 +94,9 @@ class PendaftarIndex extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('nisn', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('user', function ($u) {
-                        $u->where('name', 'like', '%' . $this->search . '%');
-                    });
+                  ->orWhereHas('user', function ($u) {
+                      $u->where('name', 'like', '%' . $this->search . '%');
+                  });
             });
         }
 
@@ -92,7 +108,6 @@ class PendaftarIndex extends Component
             $query->where('status_pembayaran', $this->filterPembayaran);
         }
 
-        // Logic Filter Sync (Baru)
         if ($this->filterSync !== '') {
             $query->where('is_synced', $this->filterSync);
         }
@@ -100,11 +115,90 @@ class PendaftarIndex extends Component
         return $query;
     }
 
-    public function render()
+    // --- FITUR BARU: HAPUS SATUAN ---
+    public function deletePendaftar($id)
     {
-        return view('livewire.admin.pendaftar-index', [
-            'pendaftars' => $this->getPendaftarQuery()->paginate(10)
-        ]);
+        try {
+            DB::transaction(function () use ($id) {
+                $pendaftar = Pendaftar::findOrFail($id);
+                $userId = $pendaftar->user_id;
+                $userName = $pendaftar->user->name;
+
+                // 1. Hapus file fisik (Storage) agar disk tidak penuh
+                $files = [
+                    $pendaftar->foto_path, $pendaftar->ktp_path, 
+                    $pendaftar->akta_path, $pendaftar->ijazah_path, 
+                    $pendaftar->transkrip_path, $pendaftar->bukti_pembayaran,
+                    $pendaftar->file_beasiswa
+                ];
+
+                foreach ($files as $file) {
+                    if ($file && Storage::disk('public')->exists($file)) {
+                        Storage::disk('public')->delete($file);
+                    }
+                }
+
+                // 2. Hapus User (Otomatis menghapus Pendaftar karena ON DELETE CASCADE)
+                User::findOrFail($userId)->delete();
+
+                Logger::record('DELETE', 'Hapus Data', "Menghapus pendaftar: $userName");
+            });
+
+            // Pastikan jika ID yang dihapus ada di array selected, kita buang
+            $this->selected = array_diff($this->selected, [$id]);
+            
+            session()->flash('success', 'Data pendaftar dan file berkasnya berhasil dihapus permanen.');
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal menghapus: ' . $e->getMessage());
+        }
+    }
+
+    // --- FITUR BARU: BULK HAPUS (MASSAL) ---
+    public function bulkDelete()
+    {
+        if (empty($this->selected)) {
+            session()->flash('error', 'Pilih minimal satu data untuk dihapus.');
+            return;
+        }
+
+        try {
+            $deletedCount = 0;
+
+            DB::transaction(function () use (&$deletedCount) {
+                $pendaftars = Pendaftar::with('user')->whereIn('id', $this->selected)->get();
+                
+                foreach ($pendaftars as $pendaftar) {
+                    // Hapus file fisik (Storage)
+                    $files = [
+                        $pendaftar->foto_path, $pendaftar->ktp_path, 
+                        $pendaftar->akta_path, $pendaftar->ijazah_path, 
+                        $pendaftar->transkrip_path, $pendaftar->bukti_pembayaran,
+                        $pendaftar->file_beasiswa
+                    ];
+
+                    foreach ($files as $file) {
+                        if ($file && Storage::disk('public')->exists($file)) {
+                            Storage::disk('public')->delete($file);
+                        }
+                    }
+
+                    // Hapus User (Cascade ke tabel pendaftars)
+                    if ($pendaftar->user) {
+                        $pendaftar->user->delete();
+                        $deletedCount++;
+                    }
+                }
+            });
+
+            Logger::record('DELETE', 'Bulk Hapus', "Menghapus $deletedCount data pendaftar sekaligus.");
+            
+            $this->resetSelection();
+            session()->flash('success', "$deletedCount data pendaftar dan berkasnya berhasil dihapus massal.");
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal menghapus massal: ' . $e->getMessage());
+        }
     }
 
     public function syncToSiakadBulk()
@@ -116,7 +210,7 @@ class PendaftarIndex extends Component
             ->get();
 
         if ($targets->isEmpty()) {
-            session()->flash('error', 'Tidak ada data valid yang bisa dikirim.');
+            session()->flash('error', 'Tidak ada data valid yang bisa dikirim (Hanya yang Lulus & Belum Sync).');
             return;
         }
 
@@ -158,10 +252,7 @@ class PendaftarIndex extends Component
                     $successCount++;
                 } else {
                     $failCount++;
-
-                    $errorMessages[] =
-                        "{$pendaftar->user->name} → " .
-                        ($result['message'] ?? 'Respon gagal dari server SIAKAD');
+                    $errorMessages[] = "{$pendaftar->user->name} → " . ($result['message'] ?? 'Respon gagal dari server SIAKAD');
 
                     Logger::record(
                         'ERROR',
@@ -171,9 +262,7 @@ class PendaftarIndex extends Component
                 }
             } catch (\Throwable $e) {
                 $failCount++;
-
-                $errorMessages[] =
-                    "{$pendaftar->user->name} → " . $e->getMessage();
+                $errorMessages[] = "{$pendaftar->user->name} → " . $e->getMessage();
 
                 Logger::record(
                     'ERROR',
@@ -186,17 +275,18 @@ class PendaftarIndex extends Component
         $this->resetSelection();
 
         if ($successCount > 0) {
-            session()->flash(
-                'success',
-                "Berhasil sync $successCount mahasiswa. Gagal: $failCount"
-            );
+            session()->flash('success', "Berhasil sync $successCount mahasiswa. Gagal: $failCount");
         }
 
         if ($failCount > 0) {
-            session()->flash(
-                'error',
-                "Detail error:\n" . implode("\n", $errorMessages)
-            );
+            session()->flash('error', "Detail error:\n" . implode("\n", $errorMessages));
         }
+    }
+
+    public function render()
+    {
+        return view('livewire.admin.pendaftar-index', [
+            'pendaftars' => $this->getPendaftarQuery()->paginate(10)
+        ]);
     }
 }

@@ -49,4 +49,12 @@ class Pendaftar extends Model
     {
         return $this->status_pendaftaran === 'lulus';
     }
+
+    /**
+     * Relasi ke tabel Gelombangs (WAJIB DITAMBAHKAN UNTUK MENGATASI ERROR)
+     */
+    public function gelombang()
+    {
+        return $this->belongsTo(Gelombang::class, 'gelombang_id');
+    }
 }
