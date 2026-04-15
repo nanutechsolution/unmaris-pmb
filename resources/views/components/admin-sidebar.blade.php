@@ -64,7 +64,7 @@
 
         <a href="{{ route('admin.pendaftar.index') }}"
             class="group flex items-center px-3 py-2.5 font-black text-xs uppercase border-2 border-black rounded-xl transition-all duration-200
-           {{ request()->routeIs('admin.pendaftar*')
+           {{ request()->routeIs('admin.pendaftar.index')
                ? 'bg-white text-unmaris-blue shadow-[3px_3px_0px_0px_#FACC15] translate-x-0.5'
                : 'bg-unmaris-blue text-white/90 hover:bg-yellow-400 hover:text-unmaris-blue hover:shadow-[3px_3px_0px_0px_#000] hover:-translate-y-0.5' }}">
             <span class="text-lg mr-3 group-hover:scale-110 transition-transform">📂</span>

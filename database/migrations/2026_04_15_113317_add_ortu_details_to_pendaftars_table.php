@@ -26,7 +26,14 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pendaftars', function (Blueprint $table) {
-            //
+            $table->dropColumn([
+                'nik_ayah',
+                'status_ayah',
+                'pendidikan_ayah',
+                'nik_ibu',
+                'status_ibu',
+                'pendidikan_ibu'
+            ]);
         });
     }
 };
