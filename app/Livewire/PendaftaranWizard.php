@@ -41,15 +41,16 @@ class PendaftaranWizard extends Component
     public $pilihan_prodi_1, $pilihan_prodi_2;
 
     // STEP 3: Berkas & Ortu
-    public $nama_ayah, $pekerjaan_ayah, $nama_ibu, $pekerjaan_ibu;
+    public $nama_ayah, $nik_ayah, $status_ayah = 'Hidup', $pendidikan_ayah, $pekerjaan_ayah;
+    public $nama_ibu, $nik_ibu, $status_ibu = 'Hidup', $pendidikan_ibu, $pekerjaan_ibu;
 
     // Logika Dokumen Baru
-    public $jenis_dokumen = 'ijazah'; // Default 'ijazah', opsi lain 'skl'
+    public $jenis_dokumen = 'ijazah';
 
     // File Uploads
     public $foto, $ijazah, $transkrip, $file_ktp, $file_akta, $file_beasiswa;
 
-    // Path Existing (Untuk Cek apakah file sudah ada di DB)
+    // Path Existing
     public $existingFotoPath;
     public $existingIjazahPath;
     public $existingTranskripPath;
@@ -70,28 +71,26 @@ class PendaftaranWizard extends Component
         $pendaftar = Auth::user()->pendaftar;
 
         if ($pendaftar) {
-            // FIX: Izinkan akses jika status 'draft' ATAU 'perbaikan'
             if (!in_array($pendaftar->status_pendaftaran, ['draft', 'perbaikan'])) {
                 session()->flash('message', 'Formulir sudah dikirim dan sedang diproses.');
                 return redirect()->route('camaba.dashboard');
             }
 
-            // Jika status perbaikan, aktifkan mode revisi
             if ($pendaftar->status_pendaftaran === 'perbaikan') {
                 $this->isRevision = true;
-                // Optional: Tampilkan pesan flash agar user sadar
                 session()->flash('warning', 'Anda dalam mode perbaikan. Silakan perbaiki data/dokumen yang ditolak.');
             }
 
-            // Load semua data otomatis dari DB ke variabel Livewire
             $this->fill($pendaftar->toArray());
 
-            // Pastikan nomor_hp terisi dari user login jika di tabel pendaftar kosong
             if (empty($this->nomor_hp)) {
                 $this->nomor_hp = Auth::user()->nomor_hp;
             }
 
-            // Load Path File Lama
+            // Fallback status default
+            $this->status_ayah = $pendaftar->status_ayah ?? 'Hidup';
+            $this->status_ibu = $pendaftar->status_ibu ?? 'Hidup';
+
             $this->existingFotoPath = $pendaftar->foto_path;
             $this->existingIjazahPath = $pendaftar->ijazah_path;
             $this->existingTranskripPath = $pendaftar->transkrip_path;
@@ -99,7 +98,6 @@ class PendaftaranWizard extends Component
             $this->existingAktaPath = $pendaftar->akta_path;
             $this->existingFileBeasiswaPath = $pendaftar->file_beasiswa;
 
-            // Load Jenis Dokumen
             $this->jenis_dokumen = $pendaftar->jenis_dokumen ?? 'ijazah';
         } else {
             $this->nomor_hp = Auth::user()->nomor_hp;
@@ -116,7 +114,6 @@ class PendaftaranWizard extends Component
         }
     }
 
-    // RESET TRANSKRIP JIKA GANTI KE SKL
     public function updatedJenisDokumen($value)
     {
         if ($value == 'skl') {
@@ -125,9 +122,29 @@ class PendaftaranWizard extends Component
         }
     }
 
-    // --- VALIDASI STEP 1 (LANGSUNG SAAT KLIK NEXT) ---
+    // Logika Pintar: Jika status ortu meninggal, reset & abaikan error NIK dll
+    public function updatedStatusAyah($value)
+    {
+        if($value === 'Meninggal') {
+            $this->reset(['nik_ayah', 'pendidikan_ayah', 'pekerjaan_ayah']);
+            $this->resetErrorBag(['nik_ayah', 'pendidikan_ayah', 'pekerjaan_ayah']);
+        }
+    }
+
+    public function updatedStatusIbu($value)
+    {
+        if($value === 'Meninggal') {
+            $this->reset(['nik_ibu', 'pendidikan_ibu', 'pekerjaan_ibu']);
+            $this->resetErrorBag(['nik_ibu', 'pendidikan_ibu', 'pekerjaan_ibu']);
+        }
+    }
+
     public function validateStep1()
     {
+        // Sanitasi manual NIK & HP
+        $this->nik = preg_replace('/[^0-9]/', '', (string) $this->nik);
+        $this->nomor_hp = preg_replace('/[^0-9]/', '', (string) $this->nomor_hp);
+        
         $rules = [
             'jalur_pendaftaran' => 'required',
             'nisn' => ['nullable', 'numeric', Rule::unique('pendaftars', 'nisn')->ignore(Auth::id(), 'user_id')],
@@ -156,7 +173,6 @@ class PendaftaranWizard extends Component
         $this->currentStep = 2;
     }
 
-    // --- VALIDASI STEP 2 ---
     public function validateStep2()
     {
         $this->validate([
@@ -172,27 +188,36 @@ class PendaftaranWizard extends Component
 
     public function submit()
     {
+        // Sanitasi manual NIK Ortu
+        $this->nik_ayah = preg_replace('/[^0-9]/', '', (string) $this->nik_ayah);
+        $this->nik_ibu = preg_replace('/[^0-9]/', '', (string) $this->nik_ibu);
+
         // 1. Validasi Data Ortu
         $rules = [
-            'nama_ayah' => 'required|string',
-            'nama_ibu' => 'required|string',
             'jenis_dokumen' => 'required|in:ijazah,skl',
+            'nama_ayah' => 'required|string',
+            'status_ayah' => 'required|in:Hidup,Meninggal',
+            'nama_ibu' => 'required|string',
+            'status_ibu' => 'required|in:Hidup,Meninggal',
         ];
 
-        // 2. Validasi File (Hanya wajib jika belum ada di DB / dihapus oleh admin saat reject)
+        if($this->status_ayah === 'Hidup') {
+            $rules['nik_ayah'] = 'required|digits:16';
+            $rules['pendidikan_ayah'] = 'required|string';
+            $rules['pekerjaan_ayah'] = 'required|string';
+        }
 
-        if (!$this->existingFotoPath) {
-            $rules['foto'] = 'required|image|max:2048';
+        if($this->status_ibu === 'Hidup') {
+            $rules['nik_ibu'] = 'required|digits:16';
+            $rules['pendidikan_ibu'] = 'required|string';
+            $rules['pekerjaan_ibu'] = 'required|string';
         }
-        if (!$this->existingKtpPath) {
-            $rules['file_ktp'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
-        }
-        if ($this->file_akta) {
-            $rules['file_akta'] = 'mimes:pdf,jpg,jpeg,png|max:2048';
-        }
-        if (!$this->existingIjazahPath) {
-            $rules['ijazah'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
-        }
+
+        // 2. Validasi File
+        if (!$this->existingFotoPath) $rules['foto'] = 'required|image|max:2048';
+        if (!$this->existingKtpPath) $rules['file_ktp'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
+        if ($this->file_akta) $rules['file_akta'] = 'mimes:pdf,jpg,jpeg,png|max:2048';
+        if (!$this->existingIjazahPath) $rules['ijazah'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
         if ($this->jenis_dokumen == 'ijazah' && !$this->existingTranskripPath) {
             $rules['transkrip'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
         }
@@ -200,7 +225,10 @@ class PendaftaranWizard extends Component
             $rules['file_beasiswa'] = 'required|mimes:pdf,jpg,png|max:5120';
         }
 
-        $this->validate($rules);
+        $this->validate($rules, [
+            'nik_ayah.digits' => 'NIK Ayah wajib 16 digit.',
+            'nik_ibu.digits' => 'NIK Ibu wajib 16 digit.',
+        ]);
 
         // --- PROSES SIMPAN KE DB ---
         DB::beginTransaction();
@@ -208,7 +236,6 @@ class PendaftaranWizard extends Component
             $userId = Auth::id();
             $user = Auth::user();
 
-            // Upload Logic
             $paths = [
                 'foto_path' => $this->existingFotoPath,
                 'ktp_path' => $this->existingKtpPath,
@@ -218,7 +245,6 @@ class PendaftaranWizard extends Component
                 'file_beasiswa' => $this->existingFileBeasiswaPath,
             ];
 
-            // Jika ada upload baru, timpa path lama
             if ($this->foto) $paths['foto_path'] = $this->foto->store('uploads/foto', 'public');
             if ($this->file_ktp) $paths['ktp_path'] = $this->file_ktp->store('uploads/ktp', 'public');
             if ($this->file_akta) $paths['akta_path'] = $this->file_akta->store('uploads/akta', 'public');
@@ -229,7 +255,6 @@ class PendaftaranWizard extends Component
                 $paths['file_beasiswa'] = $this->file_beasiswa->store('uploads/beasiswa', 'public');
             }
 
-            // Simpan Data Pendaftar
             $pendaftar = Pendaftar::updateOrCreate(
                 ['user_id' => $userId],
                 array_merge([
@@ -250,21 +275,30 @@ class PendaftaranWizard extends Component
                     'tahun_lulus' => $this->tahun_lulus,
                     'pilihan_prodi_1' => $this->pilihan_prodi_1,
                     'pilihan_prodi_2' => $this->pilihan_prodi_2,
+                    
+                    // Kolom Ortu Baru
                     'nama_ayah' => $this->nama_ayah,
+                    'nik_ayah' => $this->status_ayah === 'Hidup' ? $this->nik_ayah : null,
+                    'status_ayah' => $this->status_ayah,
+                    'pendidikan_ayah' => $this->status_ayah === 'Hidup' ? $this->pendidikan_ayah : null,
+                    'pekerjaan_ayah' => $this->status_ayah === 'Hidup' ? $this->pekerjaan_ayah : null,
+                    
                     'nama_ibu' => $this->nama_ibu,
+                    'nik_ibu' => $this->status_ibu === 'Hidup' ? $this->nik_ibu : null,
+                    'status_ibu' => $this->status_ibu,
+                    'pendidikan_ibu' => $this->status_ibu === 'Hidup' ? $this->pendidikan_ibu : null,
+                    'pekerjaan_ibu' => $this->status_ibu === 'Hidup' ? $this->pekerjaan_ibu : null,
+                    
                     'jenis_dokumen' => $this->jenis_dokumen,
-                    'status_pendaftaran' => 'submit', // FIX: Kembalikan ke 'submit' agar diverifikasi admin lagi
+                    'status_pendaftaran' => 'submit',
                 ], $paths)
             );
-
-            // Jika sebelumnya ada catatan penolakan dokumen, kita bisa reset JSON doc_status (opsional)
-            // $pendaftar->update(['doc_status' => null]);
 
             if ($user->nomor_hp !== $this->nomor_hp) {
                 $user->update(['nomor_hp' => $this->nomor_hp]);
             }
+
             if ($this->nama_referensi && $this->nomor_hp_referensi) {
-                // Cari scheme aktif sesuai jalur pendaftaran
                 $scheme = ReferralScheme::where('is_active', 1)
                     ->where('jalur', $this->jalur_pendaftaran)
                     ->whereDate('start_date', '<=', now())
@@ -275,20 +309,13 @@ class PendaftaranWizard extends Component
 
                 if ($scheme) {
                     ReferralReward::updateOrCreate(
-                        [
-                            'pendaftar_id' => $pendaftar->id,
-                            'referral_scheme_id' => $scheme->id
-                        ],
-                        [
-                            'reward_amount' => $scheme->reward_amount,
-                            'status' => 'eligible'
-                        ]
+                        ['pendaftar_id' => $pendaftar->id, 'referral_scheme_id' => $scheme->id],
+                        ['reward_amount' => $scheme->reward_amount, 'status' => 'eligible']
                     );
                 }
             }
             DB::commit();
 
-            // Kirim Email Notifikasi
             try {
                 Mail::to($user->email)->send(new PmbNotification(
                     $user,
@@ -299,9 +326,7 @@ class PendaftaranWizard extends Component
                     route('camaba.dashboard'),
                     'info'
                 ));
-            } catch (Exception $mailError) {
-                // Ignore mail error
-            }
+            } catch (Exception $mailError) {}
 
             session()->flash('message', 'Pendaftaran berhasil dikirim!');
             return redirect()->route('camaba.dashboard');
@@ -337,14 +362,24 @@ class PendaftaranWizard extends Component
                     'tahun_lulus' => $this->tahun_lulus,
                     'pilihan_prodi_1' => $this->pilihan_prodi_1,
                     'pilihan_prodi_2' => $this->pilihan_prodi_2,
+                    
                     'nama_ayah' => $this->nama_ayah,
+                    'nik_ayah' => $this->status_ayah === 'Hidup' ? $this->nik_ayah : null,
+                    'status_ayah' => $this->status_ayah,
+                    'pendidikan_ayah' => $this->status_ayah === 'Hidup' ? $this->pendidikan_ayah : null,
+                    'pekerjaan_ayah' => $this->status_ayah === 'Hidup' ? $this->pekerjaan_ayah : null,
+                    
                     'nama_ibu' => $this->nama_ibu,
+                    'nik_ibu' => $this->status_ibu === 'Hidup' ? $this->nik_ibu : null,
+                    'status_ibu' => $this->status_ibu,
+                    'pendidikan_ibu' => $this->status_ibu === 'Hidup' ? $this->pendidikan_ibu : null,
+                    'pekerjaan_ibu' => $this->status_ibu === 'Hidup' ? $this->pekerjaan_ibu : null,
+
                     'jenis_dokumen' => $this->jenis_dokumen,
                     'status_pendaftaran' => $statusToSave,
                 ]
             );
-        } catch (Exception $e) {
-        }
+        } catch (Exception $e) {}
     }
 
     public function back($step)

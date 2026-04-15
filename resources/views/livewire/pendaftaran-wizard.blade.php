@@ -421,7 +421,6 @@
                     Langkah 3: Orang Tua & Berkas
                 </h2>
 
-                <!-- PROGRESS BAR GLOBAL -->
                 <div x-show="uploading"
                     class="fixed top-0 left-0 w-full z-50 bg-black/80 flex items-center justify-center h-full">
                     <div class="bg-white p-6 rounded-xl w-64 text-center">
@@ -435,50 +434,124 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Data Ortu -->
-                    <div class="md:col-span-2 bg-green-50 p-4 border-2 border-unmaris-blue border-dashed rounded-xl">
-                        <h3 class="font-black text-unmaris-green mb-4">👨‍👩‍👧 Data Orang Tua</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="@error('nama_ayah') has-error @enderror">
-                                <label class="block text-xs font-bold text-gray-500 mb-1">Nama Ayah (Sesuai KK)
-                                    *</label>
-                                <input type="text" wire:model="nama_ayah"
-                                    class="w-full border-2 border-unmaris-blue rounded px-3 py-2 text-sm">
-                                @error('nama_ayah')
-                                    <span
-                                        class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span>
-                                @enderror
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="bg-green-50 p-6 border-2 border-unmaris-blue border-dashed rounded-xl space-y-6">
+                        <div class="flex items-center gap-3 border-b-2 border-green-200 pb-2">
+                            <span class="text-2xl">👨‍👩‍👧</span>
+                            <div>
+                                <h3 class="font-black text-unmaris-green text-lg uppercase">Data Lengkap Orang Tua</h3>
+                                <p class="text-xs font-bold text-green-700">Penting untuk pengajuan Beasiswa & Laporan PDDikti.</p>
                             </div>
-                            <div class="@error('nama_ibu') has-error @enderror">
-                                <label class="block text-xs font-bold text-gray-500 mb-1">Nama Ibu (Sesuai KK)
-                                    *</label>
-                                <input type="text" wire:model="nama_ibu"
-                                    class="w-full border-2 border-unmaris-blue rounded px-3 py-2 text-sm">
-                                @error('nama_ibu')
-                                    <span
-                                        class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span>
-                                @enderror
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4" x-data="{ statusAyah: @entangle('status_ayah').live }">
+                                <h4 class="font-bold text-unmaris-blue bg-white inline-block px-3 py-1 rounded border border-unmaris-blue">DATA AYAH KANDUNG</h4>
+                                
+                                <div class="@error('nama_ayah') has-error @enderror">
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">Nama Ayah (Sesuai KK) *</label>
+                                    <input type="text" wire:model="nama_ayah" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm focus:ring-unmaris-blue">
+                                    @error('nama_ayah') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <div class="@error('status_ayah') has-error @enderror">
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">Status Ayah *</label>
+                                    <select wire:model="status_ayah" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm font-bold">
+                                        <option value="Hidup">Masih Hidup</option>
+                                        <option value="Meninggal">Sudah Meninggal</option>
+                                    </select>
+                                    @error('status_ayah') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div x-show="statusAyah === 'Hidup'" x-transition class="space-y-4">
+                                    <div class="@error('nik_ayah') has-error @enderror">
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">NIK Ayah (16 Digit) *</label>
+                                        <input type="text" inputmode="numeric" maxlength="16" wire:model="nik_ayah" placeholder="Ketik 16 Digit NIK" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm font-mono tracking-wider focus:ring-unmaris-blue">
+                                        @error('nik_ayah') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="@error('pendidikan_ayah') has-error @enderror">
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">Pendidikan Terakhir *</label>
+                                        <select wire:model="pendidikan_ayah" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm">
+                                            <option value="">-- Pilih --</option>
+                                            <option value="Tidak Sekolah">Tidak Sekolah</option>
+                                            <option value="SD">SD Sederajat</option>
+                                            <option value="SMP">SMP Sederajat</option>
+                                            <option value="SMA">SMA Sederajat</option>
+                                            <option value="D1/D2/D3">D1/D2/D3</option>
+                                            <option value="S1/D4">S1/D4</option>
+                                            <option value="S2/S3">S2 / S3</option>
+                                        </select>
+                                        @error('pendidikan_ayah') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="@error('pekerjaan_ayah') has-error @enderror">
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">Pekerjaan Utama *</label>
+                                        <input type="text" wire:model="pekerjaan_ayah" placeholder="Cth: Petani, PNS, Wiraswasta" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm">
+                                        @error('pekerjaan_ayah') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4" x-data="{ statusIbu: @entangle('status_ibu').live }">
+                                <h4 class="font-bold text-unmaris-blue bg-white inline-block px-3 py-1 rounded border border-unmaris-blue">DATA IBU KANDUNG</h4>
+                                
+                                <div class="@error('nama_ibu') has-error @enderror">
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">Nama Ibu Kandung (Sesuai KK) *</label>
+                                    <input type="text" wire:model="nama_ibu" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm focus:ring-unmaris-blue">
+                                    @error('nama_ibu') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <div class="@error('status_ibu') has-error @enderror">
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">Status Ibu *</label>
+                                    <select wire:model="status_ibu" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm font-bold">
+                                        <option value="Hidup">Masih Hidup</option>
+                                        <option value="Meninggal">Sudah Meninggal</option>
+                                    </select>
+                                    @error('status_ibu') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div x-show="statusIbu === 'Hidup'" x-transition class="space-y-4">
+                                    <div class="@error('nik_ibu') has-error @enderror">
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">NIK Ibu (16 Digit) *</label>
+                                        <input type="text" inputmode="numeric" maxlength="16" wire:model="nik_ibu" placeholder="Ketik 16 Digit NIK" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm font-mono tracking-wider focus:ring-unmaris-blue">
+                                        @error('nik_ibu') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="@error('pendidikan_ibu') has-error @enderror">
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">Pendidikan Terakhir *</label>
+                                        <select wire:model="pendidikan_ibu" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm">
+                                            <option value="">-- Pilih --</option>
+                                            <option value="Tidak Sekolah">Tidak Sekolah</option>
+                                            <option value="SD">SD Sederajat</option>
+                                            <option value="SMP">SMP Sederajat</option>
+                                            <option value="SMA">SMA Sederajat</option>
+                                            <option value="D1/D2/D3">D1/D2/D3</option>
+                                            <option value="S1/D4">S1/D4</option>
+                                            <option value="S2/S3">S2 / S3</option>
+                                        </select>
+                                        @error('pendidikan_ibu') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="@error('pekerjaan_ibu') has-error @enderror">
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">Pekerjaan Utama *</label>
+                                        <input type="text" wire:model="pekerjaan_ibu" placeholder="Cth: Ibu Rumah Tangga, PNS" class="w-full border-2 border-unmaris-blue rounded-lg px-3 py-2 text-sm">
+                                        @error('pekerjaan_ibu') <span class="validation-error text-red-600 text-xs font-bold">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Uploads -->
-                    @if ($jalur_pendaftaran == 'beasiswa')
-                        <div
-                            class="md:col-span-2 bg-yellow-100 p-6 border-4 border-yellow-500 rounded-xl relative shadow-sm @error('file_beasiswa') has-error @enderror">
-                            <label class="block text-lg font-black text-yellow-900 mb-1">Upload Berkas Beasiswa
-                                *</label>
-                            <p class="text-xs font-bold text-yellow-800 mb-4">Gabungan KIP/SKTM/Rapor (PDF, Max 5MB)
-                            </p>
-                            <input type="file" wire:model="file_beasiswa" wire:key="beasiswa_input"
-                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100 transition" />
-                            @error('file_beasiswa')
-                                <span
-                                    class="validation-error text-red-600 font-bold text-xs mt-1 block bg-red-50 p-1 border border-red-200 rounded text-center">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    @endif
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        @if ($jalur_pendaftaran == 'beasiswa')
+                            <div
+                                class="md:col-span-2 bg-yellow-100 p-6 border-4 border-yellow-500 rounded-xl relative shadow-sm @error('file_beasiswa') has-error @enderror">
+                                <label class="block text-lg font-black text-yellow-900 mb-1">Upload Berkas Beasiswa *</label>
+                                <p class="text-xs font-bold text-yellow-800 mb-4">Gabungan KIP/SKTM/Rapor (PDF, Max 5MB)</p>
+                                <input type="file" wire:model="file_beasiswa" wire:key="beasiswa_input"
+                                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100 transition" />
+                                @error('file_beasiswa')
+                                    <span class="validation-error text-red-600 font-bold text-xs mt-1 block bg-red-50 p-1 border border-red-200 rounded text-center">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        @endif
 
                     <div
                         class="bg-white border-2 border-unmaris-blue rounded-xl p-6 text-center hover:bg-yellow-50 transition shadow-neo group relative @error('foto') has-error @enderror">

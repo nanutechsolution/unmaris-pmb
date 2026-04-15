@@ -6,6 +6,9 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Pendaftar;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use App\Services\Logger;
+use App\Notifications\Admin\ExamNotification;
 
 class SeleksiManager extends Component
 {
@@ -21,6 +24,9 @@ class SeleksiManager extends Component
     public $selectAll = false;
     public $bulk_jadwal_ujian;
     public $bulk_lokasi_ujian;
+    
+    // Fitur Toggle WA (Default Aktif)
+    public $send_wa_notification = true; 
 
     // --- FITUR SINGLE EDIT ---
     public $selectedPendaftarId;
@@ -104,19 +110,42 @@ class SeleksiManager extends Component
             'selected' => 'required|array|min:1'
         ]);
 
-        Pendaftar::whereIn('id', $this->selected)->update([
-            'jadwal_ujian' => $this->bulk_jadwal_ujian,
-            'lokasi_ujian' => $this->bulk_lokasi_ujian
-        ]);
+        try {
+            DB::transaction(function () {
+                $targets = Pendaftar::with('user')->whereIn('id', $this->selected)->get();
 
-        $count = count($this->selected);
-        $this->resetSelection();
-        $this->reset(['bulk_jadwal_ujian', 'bulk_lokasi_ujian']);
+                foreach ($targets as $p) {
+                    // Update Database
+                    $p->update([
+                        'jadwal_ujian' => $this->bulk_jadwal_ujian,
+                        'lokasi_ujian' => $this->bulk_lokasi_ujian
+                    ]);
 
-        // Ubah filter ke 'sudah_jadwal' agar admin bisa lihat hasilnya
-        $this->filterStatus = 'sudah_jadwal';
+                    // Kirim Notifikasi WA & Email (Try-Catch agar tidak membatalkan DB Transaction jika server WA down)
+                    if ($this->send_wa_notification && $p->user) {
+                        try {
+                            $p->user->notify(new ExamNotification('schedule', $p));
+                        } catch (\Exception $e) {
+                            Logger::record('ERROR', 'WA Gagal', "Gagal kirim jadwal ke {$p->user->name}: " . $e->getMessage());
+                        }
+                    }
+                }
+            });
 
-        session()->flash('message', "Sukses! $count peserta berhasil dijadwalkan.");
+            $count = count($this->selected);
+            Logger::record('UPDATE', 'Jadwal Massal', "Menetapkan jadwal ujian untuk $count peserta.");
+
+            $this->resetSelection();
+            $this->reset(['bulk_jadwal_ujian', 'bulk_lokasi_ujian']);
+
+            // Ubah filter ke 'sudah_jadwal' agar admin bisa lihat hasilnya
+            $this->filterStatus = 'sudah_jadwal';
+
+            session()->flash('message', "Sukses! $count peserta berhasil dijadwalkan" . ($this->send_wa_notification ? " & dinotifikasi via WA." : "."));
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan sistem saat menjadwalkan: ' . $e->getMessage());
+        }
     }
 
     // --- SINGLE EDIT ---
@@ -139,17 +168,42 @@ class SeleksiManager extends Component
             'nilai_ujian' => 'required|integer|min:0|max:100',
         ]);
 
-        $p = Pendaftar::find($this->selectedPendaftarId);
+        try {
+            $p = Pendaftar::with('user')->find($this->selectedPendaftarId);
 
-        $p->update([
-            'jadwal_ujian' => $this->jadwal_ujian,
-            'lokasi_ujian' => $this->lokasi_ujian,
-            'nilai_ujian' => $this->nilai_ujian,
-            'catatan_penguji' => $this->catatan_penguji,
-        ]);
+            // Deteksi Pintar: Apa yang diubah oleh admin?
+            $isScheduleChanged = ($p->jadwal_ujian != $this->jadwal_ujian || $p->lokasi_ujian != $this->lokasi_ujian) && !empty($this->jadwal_ujian);
+            $isScoreChanged = ($p->nilai_ujian != $this->nilai_ujian) && $this->nilai_ujian > 0;
 
-        $this->isModalOpen = false;
-        session()->flash('message', 'Data seleksi berhasil diperbarui.');
+            // Simpan Perubahan
+            $p->update([
+                'jadwal_ujian' => $this->jadwal_ujian,
+                'lokasi_ujian' => $this->lokasi_ujian,
+                'nilai_ujian' => $this->nilai_ujian,
+                'catatan_penguji' => $this->catatan_penguji,
+            ]);
+
+            // Kirim Notifikasi sesuai konteks perubahan
+            if ($this->send_wa_notification && $p->user) {
+                try {
+                    if ($isScheduleChanged) {
+                        $p->user->notify(new ExamNotification('schedule', $p));
+                    } elseif ($isScoreChanged) {
+                        $p->user->notify(new ExamNotification('score', $p));
+                    }
+                } catch (\Exception $e) {
+                    Logger::record('ERROR', 'WA Gagal', "Gagal kirim update ujian ke {$p->user->name}");
+                }
+            }
+
+            Logger::record('UPDATE', 'Data Seleksi', "Memperbarui data ujian {$p->user->name}");
+
+            $this->isModalOpen = false;
+            session()->flash('message', 'Data seleksi berhasil diperbarui' . (($isScheduleChanged || $isScoreChanged) && $this->send_wa_notification ? ' & notifikasi terkirim.' : '.'));
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal memperbarui data: ' . $e->getMessage());
+        }
     }
 
     // Fitur Pintar: Set Lokasi Cepat
