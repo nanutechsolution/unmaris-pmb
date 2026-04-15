@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
+use Carbon\Carbon;
 
 #[Layout('layouts.admin')]
 class PendaftarCreate extends Component
@@ -22,26 +23,26 @@ class PendaftarCreate extends Component
     public $auto_generate_password = true;
     public $send_notification = true;
 
-    // Properti Pendaftar
-    public $nik, $nomor_hp, $jenis_kelamin;
+    // Properti Pendaftar (Sesuai Skema Database pendaftars)
+    public $nik, $nomor_hp, $jenis_kelamin = 'L';
+    public $tempat_lahir, $tgl_lahir, $agama, $alamat;
+    public $asal_sekolah, $tahun_lulus;
+    public $nama_ayah, $nama_ibu;
+
+    // Properti Akademik
     public $gelombang_id, $jalur_pendaftaran = 'reguler';
     public $pilihan_prodi_1;
-    public $status_pembayaran = 'menunggu_pembayaran';
+    public $status_pembayaran = 'belum_bayar'; // Sesuai ENUM SQL: belum_bayar
 
-    /**
-     * Inisialisasi data awal dengan pengamanan state.
-     */
     public function mount()
     {
         $activeGelombang = Gelombang::where('is_active', true)->first();
         if ($activeGelombang) {
             $this->gelombang_id = $activeGelombang->id;
         }
+        $this->tahun_lulus = date('Y');
     }
 
-    /**
-     * Reset password saat toggle auto-generate berubah untuk mencegah pengiriman password lama yang tersembunyi.
-     */
     public function updatedAutoGeneratePassword($value)
     {
         if ($value) {
@@ -50,97 +51,104 @@ class PendaftarCreate extends Component
         }
     }
 
-    /**
-     * Proses penyimpanan dengan pertahanan tingkat tinggi.
-     */
     public function save()
     {
-        // 1. SANITASI TOTAL (Mencegah input non-numerik menembus validasi)
+        // 1. SANITASI INPUT
         $this->nik = preg_replace('/[^0-9]/', '', (string) $this->nik);
         $this->nomor_hp = preg_replace('/[^0-9]/', '', (string) $this->nomor_hp);
 
-        // 2. VALIDASI KETAT (Back-end as single source of truth)
+        // 2. VALIDASI KETAT (Sesuai Batasan Database)
         $this->validate([
-            'name' => 'required|string|max:255|min:3',
+            'name' => 'required|string|max:255',
             'email' => 'required|email:filter|unique:users,email',
             'password' => $this->auto_generate_password ? 'nullable' : 'required|min:8',
             'nik' => 'required|digits:16|unique:pendaftars,nik',
             'nomor_hp' => 'required|string|min:10|max:15',
             'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'required|string|max:255',
+            'tgl_lahir' => 'required|date|before_or_equal:today',
+            'agama' => 'required|string|max:255',
+            'alamat' => 'required|string',
+            'asal_sekolah' => 'required|string|max:255',
+            'tahun_lulus' => 'required|digits:4',
+            'nama_ayah' => 'required|string|max:255',
+            'nama_ibu' => 'required|string|max:255',
             'gelombang_id' => 'required|exists:gelombangs,id',
-            'jalur_pendaftaran' => 'required|string|max:100',
-            'pilihan_prodi_1' => 'required|string|max:255',
-            'status_pembayaran' => 'required|in:menunggu_pembayaran,lunas',
+            'pilihan_prodi_1' => 'required|string',
+            'status_pembayaran' => 'required|in:belum_bayar,lunas',
         ], [
-            'email.unique' => 'Alamat email sudah terdaftar dalam sistem.',
-            'nik.unique' => 'NIK ini sudah digunakan oleh pendaftar lain.',
-            'nik.digits' => 'NIK wajib terdiri dari tepat 16 digit angka.',
-            'password.min' => 'Password manual terlalu lemah, minimal 8 karakter.',
-            'name.min' => 'Nama terlalu pendek, pastikan memasukkan nama lengkap.',
+            'email.unique' => 'Email pendaftar sudah terdaftar.',
+            'nik.unique' => 'NIK pendaftar sudah terdaftar.',
+            'nik.digits' => 'NIK harus 16 digit angka.',
+            'tgl_lahir.before_or_equal' => 'Tanggal lahir tidak valid.',
         ]);
 
-        // 3. DATABASE TRANSACTION (Atomicity: All or Nothing)
         try {
-            $createdUser = DB::transaction(function () use (&$finalPassword) {
-                // Generate password jika otomatis
+            $result = DB::transaction(function () use (&$finalPassword) {
+                // Generate password
                 $finalPassword = $this->auto_generate_password ? Str::random(8) : $this->password;
 
-                // Buat Akun Utama
+                // 1. Buat User & Langsung Set Verified
                 $user = User::create([
-                    'name' => trim($this->name),
+                    'name' => strtoupper(trim($this->name)),
                     'email' => strtolower(trim($this->email)),
                     'password' => Hash::make($finalPassword),
+                    'nomor_hp' => $this->nomor_hp,
                     'role' => 'camaba',
+                    'email_verified_at' => now(), // LANGSUNG VERIFIKASI
                 ]);
 
-                // Logika status pendaftaran otomatis
-                // Jika lunas (Bypass), langsung ke tahap Verifikasi Berkas
+                // Logika status pendaftaran
                 $statusPendaftaran = $this->status_pembayaran === 'lunas' ? 'verifikasi' : 'submit';
 
-                // Buat Data Pendaftaran
+                // 2. Buat Record Pendaftar Lengkap
                 $pendaftar = Pendaftar::create([
                     'user_id' => $user->id,
                     'gelombang_id' => $this->gelombang_id,
                     'nik' => $this->nik,
                     'nomor_hp' => $this->nomor_hp,
                     'jenis_kelamin' => $this->jenis_kelamin,
+                    'tempat_lahir' => $this->tempat_lahir,
+                    'tgl_lahir' => $this->tgl_lahir,
+                    'agama' => $this->agama,
+                    'alamat' => $this->alamat,
+                    'asal_sekolah' => $this->asal_sekolah,
+                    'tahun_lulus' => $this->tahun_lulus,
+                    'nama_ayah' => $this->nama_ayah,
+                    'nama_ibu' => $this->nama_ibu,
                     'jalur_pendaftaran' => $this->jalur_pendaftaran,
                     'pilihan_prodi_1' => $this->pilihan_prodi_1,
                     'status_pembayaran' => $this->status_pembayaran,
                     'status_pendaftaran' => $statusPendaftaran,
-                    'is_locked' => false,
+                    'status_pilihan_1' => 'pending',
                 ]);
 
-                return $user;
+                return ['user' => $user, 'pendaftar' => $pendaftar];
             });
 
-            // 4. NOTIFIKASI (Try-Catch agar kegagalan API WA/Email tidak merusak transaksi DB)
-            if ($this->send_notification && $createdUser) {
+            // 3. Notifikasi
+            if ($this->send_notification) {
                 try {
-                    $createdUser->notify(new ManualRegistrationNotification(
-                        $createdUser->name, 
-                        $createdUser->email, 
+                    $result['user']->notify(new ManualRegistrationNotification(
+                        $result['user']->name,
+                        $result['user']->email,
                         $finalPassword
                     ));
                 } catch (\Exception $e) {
-                    Logger::record('ERROR', 'Notification Failed', "Gagal kirim notifikasi pendaftaran manual ke {$createdUser->email}");
-                    // Transaksi DB sudah sukses, tidak perlu di-rollback hanya karena email gagal
+                    Logger::record('ERROR', 'Notif Failed', "Gagal kirim WA/Email ke {$result['user']->email}");
                 }
             }
 
-            Logger::record('CREATE', 'Registrasi Manual', "Admin mendaftarkan pendaftar baru: {$createdUser->name}");
+            Logger::record('CREATE', 'Tambah Manual', "Admin mendaftarkan {$result['user']->name} secara manual (Verified).");
 
-            // Pesan sukses informatif
-            $msg = "Pendaftar berhasil didaftarkan secara manual!";
-            if($this->auto_generate_password) $msg .= " Password: <b>{$finalPassword}</b> (Berikan ke pendaftar)";
-            
-            session()->flash('success', $msg);
-            return redirect()->route('admin.pendaftar.show', $createdUser->pendaftar->id);
+            // Masukkan password ke session agar bisa ditampilkan di UI halaman detail
+            session()->flash('generated_password', $finalPassword);
+            session()->flash('success', "Akun pendaftar berhasil dibuat dan status email LANGSUNG TERVERIFIKASI.");
 
+            return redirect()->route('admin.pendaftar.show', $result['pendaftar']->id);
         } catch (\Exception $e) {
-            // Log error teknis untuk developer
             report($e);
-            session()->flash('error', 'Kegagalan sistem saat menyimpan data. Pastikan semua field unik dan coba lagi.');
+            session()->flash('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
 
