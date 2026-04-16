@@ -172,7 +172,7 @@
                             </div>
                         </div>
                         <div class="w-full md:w-auto mt-2 md:mt-0">
-                            @livewire('admin.payment-verifier', ['pendaftar' => $pendaftar], key($pendaftar->id))
+                            @livewire('admin.payment-verifier', ['pendaftar' => $pendaftar], key('action-payment-'.$pendaftar->id))
                         </div>
                     </div>
                 @elseif($currentStep == 2)
@@ -206,7 +206,7 @@
                             </span>
                         </div>
 
-                        <!-- GRID KELULUSAN (Ditambahkan Fitur Rekomendasi Prodi) -->
+                        <!-- GRID KELULUSAN -->
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                             @if($pendaftar->nilai_ujian > 0)
                                 <button type="button" wire:click="lulusPilihan(1)" wire:confirm="Yakin luluskan pendaftar ini di pilihan 1?" class="group block w-full rounded-xl border-2 border-gray-200 bg-gray-50 p-4 hover:border-green-500 hover:bg-green-50 text-left transition-all duration-300 shadow-sm">
@@ -369,6 +369,12 @@
                                     📝 Nilai Akademik 
                                     @if($pendaftar->nilai_ujian == 0) <span class="flex h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></span> @endif
                                 </button>
+                                <!-- TAB BARU: BUKTI KEUANGAN -->
+                                <button @click="activeTab = 'keuangan'" 
+                                        :class="activeTab === 'keuangan' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 border-transparent' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'" 
+                                        class="snap-start shrink-0 px-4 py-2 rounded-xl text-sm font-black transition-all border">
+                                    💰 Bukti Keuangan
+                                </button>
                             </nav>
                         </div>
 
@@ -410,12 +416,12 @@
                                         
                                         <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
                                             <div class="flex items-center gap-2">
-                                                @if($doc['file'])
-                                                    @if($currentStep == 2)
-                                                        <button type="button" @click="openRejectModal('{{ $doc['id'] }}', '{{ $doc['label'] }}')" class="text-[10px] text-red-600 font-bold hover:bg-red-50 border border-transparent hover:border-red-200 px-2 py-1 rounded-md transition uppercase">Tolak</button>
-                                                    @endif
-                                                    <button type="button" wire:click="openUploadModal('{{ $doc['id'] }}', '{{ $doc['label'] }}')" class="text-[10px] text-blue-600 font-bold hover:bg-blue-50 border border-transparent hover:border-blue-200 px-2 py-1 rounded-md transition uppercase">Ubah File</button>
+                                                @if($doc['file'] && $currentStep == 2)
+                                                    <button type="button" @click="openRejectModal('{{ $doc['id'] }}', '{{ $doc['label'] }}')" class="text-[10px] text-red-600 font-bold hover:bg-red-50 border border-transparent hover:border-red-200 px-2 py-1 rounded-md transition uppercase">Tolak</button>
                                                 @endif
+                                                <button type="button" wire:click="openUploadModal('{{ $doc['id'] }}', '{{ $doc['label'] }}')" class="text-[10px] font-bold border px-2 py-1 rounded-md transition uppercase shadow-sm {{ $doc['file'] ? 'text-blue-600 hover:bg-blue-50 border-transparent hover:border-blue-200' : 'text-green-700 bg-green-50 border-green-200 hover:bg-green-100' }}">
+                                                    {{ $doc['file'] ? 'Ubah File' : 'Upload Berkas' }}
+                                                </button>
                                             </div>
                                             @if($doc['file'])
                                                 <button type="button" @click="openPreviewModal('{{ asset('storage/'.$doc['file']) }}')" class="inline-flex items-center justify-center rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-1.5 text-xs font-black text-indigo-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition shadow-sm">
@@ -784,6 +790,24 @@
                                     </form>
                                 </div>
                             </div>
+                            
+                            <!-- TAB BARU: KEUANGAN (Selalu Tampil) -->
+                            <div x-show="activeTab === 'keuangan'" x-cloak x-transition.opacity>
+                                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-16 lg:mb-0">
+                                    <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                                        <div>
+                                            <h3 class="text-base font-black text-gray-900">Keuangan & Pembayaran</h3>
+                                            <p class="text-xs font-medium text-gray-500 mt-0.5">Cek bukti transfer dan ubah status pembayaran pendaftar kapan saja.</p>
+                                        </div>
+                                    </div>
+                                    <div class="p-5 sm:p-6 bg-gray-50/50">
+                                        <div class="max-w-xl mx-auto">
+                                            <!-- Gunakan key tab-payment agar tidak berkonflik dengan component yang sama di Step 1 Action Center -->
+                                            @livewire('admin.payment-verifier', ['pendaftar' => $pendaftar], key('tab-payment-'.$pendaftar->id))
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                         </div>
                     </div>
@@ -858,12 +882,12 @@
     <div class="fixed inset-0 z-[150] flex items-end sm:items-center justify-center bg-gray-900/60 backdrop-blur-sm p-0 sm:p-4 transition-all">
         <div class="bg-white p-0 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all mt-auto sm:mt-0 animate-slide-up sm:animate-none">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 flex justify-between items-center">
-                <h3 class="text-lg font-black text-white">Ubah Berkas Manual</h3>
+                <h3 class="text-lg font-black text-white">Upload / Ubah Berkas</h3>
                 <button wire:click="closeUploadModal" class="bg-white/20 hover:bg-white/30 text-white rounded-full p-1.5 transition text-lg leading-none">✕</button>
             </div>
             
             <form wire:submit.prevent="gantiBerkasAdmin" class="p-6">
-                <p class="text-sm font-medium text-gray-600 mb-5 leading-relaxed">Silakan unggah dokumen pengganti untuk <strong class="text-gray-900 font-black">{{ $upload_label }}</strong> yang akan menimpa file lama di sistem.</p>
+                <p class="text-sm font-medium text-gray-600 mb-5 leading-relaxed">Silakan unggah dokumen untuk <strong class="text-gray-900 font-black">{{ $upload_label }}</strong> yang akan diproses oleh sistem.</p>
                 
                 <div class="relative w-full">
                     <label for="upload-admin-file" class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50 hover:bg-blue-50 hover:border-blue-400 transition cursor-pointer group shadow-inner">
@@ -898,7 +922,7 @@
                 <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-gray-100 flex-col-reverse sm:flex-row">
                     <button type="button" wire:click="closeUploadModal" class="w-full sm:w-auto px-5 py-3 sm:py-2.5 text-sm bg-white border border-gray-300 text-gray-700 rounded-xl font-black hover:bg-gray-50 transition shadow-sm">Batal</button>
                     <button type="submit" wire:loading.attr="disabled" class="w-full sm:w-auto px-5 py-3 sm:py-2.5 text-sm text-white bg-blue-600 border border-blue-700 rounded-xl font-black hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-blue-200">
-                        <span wire:loading.remove wire:target="gantiBerkasAdmin">Simpan & Timpa File</span>
+                        <span wire:loading.remove wire:target="gantiBerkasAdmin">Upload & Simpan File</span>
                         <span wire:loading wire:target="gantiBerkasAdmin">Mengunggah...</span>
                     </button>
                 </div>

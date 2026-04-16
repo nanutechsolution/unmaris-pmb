@@ -1,5 +1,5 @@
 <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden relative font-sans" 
-     x-data="{ showProof: false, showCashModal: false }">
+     x-data="{ showProof: false, showCashModal: false, showUploadModal: false }">
     
     <!-- HEADER STATUS -->
     <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
@@ -83,10 +83,14 @@
                     @endif
                 </div>
 
-                <!-- Tetap tampilkan opsi bayar tunai jika camaba datang langsung -->
-                <button @click="showCashModal = true" class="w-full flex justify-center items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition">
-                    <span>💵</span> Input Bayar Tunai
-                </button>
+                <div class="flex flex-col gap-2">
+                    <button @click="showCashModal = true" class="w-full flex justify-center items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition">
+                        <span>💵</span> Input Bayar Tunai
+                    </button>
+                    <button @click="showUploadModal = true" class="w-full flex justify-center items-center gap-2 rounded-md bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm ring-1 ring-inset ring-indigo-200 hover:bg-indigo-100 transition">
+                        <span>📤</span> Upload Bukti (Admin)
+                    </button>
+                </div>
 
             <!-- SUB-CASE B2: ADA BUKTI & MENUNGGU VERIFIKASI -->
             @elseif($pendaftar->bukti_pembayaran)
@@ -123,12 +127,17 @@
                     <div class="mx-auto h-10 w-10 text-gray-300 mb-2">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
                     </div>
-                    <p class="text-xs text-gray-500 font-medium">Belum ada bukti transfer.</p>
+                    <p class="text-xs text-gray-500 font-medium">Belum ada bukti transfer yang diunggah.</p>
                 </div>
 
-                <button @click="showCashModal = true" class="w-full flex justify-center items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition">
-                    <span>💵</span> Input Bayar Tunai
-                </button>
+                <div class="flex flex-col gap-2">
+                    <button @click="showCashModal = true" class="w-full flex justify-center items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition">
+                        <span>💵</span> Input Bayar Tunai
+                    </button>
+                    <button @click="showUploadModal = true" class="w-full flex justify-center items-center gap-2 rounded-md bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm ring-1 ring-inset ring-indigo-200 hover:bg-indigo-100 transition">
+                        <span>📤</span> Upload Bukti (Admin)
+                    </button>
+                </div>
             @endif
         @endif
     </div>
@@ -181,6 +190,44 @@
                     <button type="button" wire:click="payCash" @click="showCashModal = false" class="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:ml-3 sm:w-auto">Terima Uang</button>
                     <button type="button" @click="showCashModal = false" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Batal</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: UPLOAD BUKTI OLEH ADMIN -->
+    <div x-show="showUploadModal" style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" @click="showUploadModal = false"></div>
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md">
+                <div class="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4 flex justify-between items-center">
+                    <h3 class="text-base font-semibold text-white">Upload Bukti Pembayaran</h3>
+                    <button @click="showUploadModal = false" class="text-white/70 hover:text-white">✕</button>
+                </div>
+                <form wire:submit.prevent="uploadProof" class="p-6">
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Pilih File Bukti (JPG/PNG/PDF)</label>
+                        <input type="file" wire:model="new_proof" accept=".jpg,.jpeg,.png,.pdf" 
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                        @error('new_proof') <span class="text-xs text-red-500 font-bold mt-1 block">{{ $message }}</span> @enderror
+                        
+                        <div wire:loading wire:target="new_proof" class="mt-2 text-xs font-bold text-indigo-600 animate-pulse">
+                            Memproses file...
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 p-3 rounded-md border border-yellow-200 mb-6 flex items-start gap-2">
+                        <span class="text-lg leading-none">💡</span>
+                        <p class="text-xs text-yellow-800 leading-relaxed"><b>Catatan:</b> Mengunggah bukti dari sini akan otomatis memverifikasi pembayaran peserta ini menjadi <b>LUNAS</b>.</p>
+                    </div>
+                    
+                    <div class="flex justify-end gap-2 flex-col-reverse sm:flex-row">
+                        <button type="button" @click="showUploadModal = false" class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:w-auto">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="uploadProof, new_proof" class="inline-flex w-full justify-center items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:w-auto disabled:opacity-50">
+                            <span wire:loading.remove wire:target="uploadProof">Upload & Terima (Lunas)</span>
+                            <span wire:loading wire:target="uploadProof">Menyimpan...</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

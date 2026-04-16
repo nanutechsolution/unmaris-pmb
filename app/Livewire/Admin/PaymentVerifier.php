@@ -3,15 +3,22 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use Livewire\WithFileUploads; // Wajib untuk fitur upload
 use App\Models\Pendaftar;
 use App\Services\Logger;
 use App\Notifications\Admin\PaymentStatusNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage; // Wajib untuk menghapus file lama
 
 class PaymentVerifier extends Component
 {
+    use WithFileUploads;
+
     public $pendaftar;
-    public $reject_reason = ''; // Opsi untuk memberikan alasan penolakan
+    public $reject_reason = ''; 
+    
+    // Properti baru untuk menampung file upload dari admin
+    public $new_proof; 
 
     public function mount(Pendaftar $pendaftar)
     {
@@ -42,7 +49,40 @@ class PaymentVerifier extends Component
     }
 
     /**
-     * 3. Tolak Pembayaran (Reject)
+     * 3. Upload Bukti oleh Admin (Bypass)
+     */
+    public function uploadProof()
+    {
+        $this->validate([
+            'new_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            'new_proof.required' => 'Pilih file bukti pembayaran terlebih dahulu.',
+            'new_proof.mimes' => 'Format file harus JPG, PNG, atau PDF.',
+            'new_proof.max' => 'Ukuran file maksimal 2 MB.',
+        ]);
+
+        // Hapus file lama dari Storage jika ada, agar tidak menuhi disk server
+        if ($this->pendaftar->bukti_pembayaran && Storage::disk('public')->exists($this->pendaftar->bukti_pembayaran)) {
+            Storage::disk('public')->delete($this->pendaftar->bukti_pembayaran);
+        }
+
+        // Simpan file baru
+        $path = $this->new_proof->store('uploads/pembayaran', 'public');
+
+        $this->pendaftar->update([
+            'bukti_pembayaran' => $path
+        ]);
+
+        $this->new_proof = null; // Kosongkan state file
+
+        // Karena Admin yang mengunggah, kita asumsikan sudah dicek keabsahannya, jadi langsung Lunas
+        $this->updateStatus('lunas', 'Admin mengunggah bukti dan memverifikasi LUNAS');
+        
+        session()->flash('success', 'Bukti berhasil diunggah oleh Admin dan status otomatis menjadi LUNAS.');
+    }
+
+    /**
+     * 4. Tolak Pembayaran (Reject)
      */
     public function reject($reason = null)
     {
@@ -76,7 +116,7 @@ class PaymentVerifier extends Component
             \Illuminate\Support\Facades\Log::error("Gagal kirim notifikasi pembayaran: " . $e->getMessage());
         }
 
-        // Redirect kembali ke halaman asal agar UI terupdate
+        // Redirect kembali ke halaman asal agar UI terupdate secara total
         return redirect(request()->header('Referer'));
     }
 
