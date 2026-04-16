@@ -471,6 +471,25 @@ class PendaftarDetail extends Component
         session()->flash('success', 'Simulasi Berhasil: Data mahasiswa siap di-push ke SIAKAD.');
     }
 
+    /**
+     * FUNGSI HELPER: Mendapatkan tipe file berdasarkan ekstensi
+     * Berguna jika dipanggil dari Blade eksternal (meskipun sebagian besar sudah di-handle oleh AlpineJS)
+     */
+    public function getFileType($path)
+    {
+        if (empty($path)) return 'unknown';
+        
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+            return 'image';
+        } elseif ($ext === 'pdf') {
+            return 'pdf';
+        }
+        
+        return 'unknown';
+    }
+
     public function render()
     {
         return view('livewire.admin.pendaftar-detail', [

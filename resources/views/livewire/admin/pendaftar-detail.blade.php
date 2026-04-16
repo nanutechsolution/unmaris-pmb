@@ -802,7 +802,6 @@
                                     </div>
                                     <div class="p-5 sm:p-6 bg-gray-50/50">
                                         <div class="max-w-xl mx-auto">
-                                            <!-- Gunakan key tab-payment agar tidak berkonflik dengan component yang sama di Step 1 Action Center -->
                                             @livewire('admin.payment-verifier', ['pendaftar' => $pendaftar], key('tab-payment-'.$pendaftar->id))
                                         </div>
                                     </div>

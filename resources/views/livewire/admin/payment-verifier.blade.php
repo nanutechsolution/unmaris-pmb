@@ -145,23 +145,37 @@
     <!-- MODAL 1: LIHAT BUKTI -->
     <div x-show="showProof" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity" @click="showProof = false"></div>
-        <div class="flex min-h-full items-center justify-center p-4 text-center">
-            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-2xl">
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 flex justify-between items-center">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-6">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-2xl transition-all sm:w-full sm:max-w-3xl">
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 flex justify-between items-center border-b border-gray-200">
                     <h3 class="text-base font-semibold text-gray-900">Bukti Pembayaran</h3>
-                    <button @click="showProof = false" class="text-gray-400 hover:text-gray-500">✕</button>
+                    <div class="flex gap-2 items-center">
+                        <a href="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" target="_blank" class="text-xs font-bold bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 hidden sm:inline-block">Buka Penuh ↗</a>
+                        <button @click="showProof = false" class="text-gray-400 hover:text-gray-500 font-black text-lg leading-none ml-2">✕</button>
+                    </div>
                 </div>
-                <div class="bg-black/5 p-4 flex justify-center min-h-[300px]">
+                
+                <div class="bg-gray-900 p-2 flex justify-center items-center w-full relative min-h-[300px]">
                     @if($pendaftar->bukti_pembayaran)
-                        <img src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="max-h-[70vh] max-w-full object-contain rounded shadow-lg">
+                        @php
+                            $isPdf = strtolower(pathinfo($pendaftar->bukti_pembayaran, PATHINFO_EXTENSION)) === 'pdf';
+                        @endphp
+                        
+                        @if($isPdf)
+                            <!-- Menampilkan file PDF -->
+                            <iframe src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="w-full h-[65vh] rounded bg-white shadow-lg border border-gray-700"></iframe>
+                        @else
+                            <!-- Menampilkan file Gambar -->
+                            <img src="{{ asset('storage/'.$pendaftar->bukti_pembayaran) }}" class="max-h-[70vh] max-w-full object-contain rounded shadow-lg">
+                        @endif
                     @endif
                 </div>
                 
                 <!-- Action di dalam modal proof (HANYA JIKA MENUNGGU) -->
                 @if($pendaftar->status_pembayaran == 'menunggu_verifikasi')
-                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
-                    <button type="button" wire:click="approve" class="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:w-auto">Terima</button>
-                    <button type="button" wire:click="reject" wire:confirm="Yakin tolak?" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Tolak</button>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2 border-t border-gray-200">
+                    <button type="button" wire:click="approve" class="inline-flex w-full justify-center rounded-md bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:w-auto">Terima (Valid)</button>
+                    <button type="button" wire:click="reject" wire:confirm="Yakin tolak dokumen ini?" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Tolak</button>
                 </div>
                 @endif
             </div>
@@ -169,8 +183,8 @@
     </div>
 
     <!-- MODAL 2: CASH -->
-    <div x-show="showCashModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" @click="showCashModal = false"></div>
+    <div x-show="showCashModal" style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" @click="showCashModal = false"></div>
         <div class="flex min-h-full items-center justify-center p-4 text-center">
             <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-sm">
                 <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
