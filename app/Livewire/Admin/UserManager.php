@@ -16,24 +16,34 @@ class UserManager extends Component
     use WithPagination;
 
     public $search = '';
-    public $filterStatus = ''; 
-    public $activeTab = 'camaba'; 
+    public $filterStatus = '';
+    public $activeTab = 'camaba';
 
     public $isEditModalOpen = false;
     public $isCreateModalOpen = false;
-    public $isDeleteModalOpen = false; 
+    public $isDeleteModalOpen = false;
     public $confirmingUserReset = false;
 
     public $userIdBeingEdited;
-    public $userIdBeingDeleted; 
+    public $userIdBeingDeleted;
     public $userNameBeingDeleted; // Properti baru untuk menyimpan nama
     public $userToResetId;
-    
+
     public $name, $email, $nomor_hp, $role, $password, $newPassword;
 
-    public function updatingSearch() { $this->resetPage(); }
-    public function updatingFilterStatus() { $this->resetPage(); }
-    public function updatingActiveTab() { $this->resetPage(); $this->search = ''; }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    public function updatingFilterStatus()
+    {
+        $this->resetPage();
+    }
+    public function updatingActiveTab()
+    {
+        $this->resetPage();
+        $this->search = '';
+    }
 
     public function render()
     {
@@ -50,21 +60,45 @@ class UserManager extends Component
             $query->whereIn('role', ['admin', 'keuangan', 'akademik']);
         }
 
-        $query->where(function($q) {
-            $q->where('name', 'like', '%'.$this->search.'%')
-              ->orWhere('email', 'like', '%'.$this->search.'%')
-              ->orWhere('nomor_hp', 'like', '%'.$this->search.'%');
+        $query->where(function ($q) {
+            $q->where('name', 'like', '%' . $this->search . '%')
+                ->orWhere('email', 'like', '%' . $this->search . '%')
+                ->orWhere('nomor_hp', 'like', '%' . $this->search . '%');
         });
 
         return view('livewire.admin.user-manager', [
             'users' => $query->with('pendaftar')->latest()->paginate(10)
         ])->layout('layouts.admin');
     }
+    public function verifyEmail($id)
+    {
+        $user = User::findOrFail($id);
 
+        if ($user->email_verified_at) {
+            session()->flash('error', 'Email ini sudah terverifikasi.');
+            return;
+        }
+
+        $user->update([
+            'email_verified_at' => now()
+        ]);
+
+        Logger::record('UPDATE', 'Manajemen User', "Verifikasi email manual: {$user->name}");
+        session()->flash('message', "Email {$user->name} berhasil diverifikasi manual.");
+    }
+
+    public function unverifyEmail($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update(['email_verified_at' => null]);
+
+        Logger::record('UPDATE', 'Manajemen User', "Membatalkan verifikasi email: {$user->name}");
+        session()->flash('message', "Status verifikasi {$user->name} telah dicabut.");
+    }
     public function create()
     {
         $this->resetInputFields();
-        $this->role = 'akademik'; 
+        $this->role = 'akademik';
         $this->isCreateModalOpen = true;
     }
 
@@ -84,7 +118,7 @@ class UserManager extends Component
             'nomor_hp' => $this->nomor_hp,
             'role' => $this->role,
             'password' => Hash::make($this->password),
-            'email_verified_at' => now(), 
+            'email_verified_at' => now(),
         ]);
 
         Logger::record('CREATE', 'Manajemen User', "Menambahkan petugas: {$this->name}");
@@ -162,7 +196,7 @@ class UserManager extends Component
         $this->validate(['newPassword' => 'required|min:8']);
         $user = User::find($this->userToResetId);
         $user->update(['password' => Hash::make($this->newPassword)]);
-        
+
         Logger::record('SECURITY', 'Manajemen User', "Reset password: {$user->name}");
         $this->closeModal();
         session()->flash('message', "Password berhasil direset.");
@@ -190,6 +224,6 @@ class UserManager extends Component
             ->when($this->filterStatus === 'belum_isi', fn($q) => $q->doesntHave('pendaftar'));
 
         Logger::record('EXPORT', 'Manajemen User', "Export data camaba");
-        return Excel::download(new UserFilterExport($query), 'data_camaba_'.date('Ymd').'.xlsx');
+        return Excel::download(new UserFilterExport($query), 'data_camaba_' . date('Ymd') . '.xlsx');
     }
 }
