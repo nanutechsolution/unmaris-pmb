@@ -91,9 +91,9 @@
                             🔓 Buka Kunci (Reset)
                         </button>
                         @endif
-                        <button onclick="window.print()" class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition">
+                        <a href="{{ route('admin.pendaftar.cetak', $pendaftar->id) }}" target="_blank" class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition">
                             🖨️ Cetak Detail
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
