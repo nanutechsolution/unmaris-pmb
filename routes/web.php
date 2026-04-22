@@ -81,6 +81,7 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
         // Route::get('/pendaftar/{id}', [PendaftarController::class, 'show'])->name('pendaftar.show');
         Route::get('/pendaftar/{id}', PendaftarDetail::class)->name('pendaftar.show');
+        Route::get('/users', \App\Livewire\Admin\UserManager::class)->name('users.index');
 
 
         // Update Status & Verifikasi Berkas (Bisa diakses Akademik/Admin)
