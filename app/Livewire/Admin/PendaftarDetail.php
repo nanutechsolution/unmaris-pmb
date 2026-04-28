@@ -417,6 +417,7 @@ class PendaftarDetail extends Component
             'email'             => $pendaftar->user->email,
             'nomor_hp'          => $pendaftar->nomor_hp,
             'kode_prodi'        => $pendaftar->prodi_diterima,
+            'nama_prodi'        => $pendaftar->prodi_diterima,
             'kode_program'      => 'REG', // Default Reguler, sesuaikan jika ada field kelas malam
             'tahun_masuk'       => (int) date('Y', strtotime($pendaftar->created_at)),
             'jenis_kelamin'     => $pendaftar->jenis_kelamin,
@@ -448,8 +449,8 @@ class PendaftarDetail extends Component
 
         try {
             // Tembak API SIAKAD. Gunakan env() agar domain tujuan bisa diganti
-            $apiUrl = env('SIAKAD_API_URL', 'http://127.0.0.1:8000/api/pmb/receive');
-            $pmbKey = env('PMB_SECRET_KEY', 'default-secret-key-123'); // API Key untuk verifikasi
+            $apiUrl = env('SIAKAD_API_URL', 'http://127.0.0.1:8000/api/v1/pmb/receive-camaba');
+            $pmbKey = env('SIAKAD_API_SECRET', 'super_secret_kampus'); // API Key untuk verifikasi
 
             $response = Http::timeout(15)
                 ->withHeaders([

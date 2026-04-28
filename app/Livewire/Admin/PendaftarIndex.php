@@ -52,7 +52,7 @@ class PendaftarIndex extends Component
     {
         $this->resetPage();
         $this->resetSelection();
-    } 
+    }
     public function updatingPage()
     {
         $this->resetSelection();
@@ -94,9 +94,9 @@ class PendaftarIndex extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('nisn', 'like', '%' . $this->search . '%')
-                  ->orWhereHas('user', function ($u) {
-                      $u->where('name', 'like', '%' . $this->search . '%');
-                  });
+                    ->orWhereHas('user', function ($u) {
+                        $u->where('name', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
@@ -126,9 +126,12 @@ class PendaftarIndex extends Component
 
                 // 1. Hapus file fisik (Storage) agar disk tidak penuh
                 $files = [
-                    $pendaftar->foto_path, $pendaftar->ktp_path, 
-                    $pendaftar->akta_path, $pendaftar->ijazah_path, 
-                    $pendaftar->transkrip_path, $pendaftar->bukti_pembayaran,
+                    $pendaftar->foto_path,
+                    $pendaftar->ktp_path,
+                    $pendaftar->akta_path,
+                    $pendaftar->ijazah_path,
+                    $pendaftar->transkrip_path,
+                    $pendaftar->bukti_pembayaran,
                     $pendaftar->file_beasiswa
                 ];
 
@@ -146,9 +149,8 @@ class PendaftarIndex extends Component
 
             // Pastikan jika ID yang dihapus ada di array selected, kita buang
             $this->selected = array_diff($this->selected, [$id]);
-            
-            session()->flash('success', 'Data pendaftar dan file berkasnya berhasil dihapus permanen.');
 
+            session()->flash('success', 'Data pendaftar dan file berkasnya berhasil dihapus permanen.');
         } catch (\Exception $e) {
             session()->flash('error', 'Gagal menghapus: ' . $e->getMessage());
         }
@@ -167,13 +169,16 @@ class PendaftarIndex extends Component
 
             DB::transaction(function () use (&$deletedCount) {
                 $pendaftars = Pendaftar::with('user')->whereIn('id', $this->selected)->get();
-                
+
                 foreach ($pendaftars as $pendaftar) {
                     // Hapus file fisik (Storage)
                     $files = [
-                        $pendaftar->foto_path, $pendaftar->ktp_path, 
-                        $pendaftar->akta_path, $pendaftar->ijazah_path, 
-                        $pendaftar->transkrip_path, $pendaftar->bukti_pembayaran,
+                        $pendaftar->foto_path,
+                        $pendaftar->ktp_path,
+                        $pendaftar->akta_path,
+                        $pendaftar->ijazah_path,
+                        $pendaftar->transkrip_path,
+                        $pendaftar->bukti_pembayaran,
                         $pendaftar->file_beasiswa
                     ];
 
@@ -192,10 +197,9 @@ class PendaftarIndex extends Component
             });
 
             Logger::record('DELETE', 'Bulk Hapus', "Menghapus $deletedCount data pendaftar sekaligus.");
-            
+
             $this->resetSelection();
             session()->flash('success', "$deletedCount data pendaftar dan berkasnya berhasil dihapus massal.");
-
         } catch (\Exception $e) {
             session()->flash('error', 'Gagal menghapus massal: ' . $e->getMessage());
         }
@@ -210,7 +214,7 @@ class PendaftarIndex extends Component
             ->get();
 
         if ($targets->isEmpty()) {
-            session()->flash('error', 'Tidak ada data valid yang bisa dikirim (Hanya yang Lulus & Belum Sync).');
+            session()->flash('error', 'Tidak ada data valid yang bisa dikirim (Hanya pendaftar yang Lulus & Belum Sinkronisasi).');
             return;
         }
 
@@ -218,70 +222,107 @@ class PendaftarIndex extends Component
         $failCount = 0;
         $errorMessages = [];
 
-        $urlSiakad = env('SIAKAD_API_URL') . '/api/v1/pmb/sync';
+        // Ambil konfigurasi API dari .env
+        $apiUrl = env('SIAKAD_API_URL');
+        $pmbKey = env('SIAKAD_API_SECRET', 'default-secret-key-123');
 
+        if (empty($apiUrl)) {
+            session()->flash('error', 'URL API SIAKAD belum diatur di file .env sistem PMB.');
+            return;
+        }
         foreach ($targets as $pendaftar) {
+            // Bypass jika prodi belum ditentukan
+            if (empty($pendaftar->prodi_diterima)) {
+                $failCount++;
+                $errorMessages[] = "{$pendaftar->user->name} → Prodi diterima belum ditentukan.";
+                continue;
+            }
+
+            // Rakit payload sama persis dengan yang ada di PendaftarDetail
+            $payload = [
+                'nomor_pendaftaran' => 'PMB' . date('Y', strtotime($pendaftar->created_at)) . str_pad($pendaftar->id, 4, '0', STR_PAD_LEFT),
+                'nama_lengkap'      => $pendaftar->user->name,
+                'nik'               => $pendaftar->nik,
+                'email'             => $pendaftar->user->email,
+                'nomor_hp'          => $pendaftar->nomor_hp,
+                'kode_prodi'        => $pendaftar->prodi_diterima,
+                'nama_prodi'        => $pendaftar->prodi_diterima,
+                'kode_program'      => 'REG', // Default Reguler
+                'tahun_masuk'       => (int) date('Y', strtotime($pendaftar->created_at)),
+                'jenis_kelamin'     => $pendaftar->jenis_kelamin,
+
+                // Core Data Identitas
+                'tanggal_lahir'     => $pendaftar->tgl_lahir instanceof \DateTime ? $pendaftar->tgl_lahir->format('Y-m-d') : $pendaftar->tgl_lahir,
+                'tempat_lahir'      => $pendaftar->tempat_lahir,
+
+                // Data Tambahan
+                'agama'             => $pendaftar->agama,
+                'alamat'            => $pendaftar->alamat,
+                'asal_sekolah'      => $pendaftar->asal_sekolah,
+                'nisn'              => $pendaftar->nisn,
+                'tahun_lulus'       => $pendaftar->tahun_lulus,
+
+                // Data Orang Tua
+                'nama_ayah'         => $pendaftar->nama_ayah,
+                'nik_ayah'          => $pendaftar->nik_ayah,
+                'pekerjaan_ayah'    => $pendaftar->pekerjaan_ayah,
+                'pendidikan_ayah'   => $pendaftar->pendidikan_ayah,
+
+                'nama_ibu'          => $pendaftar->nama_ibu,
+                'nik_ibu'           => $pendaftar->nik_ibu,
+                'pekerjaan_ibu'     => $pendaftar->pekerjaan_ibu,
+                'pendidikan_ibu'    => $pendaftar->pendidikan_ibu,
+
+                'jalur_pendaftaran' => $pendaftar->jalur_pendaftaran,
+            ];
+
             try {
-                $response = Http::timeout(10)->post($urlSiakad, [
-                    'name'            => $pendaftar->user->name,
-                    'email'           => $pendaftar->user->email,
-                    'nomor_hp'        => $pendaftar->user->nomor_hp,
-                    'nik'             => $pendaftar->nik,
-                    'nisn'            => $pendaftar->nisn,
-                    'asal_sekolah'    => $pendaftar->asal_sekolah,
-                    'tahun_lulus'     => (int) $pendaftar->tahun_lulus,
-                    'nama_ayah'       => $pendaftar->nama_ayah,
-                    'nama_ibu'        => $pendaftar->nama_ibu,
-                    'pilihan_prodi_1' => $pendaftar->pilihan_prodi_1,
-                    'pilihan_prodi_2' => $pendaftar->pilihan_prodi_2,
-                    'jalur_masuk'     => $pendaftar->jalur_pendaftaran,
-                    'secret_key'      => env('SIAKAD_API_SECRET'),
-                ]);
+                // Tembak API dengan timeout dan Header yang valid
+                $response = Http::timeout(15)
+                    ->withHeaders([
+                        'X-PMB-KEY' => $pmbKey,
+                        'Accept'    => 'application/json',
+                    ])
+                    ->post($apiUrl, $payload);
 
                 $result = $response->json();
 
                 if ($response->successful() && ($result['status'] ?? '') === 'success') {
+                    // Update flag is_synced jika sukses
                     $pendaftar->update(['is_synced' => true]);
 
-                    Logger::record(
-                        'SYNC',
-                        'SIAKAD Integration',
-                        "Berhasil sync {$pendaftar->user->name}, NIM: " . ($result['data']['nim_sementara'] ?? '-')
-                    );
-
+                    Logger::record('API', 'Sync SIAKAD Bulk', "Berhasil sync massal {$pendaftar->user->name} ke SIAKAD.");
                     $successCount++;
                 } else {
                     $failCount++;
-                    $errorMessages[] = "{$pendaftar->user->name} → " . ($result['message'] ?? 'Respon gagal dari server SIAKAD');
+                    $errorMsg = $result['message'] ?? 'Respon gagal dari server SIAKAD';
+                    $errorMessages[] = "{$pendaftar->user->name} → " . $errorMsg;
 
-                    Logger::record(
-                        'ERROR',
-                        'SIAKAD Integration',
-                        "Gagal sync {$pendaftar->user->name}. HTTP {$response->status()} | " . json_encode($result)
-                    );
+                    Logger::record('ERROR', 'Sync SIAKAD Bulk Failed', "Gagal sync {$pendaftar->user->name}. HTTP {$response->status()}");
                 }
             } catch (\Throwable $e) {
                 $failCount++;
-                $errorMessages[] = "{$pendaftar->user->name} → " . $e->getMessage();
+                // Perbaiki output jika error "cURL error 6" dsb
+                $errMsg = $e->getMessage();
+                $errorMessages[] = "{$pendaftar->user->name} → Koneksi API Error (" . str(strtok($errMsg, '('))->limit(30) . ")";
 
-                Logger::record(
-                    'ERROR',
-                    'SIAKAD Integration',
-                    "Exception sync {$pendaftar->user->name}: " . $e->getMessage()
-                );
+                Logger::record('ERROR', 'Sync SIAKAD Bulk Exception', "Exception sync {$pendaftar->user->name}: " . $errMsg);
             }
         }
 
+        // Reset kotak checkbox setelah proses selesai
         $this->resetSelection();
 
+        // Tampilkan pesan Flash
         if ($successCount > 0) {
-            session()->flash('success', "Berhasil sync $successCount mahasiswa. Gagal: $failCount");
+            session()->flash('success', "Berhasil sinkronisasi $successCount mahasiswa ke SIAKAD." . ($failCount > 0 ? " (Gagal: $failCount)" : ""));
         }
 
         if ($failCount > 0) {
-            session()->flash('error', "Detail error:\n" . implode("\n", $errorMessages));
+            session()->flash('error', "Terdapat $failCount data gagal dikirim.\nDetail error:\n" . implode("\n", $errorMessages));
         }
     }
+
 
     public function render()
     {
