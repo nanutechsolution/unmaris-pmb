@@ -21,7 +21,7 @@ class PendaftarDetail extends Component
     use WithFileUploads;
 
     public $pendaftar_id;
-    
+
     // --- PROPERTI AKADEMIK & SELEKSI ---
     public $catatan_seleksi;
     public $rekomendasi_prodi;
@@ -248,7 +248,7 @@ class PendaftarDetail extends Component
             'reason' => 'Diunggah dan divalidasi langsung oleh Admin',
             'date' => now()->toDateTimeString()
         ];
-        
+
         $pendaftar->doc_status = $currentStatus;
         $pendaftar->save();
 
@@ -284,18 +284,23 @@ class PendaftarDetail extends Component
                 ];
 
                 $pendaftar->doc_status = $currentStatus;
-                $pendaftar->$field = null; 
+                $pendaftar->$field = null;
                 $pendaftar->status_pendaftaran = 'perbaikan';
                 $pendaftar->save();
             });
 
             try {
                 Mail::to($pendaftar->user->email)->send(new PmbNotification(
-                    $pendaftar->user, 'Perbaikan Dokumen Diperlukan', 'STATUS: PERBAIKAN BERKAS',
+                    $pendaftar->user,
+                    'Perbaikan Dokumen Diperlukan',
+                    'STATUS: PERBAIKAN BERKAS',
                     "Dokumen ($docId) Anda ditolak oleh panitia PMB. Alasan penolakan: \"$reason\".",
-                    'PERBAIKI SEKARANG', route('camaba.formulir'), 'error'
+                    'PERBAIKI SEKARANG',
+                    route('camaba.formulir'),
+                    'error'
                 ));
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
 
             Logger::record('UPDATE', 'Tolak Dokumen', "Menolak dokumen $docId milik #{$pendaftar->id}.");
             session()->flash('success', "Dokumen berhasil ditolak. Pendaftar telah diminta memperbaiki.");
@@ -346,11 +351,16 @@ class PendaftarDetail extends Component
 
         try {
             Mail::to($pendaftar->user->email)->send(new PmbNotification(
-                $pendaftar->user, 'Hasil Seleksi PMB Diumumkan', 'SELAMAT! ANDA LULUS 🎉',
+                $pendaftar->user,
+                'Hasil Seleksi PMB Diumumkan',
+                'SELAMAT! ANDA LULUS 🎉',
                 "Berdasarkan hasil seleksi akademik, Anda dinyatakan secara resmi diterima di program studi $prodi.",
-                'LOGIN KE DASHBOARD', route('login'), 'success'
+                'LOGIN KE DASHBOARD',
+                route('login'),
+                'success'
             ));
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         Logger::record('UPDATE', 'Keputusan Lulus', "Meluluskan #{$pendaftar->id} di prodi $prodi");
         session()->flash('success', "Mahasiswa secara resmi dinyatakan LULUS di prodi $prodi.");
@@ -410,7 +420,7 @@ class PendaftarDetail extends Component
             'kode_program'      => 'REG', // Default Reguler, sesuaikan jika ada field kelas malam
             'tahun_masuk'       => (int) date('Y', strtotime($pendaftar->created_at)),
             'jenis_kelamin'     => $pendaftar->jenis_kelamin,
-            
+
             // Core Data Identitas
             'tanggal_lahir'     => $pendaftar->tgl_lahir instanceof \DateTime ? $pendaftar->tgl_lahir->format('Y-m-d') : $pendaftar->tgl_lahir,
             'tempat_lahir'      => $pendaftar->tempat_lahir,
@@ -421,33 +431,37 @@ class PendaftarDetail extends Component
             'asal_sekolah'      => $pendaftar->asal_sekolah,
             'nisn'              => $pendaftar->nisn,
             'tahun_lulus'       => $pendaftar->tahun_lulus,
-            
+
             // Data Orang Tua
             'nama_ayah'         => $pendaftar->nama_ayah,
             'nik_ayah'          => $pendaftar->nik_ayah,
             'pekerjaan_ayah'    => $pendaftar->pekerjaan_ayah,
             'pendidikan_ayah'   => $pendaftar->pendidikan_ayah,
-            
+
             'nama_ibu'          => $pendaftar->nama_ibu,
             'nik_ibu'           => $pendaftar->nik_ibu,
             'pekerjaan_ibu'     => $pendaftar->pekerjaan_ibu,
             'pendidikan_ibu'    => $pendaftar->pendidikan_ibu,
-            
+
             'jalur_pendaftaran' => $pendaftar->jalur_pendaftaran,
         ];
 
         try {
             // Tembak API SIAKAD. Gunakan env() agar domain tujuan bisa diganti
             $apiUrl = env('SIAKAD_API_URL', 'http://127.0.0.1:8000/api/pmb/receive');
-            
+            $pmbKey = env('PMB_SECRET_KEY', 'default-secret-key-123'); // API Key untuk verifikasi
+
             $response = Http::timeout(15)
-                            // ->withHeader('X-API-KEY', env('SIAKAD_API_KEY')) // Uncomment jika menggunakan API Key
-                            ->post($apiUrl, $payload);
+                ->withHeaders([
+                    'X-PMB-KEY' => $pmbKey,
+                    'Accept'    => 'application/json',
+                ])
+                ->post($apiUrl, $payload);
 
             if ($response->successful()) {
                 $pendaftar->is_synced = true;
                 $pendaftar->save();
-                
+
                 Logger::record('API', 'Sync SIAKAD Success', "Data PMB #{$pendaftar->id} berhasil di-push ke SIAKAD.");
                 session()->flash('success', 'Sinkronisasi Berhasil: Data mahasiswa telah masuk ke antrean SIAKAD!');
             } else {
@@ -458,7 +472,6 @@ class PendaftarDetail extends Component
             session()->flash('error', "Koneksi ke API SIAKAD Gagal / Time Out: " . $e->getMessage());
         }
     }
-
     public function getFileType($path)
     {
         if (empty($path)) return 'unknown';
