@@ -256,7 +256,20 @@
                         </div>
                     </div>
                     @if(auth()->user()->role === 'admin')
-                    <button wire:click="syncToSiakad" onclick="return confirm('Kirim data mahasiswa ini ke SIAKAD?')" class="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-all">Push Data ke SIAKAD</button>
+                    <!-- TOMBOL PUSH API DENGAN LOADING STATE -->
+                    <button wire:click="syncToSiakad"
+                        wire:confirm="Yakin ingin mengirim data mahasiswa ini ke SIAKAD sekarang?"
+                        wire:loading.attr="disabled"
+                        class="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-indigo-700">
+                        <span wire:loading.remove wire:target="syncToSiakad">Push Data ke SIAKAD</span>
+                        <span wire:loading wire:target="syncToSiakad" class="flex items-center gap-2">
+                            <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Mengirim...
+                        </span>
+                    </button>
                     @endif
                 </div>
                 @endif
@@ -770,7 +783,7 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Bagian Wawancara & Rekomendasi (Diperbarui) -->
+                                            <!-- Bagian Wawancara & Rekomendasi -->
                                             <div class="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
                                                 <div>
                                                     <h4 class="text-sm font-black text-indigo-700 mb-4 border-b border-indigo-100 pb-2 uppercase tracking-wide flex items-center gap-2">
@@ -810,7 +823,7 @@
                                 </div>
                             </div>
 
-                            <!-- TAB BARU: KEUANGAN (Selalu Tampil) -->
+                            <!-- TAB KEUANGAN -->
                             <div x-show="activeTab === 'keuangan'" x-cloak x-transition.opacity>
                                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-16 lg:mb-0">
                                     <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">

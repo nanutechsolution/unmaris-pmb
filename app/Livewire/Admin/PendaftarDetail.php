@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PmbNotification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http; // <-- WAJIB DITAMBAHKAN
 use Livewire\Attributes\Layout;
 use Carbon\Carbon;
 
@@ -51,7 +52,6 @@ class PendaftarDetail extends Component
         $this->catatan_seleksi = $pendaftar->catatan_seleksi;
         $this->rekomendasi_prodi = $pendaftar->rekomendasi_prodi;
 
-        // Load data akademik (Format waktu disesuaikan untuk input datetime-local HTML5)
         $this->nilai_ujian = $pendaftar->nilai_ujian;
         $this->jadwal_ujian = $pendaftar->jadwal_ujian ? Carbon::parse($pendaftar->jadwal_ujian)->format('Y-m-d\TH:i') : null;
         $this->lokasi_ujian = $pendaftar->lokasi_ujian;
@@ -71,7 +71,6 @@ class PendaftarDetail extends Component
     {
         $pendaftar = $this->pendaftar;
 
-        // Data Diri
         $this->edit_name = $pendaftar->user->name;
         $this->edit_nik = $pendaftar->nik;
         $this->edit_tempat_lahir = $pendaftar->tempat_lahir;
@@ -82,7 +81,6 @@ class PendaftarDetail extends Component
         $this->edit_nomor_hp = $pendaftar->nomor_hp;
         $this->edit_asal_sekolah = $pendaftar->asal_sekolah;
 
-        // Data Orang Tua
         $this->edit_nama_ayah = $pendaftar->nama_ayah;
         $this->edit_nik_ayah = $pendaftar->nik_ayah;
         $this->edit_status_ayah = $pendaftar->status_ayah ?? 'Hidup';
@@ -100,14 +98,11 @@ class PendaftarDetail extends Component
 
     public function simpanBiodata()
     {
-        // 1. SANITASI KETAT: Memaksa membuang karakter non-angka agar aman di DB
         $this->edit_nik = preg_replace('/[^0-9]/', '', (string) $this->edit_nik);
         $this->edit_nomor_hp = preg_replace('/[^0-9]/', '', (string) $this->edit_nomor_hp);
-        
         $this->edit_nik_ayah = preg_replace('/[^0-9]/', '', (string) $this->edit_nik_ayah);
         $this->edit_nik_ibu = preg_replace('/[^0-9]/', '', (string) $this->edit_nik_ibu);
 
-        // 2. VALIDASI BACKEND
         $this->validate([
             'edit_name' => 'required|string|max:255',
             'edit_nomor_hp' => 'required|string|min:10|max:15',
@@ -118,40 +113,27 @@ class PendaftarDetail extends Component
             'edit_agama' => 'nullable|string|max:50',
             'edit_alamat' => 'required|string',
             'edit_asal_sekolah' => 'required|string|max:255',
-
-            // Ayah
             'edit_nama_ayah' => 'required|string|max:255',
             'edit_status_ayah' => 'required|in:Hidup,Meninggal',
             'edit_nik_ayah' => 'nullable|required_if:edit_status_ayah,Hidup|digits:16',
             'edit_pendidikan_ayah' => 'nullable|string|max:50',
             'edit_pekerjaan_ayah' => 'nullable|string|max:255',
-
-            // Ibu
             'edit_nama_ibu' => 'required|string|max:255',
             'edit_status_ibu' => 'required|in:Hidup,Meninggal',
             'edit_nik_ibu' => 'nullable|required_if:edit_status_ibu,Hidup|digits:16',
             'edit_pendidikan_ibu' => 'nullable|string|max:50',
             'edit_pekerjaan_ibu' => 'nullable|string|max:255',
-        ], [
-            'edit_name.required' => 'Nama lengkap wajib diisi.',
-            'edit_nik.digits' => 'Format NIK Pendaftar tidak valid! Mutlak harus 16 digit.',
-            'edit_nomor_hp.min' => 'Nomor HP tidak valid. Minimal 10 digit.',
-            'edit_tgl_lahir.before_or_equal' => 'Tanggal lahir mustahil dari masa depan.',
-            'edit_nik_ayah.digits' => 'NIK Ayah mutlak harus 16 digit.',
-            'edit_nik_ibu.digits' => 'NIK Ibu mutlak harus 16 digit.',
         ]);
 
         $pendaftar = $this->pendaftar;
 
         try {
             DB::transaction(function () use ($pendaftar) {
-                // Update Table Users
                 $pendaftar->user->update([
                     'name' => $this->edit_name,
                     'nomor_hp' => $this->edit_nomor_hp
                 ]);
 
-                // Update Table Pendaftars
                 $pendaftar->update([
                     'nik' => $this->edit_nik,
                     'tempat_lahir' => $this->edit_tempat_lahir,
@@ -161,13 +143,11 @@ class PendaftarDetail extends Component
                     'alamat' => $this->edit_alamat,
                     'nomor_hp' => $this->edit_nomor_hp,
                     'asal_sekolah' => $this->edit_asal_sekolah,
-
                     'nama_ayah' => $this->edit_nama_ayah,
                     'nik_ayah' => empty($this->edit_nik_ayah) ? null : $this->edit_nik_ayah,
                     'status_ayah' => $this->edit_status_ayah,
                     'pendidikan_ayah' => $this->edit_pendidikan_ayah,
                     'pekerjaan_ayah' => $this->edit_pekerjaan_ayah,
-
                     'nama_ibu' => $this->edit_nama_ibu,
                     'nik_ibu' => empty($this->edit_nik_ibu) ? null : $this->edit_nik_ibu,
                     'status_ibu' => $this->edit_status_ibu,
@@ -190,7 +170,6 @@ class PendaftarDetail extends Component
     // ==========================================
     public function simpanAkademik()
     {
-        // Sanitasi input datetime (Livewire kadang mengirim string kosong "" alih-alih null)
         $this->jadwal_ujian = empty($this->jadwal_ujian) ? null : $this->jadwal_ujian;
         $this->jadwal_wawancara = empty($this->jadwal_wawancara) ? null : $this->jadwal_wawancara;
 
@@ -202,9 +181,6 @@ class PendaftarDetail extends Component
             'jadwal_wawancara' => 'nullable|date',
             'rekomendasi_prodi' => 'nullable|string|max:255',
             'catatan_seleksi' => 'nullable|string',
-        ], [
-            'nilai_ujian.required' => 'Nilai ujian akademik wajib diinput!',
-            'nilai_ujian.max' => 'Nilai ujian maksimal adalah 100.',
         ]);
 
         $pendaftar = $this->pendaftar;
@@ -244,10 +220,6 @@ class PendaftarDetail extends Component
     {
         $this->validate([
             'upload_file' => 'required|file|mimes:pdf,jpg,jpeg,png,webp|max:5120'
-        ], [
-            'upload_file.required' => 'Kesalahan: Anda belum memilih file apapun!',
-            'upload_file.mimes' => 'Format file ditolak! Hanya menerima PDF, JPG, PNG, atau WEBP.',
-            'upload_file.max' => 'File terlalu besar! Ukuran maksimal 5 MB.'
         ]);
 
         $map = [
@@ -258,24 +230,18 @@ class PendaftarDetail extends Component
             'beasiswa' => 'file_beasiswa',
         ];
 
-        if (!array_key_exists($this->upload_tipe, $map)) {
-            session()->flash('error', 'Tipe dokumen tidak valid.');
-            return;
-        }
+        if (!array_key_exists($this->upload_tipe, $map)) return;
 
         $pendaftar = $this->pendaftar;
         $field = $map[$this->upload_tipe];
 
-        // Hapus file lama
         if ($pendaftar->$field && Storage::disk('public')->exists($pendaftar->$field)) {
             Storage::disk('public')->delete($pendaftar->$field);
         }
 
-        // Simpan file baru
         $path = $this->upload_file->store('uploads/dokumen_pendaftar', 'public');
         $pendaftar->$field = $path;
 
-        // Auto-Approve file karena tindakan admin
         $currentStatus = $pendaftar->doc_status ?? [];
         $currentStatus[$this->upload_tipe] = [
             'status' => 'approved',
@@ -326,12 +292,10 @@ class PendaftarDetail extends Component
             try {
                 Mail::to($pendaftar->user->email)->send(new PmbNotification(
                     $pendaftar->user, 'Perbaikan Dokumen Diperlukan', 'STATUS: PERBAIKAN BERKAS',
-                    "Dokumen ($docId) Anda ditolak oleh panitia PMB. Alasan penolakan: \"$reason\". Silakan segera login ke dashboard dan unggah ulang berkas yang benar.",
+                    "Dokumen ($docId) Anda ditolak oleh panitia PMB. Alasan penolakan: \"$reason\".",
                     'PERBAIKI SEKARANG', route('camaba.formulir'), 'error'
                 ));
-            } catch (\Exception $e) {
-                // Ignore mail error
-            }
+            } catch (\Exception $e) {}
 
             Logger::record('UPDATE', 'Tolak Dokumen', "Menolak dokumen $docId milik #{$pendaftar->id}.");
             session()->flash('success', "Dokumen berhasil ditolak. Pendaftar telah diminta memperbaiki.");
@@ -357,11 +321,7 @@ class PendaftarDetail extends Component
         }
 
         $pendaftar->status_pendaftaran = $status;
-
-        if ($status == 'gagal') {
-            $pendaftar->is_locked = true;
-        }
-
+        if ($status == 'gagal') $pendaftar->is_locked = true;
         $pendaftar->save();
 
         Logger::record('UPDATE', 'Ubah Status Proses', "Status pendaftaran #{$pendaftar->id} diubah: $oldStatus -> $status");
@@ -371,21 +331,9 @@ class PendaftarDetail extends Component
     public function lulusPilihan($pilihan)
     {
         $pendaftar = $this->pendaftar;
-
-        if ($pendaftar->status_pembayaran !== 'lunas') {
-            session()->flash('error', 'Tindakan Ditolak: Pendaftar belum melunasi biaya pendaftaran!');
-            return;
-        }
-
-        if ($pendaftar->nilai_ujian <= 0) {
-            session()->flash('error', 'Tindakan Ditolak: Nilai ujian akademik wajib diinput terlebih dahulu!');
-            return;
-        }
-
-        if ($pendaftar->is_locked) {
-            session()->flash('error', 'Tindakan ditolak: Data kelulusan pendaftar ini sudah dikunci.');
-            return;
-        }
+        if ($pendaftar->status_pembayaran !== 'lunas') return;
+        if ($pendaftar->nilai_ujian <= 0) return;
+        if ($pendaftar->is_locked) return;
 
         $prodi = $pilihan == 1 ? $pendaftar->pilihan_prodi_1 : $pendaftar->pilihan_prodi_2;
 
@@ -411,26 +359,10 @@ class PendaftarDetail extends Component
     public function lulusRekomendasi()
     {
         $pendaftar = $this->pendaftar;
-
-        if ($pendaftar->status_pembayaran !== 'lunas') {
-            session()->flash('error', 'Tindakan Ditolak: Pendaftar belum melunasi biaya pendaftaran!');
-            return;
-        }
-
-        if ($pendaftar->nilai_ujian <= 0) {
-            session()->flash('error', 'Tindakan Ditolak: Nilai ujian akademik wajib diinput!');
-            return;
-        }
-
-        if ($pendaftar->is_locked) {
-            session()->flash('error', 'Tindakan ditolak: Data kelulusan pendaftar sudah dikunci.');
-            return;
-        }
-
-        if (empty($pendaftar->rekomendasi_prodi)) {
-            session()->flash('error', 'Tindakan Ditolak: Anda belum memilih Prodi Rekomendasi.');
-            return;
-        }
+        if ($pendaftar->status_pembayaran !== 'lunas') return;
+        if ($pendaftar->nilai_ujian <= 0) return;
+        if ($pendaftar->is_locked) return;
+        if (empty($pendaftar->rekomendasi_prodi)) return;
 
         DB::transaction(function () use ($pendaftar) {
             $pendaftar->status_pendaftaran = 'lulus';
@@ -438,14 +370,6 @@ class PendaftarDetail extends Component
             $pendaftar->is_locked = true;
             $pendaftar->save();
         });
-
-        try {
-            Mail::to($pendaftar->user->email)->send(new PmbNotification(
-                $pendaftar->user, 'Hasil Seleksi PMB Diumumkan', 'SELAMAT! ANDA LULUS 🎉',
-                "Anda dinyatakan diterima di program studi pilihan alternatif/rekomendasi: {$pendaftar->prodi_diterima}.",
-                'LOGIN KE DASHBOARD', route('login'), 'success'
-            ));
-        } catch (\Exception $e) {}
 
         Logger::record('UPDATE', 'Keputusan Lulus Rekomendasi', "Meluluskan #{$pendaftar->id} di prodi rekomendasi {$pendaftar->prodi_diterima}");
         session()->flash('success', "Mahasiswa berhasil diluluskan di prodi Rekomendasi: {$pendaftar->prodi_diterima}");
@@ -463,30 +387,84 @@ class PendaftarDetail extends Component
         session()->flash('success', 'Status pendaftar di-reset kembali ke tahap Verifikasi.');
     }
 
+    // ==========================================
+    // 5. INTEGRASI PUSH KE SIAKAD API
+    // ==========================================
     public function syncToSiakad()
     {
         $pendaftar = $this->pendaftar;
-        $pendaftar->is_synced = true;
-        $pendaftar->save();
-        session()->flash('success', 'Simulasi Berhasil: Data mahasiswa siap di-push ke SIAKAD.');
+
+        if ($pendaftar->status_pendaftaran !== 'lulus' || empty($pendaftar->prodi_diterima)) {
+            session()->flash('error', 'Gagal Sync: Pendaftar belum dinyatakan lulus dan belum ada prodi yang diterima.');
+            return;
+        }
+
+        // Siapkan Payload sesuai dengan API SIAKAD
+        $payload = [
+            'nomor_pendaftaran' => 'PMB' . date('Y', strtotime($pendaftar->created_at)) . str_pad($pendaftar->id, 4, '0', STR_PAD_LEFT),
+            'nama_lengkap'      => $pendaftar->user->name,
+            'nik'               => $pendaftar->nik,
+            'email'             => $pendaftar->user->email,
+            'nomor_hp'          => $pendaftar->nomor_hp,
+            'kode_prodi'        => $pendaftar->prodi_diterima,
+            'kode_program'      => 'REG', // Default Reguler, sesuaikan jika ada field kelas malam
+            'tahun_masuk'       => (int) date('Y', strtotime($pendaftar->created_at)),
+            'jenis_kelamin'     => $pendaftar->jenis_kelamin,
+            
+            // Core Data Identitas
+            'tanggal_lahir'     => $pendaftar->tgl_lahir instanceof \DateTime ? $pendaftar->tgl_lahir->format('Y-m-d') : $pendaftar->tgl_lahir,
+            'tempat_lahir'      => $pendaftar->tempat_lahir,
+
+            // Data Tambahan (Sesuai kesepakatan)
+            'agama'             => $pendaftar->agama,
+            'alamat'            => $pendaftar->alamat,
+            'asal_sekolah'      => $pendaftar->asal_sekolah,
+            'nisn'              => $pendaftar->nisn,
+            'tahun_lulus'       => $pendaftar->tahun_lulus,
+            
+            // Data Orang Tua
+            'nama_ayah'         => $pendaftar->nama_ayah,
+            'nik_ayah'          => $pendaftar->nik_ayah,
+            'pekerjaan_ayah'    => $pendaftar->pekerjaan_ayah,
+            'pendidikan_ayah'   => $pendaftar->pendidikan_ayah,
+            
+            'nama_ibu'          => $pendaftar->nama_ibu,
+            'nik_ibu'           => $pendaftar->nik_ibu,
+            'pekerjaan_ibu'     => $pendaftar->pekerjaan_ibu,
+            'pendidikan_ibu'    => $pendaftar->pendidikan_ibu,
+            
+            'jalur_pendaftaran' => $pendaftar->jalur_pendaftaran,
+        ];
+
+        try {
+            // Tembak API SIAKAD. Gunakan env() agar domain tujuan bisa diganti
+            $apiUrl = env('SIAKAD_API_URL', 'http://127.0.0.1:8000/api/pmb/receive');
+            
+            $response = Http::timeout(15)
+                            // ->withHeader('X-API-KEY', env('SIAKAD_API_KEY')) // Uncomment jika menggunakan API Key
+                            ->post($apiUrl, $payload);
+
+            if ($response->successful()) {
+                $pendaftar->is_synced = true;
+                $pendaftar->save();
+                
+                Logger::record('API', 'Sync SIAKAD Success', "Data PMB #{$pendaftar->id} berhasil di-push ke SIAKAD.");
+                session()->flash('success', 'Sinkronisasi Berhasil: Data mahasiswa telah masuk ke antrean SIAKAD!');
+            } else {
+                $errorMsg = $response->json('message') ?? 'Terjadi kesalahan pada respon Server SIAKAD.';
+                session()->flash('error', "Gagal Sinkronisasi: " . $errorMsg);
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', "Koneksi ke API SIAKAD Gagal / Time Out: " . $e->getMessage());
+        }
     }
 
-    /**
-     * FUNGSI HELPER: Mendapatkan tipe file berdasarkan ekstensi
-     * Berguna jika dipanggil dari Blade eksternal (meskipun sebagian besar sudah di-handle oleh AlpineJS)
-     */
     public function getFileType($path)
     {
         if (empty($path)) return 'unknown';
-        
         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        
-        if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
-            return 'image';
-        } elseif ($ext === 'pdf') {
-            return 'pdf';
-        }
-        
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) return 'image';
+        if ($ext === 'pdf') return 'pdf';
         return 'unknown';
     }
 
