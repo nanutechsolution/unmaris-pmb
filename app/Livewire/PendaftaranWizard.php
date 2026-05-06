@@ -236,12 +236,12 @@ class PendaftaranWizard extends Component
             'jenis_dokumen' => 'required|in:ijazah,skl',
         ];
 
-        if (!$this->existingFotoPath) $rules['foto'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
-        if (!$this->existingKtpPath) $rules['file_ktp'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
-        if ($this->file_akta) $rules['file_akta'] = 'mimes:pdf,jpg,jpeg,png|max:2048';
-        if (!$this->existingIjazahPath) $rules['ijazah'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
+        if (!$this->existingFotoPath) $rules['foto'] = 'required|mimes:pdf,jpg,jpeg,png|max:5048';
+        if (!$this->existingKtpPath) $rules['file_ktp'] = 'required|mimes:pdf,jpg,jpeg,png|max:5048';
+        if ($this->file_akta) $rules['file_akta'] = 'mimes:pdf,jpg,jpeg,png|max:5048';
+        if (!$this->existingIjazahPath) $rules['ijazah'] = 'required|mimes:pdf,jpg,jpeg,png|max:5048';
         if ($this->jenis_dokumen == 'ijazah' && !$this->existingTranskripPath) {
-            $rules['transkrip'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
+            $rules['transkrip'] = 'required|mimes:pdf,jpg,jpeg,png|max:5048';
         }
         if ($this->jalur_pendaftaran == 'beasiswa' && !$this->existingFileBeasiswaPath) {
             $rules['file_beasiswa'] = 'required|mimes:pdf,jpg,png|max:5120';
