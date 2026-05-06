@@ -131,7 +131,7 @@ Route::middleware(['auth', 'verified', 'role:admin,keuangan,akademik'])
 
 
         // --- 4. KHUSUS SUPER ADMIN (SYSTEM OWNER) ---
-        Route::middleware(['role:admin'])->group(function () {
+        Route::middleware(['role:admin,akademik'])->group(function () {
             Route::get('/referral-scheme', \App\Livewire\Admin\ReferralScheme\Index::class)->name('referral-scheme');
             // Manajemen User (Petugas & Camaba)
             Route::get('/users', \App\Livewire\Admin\UserManager::class)->name('users.index');
