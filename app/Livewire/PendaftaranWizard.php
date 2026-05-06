@@ -9,6 +9,7 @@ use App\Models\Gelombang;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log; // Tambahkan Log untuk merekam error
 use App\Mail\PmbNotification;
 use App\Models\ReferralReward;
 use App\Models\ReferralScheme;
@@ -99,8 +100,18 @@ class PendaftaranWizard extends Component
             $this->existingFileBeasiswaPath = $pendaftar->file_beasiswa;
 
             $this->jenis_dokumen = $pendaftar->jenis_dokumen ?? 'ijazah';
+
+            // FITUR SMART RESUME: Cek user sudah sampai tahap mana saat refresh
+            if (!empty($pendaftar->nama_ayah) && $pendaftar->nama_ayah !== '-') {
+                $this->currentStep = 3;
+            } elseif (!empty($pendaftar->asal_sekolah) && $pendaftar->asal_sekolah !== '-') {
+                $this->currentStep = 2;
+            } else {
+                $this->currentStep = 1;
+            }
         } else {
             $this->nomor_hp = Auth::user()->nomor_hp;
+            $this->currentStep = 1;
         }
     }
 
@@ -122,10 +133,9 @@ class PendaftaranWizard extends Component
         }
     }
 
-    // Logika Pintar: Jika status ortu meninggal, reset & abaikan error NIK dll
     public function updatedStatusAyah($value)
     {
-        if($value === 'Meninggal') {
+        if ($value === 'Meninggal') {
             $this->reset(['nik_ayah', 'pendidikan_ayah', 'pekerjaan_ayah']);
             $this->resetErrorBag(['nik_ayah', 'pendidikan_ayah', 'pekerjaan_ayah']);
         }
@@ -133,7 +143,7 @@ class PendaftaranWizard extends Component
 
     public function updatedStatusIbu($value)
     {
-        if($value === 'Meninggal') {
+        if ($value === 'Meninggal') {
             $this->reset(['nik_ibu', 'pendidikan_ibu', 'pekerjaan_ibu']);
             $this->resetErrorBag(['nik_ibu', 'pendidikan_ibu', 'pekerjaan_ibu']);
         }
@@ -141,10 +151,9 @@ class PendaftaranWizard extends Component
 
     public function validateStep1()
     {
-        // Sanitasi manual NIK & HP
         $this->nik = preg_replace('/[^0-9]/', '', (string) $this->nik);
         $this->nomor_hp = preg_replace('/[^0-9]/', '', (string) $this->nomor_hp);
-        
+
         $rules = [
             'jalur_pendaftaran' => 'required',
             'nisn' => ['nullable', 'numeric', Rule::unique('pendaftars', 'nisn')->ignore(Auth::id(), 'user_id')],
@@ -188,11 +197,9 @@ class PendaftaranWizard extends Component
 
     public function submit()
     {
-        // Sanitasi manual NIK Ortu
         $this->nik_ayah = preg_replace('/[^0-9]/', '', (string) $this->nik_ayah);
         $this->nik_ibu = preg_replace('/[^0-9]/', '', (string) $this->nik_ibu);
 
-        // 1. Validasi Data Ortu
         $rules = [
             'jenis_dokumen' => 'required|in:ijazah,skl',
             'nama_ayah' => 'required|string',
@@ -201,20 +208,19 @@ class PendaftaranWizard extends Component
             'status_ibu' => 'required|in:Hidup,Meninggal',
         ];
 
-        if($this->status_ayah === 'Hidup') {
+        if ($this->status_ayah === 'Hidup') {
             $rules['nik_ayah'] = 'required|digits:16';
             $rules['pendidikan_ayah'] = 'required|string';
             $rules['pekerjaan_ayah'] = 'required|string';
         }
 
-        if($this->status_ibu === 'Hidup') {
+        if ($this->status_ibu === 'Hidup') {
             $rules['nik_ibu'] = 'required|digits:16';
             $rules['pendidikan_ibu'] = 'required|string';
             $rules['pekerjaan_ibu'] = 'required|string';
         }
 
-        // 2. Validasi File
-        if (!$this->existingFotoPath) $rules['foto'] = 'required|image|max:2048';
+        if (!$this->existingFotoPath) $rules['foto'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
         if (!$this->existingKtpPath) $rules['file_ktp'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
         if ($this->file_akta) $rules['file_akta'] = 'mimes:pdf,jpg,jpeg,png|max:2048';
         if (!$this->existingIjazahPath) $rules['ijazah'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
@@ -230,7 +236,6 @@ class PendaftaranWizard extends Component
             'nik_ibu.digits' => 'NIK Ibu wajib 16 digit.',
         ]);
 
-        // --- PROSES SIMPAN KE DB ---
         DB::beginTransaction();
         try {
             $userId = Auth::id();
@@ -275,20 +280,19 @@ class PendaftaranWizard extends Component
                     'tahun_lulus' => $this->tahun_lulus,
                     'pilihan_prodi_1' => $this->pilihan_prodi_1,
                     'pilihan_prodi_2' => $this->pilihan_prodi_2,
-                    
-                    // Kolom Ortu Baru
+
                     'nama_ayah' => $this->nama_ayah,
                     'nik_ayah' => $this->status_ayah === 'Hidup' ? $this->nik_ayah : null,
                     'status_ayah' => $this->status_ayah,
                     'pendidikan_ayah' => $this->status_ayah === 'Hidup' ? $this->pendidikan_ayah : null,
                     'pekerjaan_ayah' => $this->status_ayah === 'Hidup' ? $this->pekerjaan_ayah : null,
-                    
+
                     'nama_ibu' => $this->nama_ibu,
                     'nik_ibu' => $this->status_ibu === 'Hidup' ? $this->nik_ibu : null,
                     'status_ibu' => $this->status_ibu,
                     'pendidikan_ibu' => $this->status_ibu === 'Hidup' ? $this->pendidikan_ibu : null,
                     'pekerjaan_ibu' => $this->status_ibu === 'Hidup' ? $this->pekerjaan_ibu : null,
-                    
+
                     'jenis_dokumen' => $this->jenis_dokumen,
                     'status_pendaftaran' => 'submit',
                 ], $paths)
@@ -326,12 +330,15 @@ class PendaftaranWizard extends Component
                     route('camaba.dashboard'),
                     'info'
                 ));
-            } catch (Exception $mailError) {}
+            } catch (Exception $mailError) {
+                Log::error('Gagal mengirim email PMB: ' . $mailError->getMessage());
+            }
 
             session()->flash('message', 'Pendaftaran berhasil dikirim!');
             return redirect()->route('camaba.dashboard');
         } catch (Exception $e) {
             DB::rollBack();
+            Log::error('Gagal Submit Form PMB: ' . $e->getMessage());
             session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
     }
@@ -345,41 +352,47 @@ class PendaftaranWizard extends Component
             Pendaftar::updateOrCreate(
                 ['user_id' => Auth::id()],
                 [
-                    'sumber_informasi' => $this->sumber_informasi,
-                    'nama_referensi' => $this->nama_referensi,
-                    'nomor_hp_referensi' => $this->nomor_hp_referensi,
+                    'sumber_informasi' => $this->sumber_informasi ?: null,
+                    'nama_referensi' => $this->nama_referensi ?: null,
+                    'nomor_hp_referensi' => $this->nomor_hp_referensi ?: null,
                     'jalur_pendaftaran' => $this->jalur_pendaftaran,
-                    'scholarship_id' => ($this->jalur_pendaftaran == 'beasiswa') ? $this->scholarship_id : null,
-                    'nisn' => $this->nisn,
-                    'nik' => $this->nik,
+                    'scholarship_id' => ($this->jalur_pendaftaran == 'beasiswa' && $this->scholarship_id) ? $this->scholarship_id : null,
+
+                    'nisn' => $this->nisn ?: null,
+                    'nik' => $this->nik ?: null,
                     'tempat_lahir' => $this->tempat_lahir,
-                    'tgl_lahir' => $this->tgl_lahir,
-                    'jenis_kelamin' => $this->jenis_kelamin,
+                    'tgl_lahir' => $this->tgl_lahir ?: null,
+                    'jenis_kelamin' => $this->jenis_kelamin ?: null,
                     'alamat' => $this->alamat,
-                    'agama' => $this->agama,
+                    'agama' => $this->agama ?: null,
                     'nomor_hp' => $this->nomor_hp,
-                    'asal_sekolah' => $this->asal_sekolah,
-                    'tahun_lulus' => $this->tahun_lulus,
-                    'pilihan_prodi_1' => $this->pilihan_prodi_1,
-                    'pilihan_prodi_2' => $this->pilihan_prodi_2,
-                    
-                    'nama_ayah' => $this->nama_ayah,
-                    'nik_ayah' => $this->status_ayah === 'Hidup' ? $this->nik_ayah : null,
+
+                    // FALLBACK: Mencegah error NOT NULL di database saat draft disimpan di Step 1
+                    'asal_sekolah' => $this->asal_sekolah ?? '-',
+                    'tahun_lulus' => $this->tahun_lulus ?? date('Y'),
+                    'pilihan_prodi_1' => $this->pilihan_prodi_1 ?? '-',
+                    'pilihan_prodi_2' => $this->pilihan_prodi_2 ?: null,
+
+                    'nama_ayah' => $this->nama_ayah ?? '-',
+                    'nik_ayah' => $this->status_ayah === 'Hidup' ? ($this->nik_ayah ?: null) : null,
                     'status_ayah' => $this->status_ayah,
-                    'pendidikan_ayah' => $this->status_ayah === 'Hidup' ? $this->pendidikan_ayah : null,
-                    'pekerjaan_ayah' => $this->status_ayah === 'Hidup' ? $this->pekerjaan_ayah : null,
-                    
-                    'nama_ibu' => $this->nama_ibu,
-                    'nik_ibu' => $this->status_ibu === 'Hidup' ? $this->nik_ibu : null,
+                    'pendidikan_ayah' => $this->status_ayah === 'Hidup' ? ($this->pendidikan_ayah ?: null) : null,
+                    'pekerjaan_ayah' => $this->status_ayah === 'Hidup' ? ($this->pekerjaan_ayah ?: null) : null,
+
+                    'nama_ibu' => $this->nama_ibu ?? '-',
+                    'nik_ibu' => $this->status_ibu === 'Hidup' ? ($this->nik_ibu ?: null) : null,
                     'status_ibu' => $this->status_ibu,
-                    'pendidikan_ibu' => $this->status_ibu === 'Hidup' ? $this->pendidikan_ibu : null,
-                    'pekerjaan_ibu' => $this->status_ibu === 'Hidup' ? $this->pekerjaan_ibu : null,
+                    'pendidikan_ibu' => $this->status_ibu === 'Hidup' ? ($this->pendidikan_ibu ?: null) : null,
+                    'pekerjaan_ibu' => $this->status_ibu === 'Hidup' ? ($this->pekerjaan_ibu ?: null) : null,
 
                     'jenis_dokumen' => $this->jenis_dokumen,
                     'status_pendaftaran' => $statusToSave,
                 ]
             );
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            // Log error agar tidak silent (diam-diam gagal)
+            Log::error('Draft PMB Gagal Disimpan: ' . $e->getMessage() . ' di baris ' . $e->getLine());
+        }
     }
 
     public function back($step)

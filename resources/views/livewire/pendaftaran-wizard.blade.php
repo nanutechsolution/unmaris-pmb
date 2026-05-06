@@ -655,7 +655,8 @@
                                     class="text-xs font-bold text-blue-600 bg-white px-2 py-1 rounded border border-blue-500">File
                                     Tersimpan</span>
                             @else
-                                <span class="text-xs text-gray-500">Klik area ini untuk upload</span>
+                                <span class="text-xs text-gray-500">Klik a
+                                    rea ini untuk upload</span>
                             @endif
                         </div>
                         <input type="file" wire:model="file_akta" wire:key="akta_input"
