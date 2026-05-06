@@ -800,7 +800,7 @@
                                                             <select wire:model="rekomendasi_prodi" class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm font-bold text-gray-800">
                                                                 <option value="">-- Tidak Ada Rekomendasi --</option>
                                                                 @foreach($prodiList as $prodi)
-                                                                <option value="{{ $prodi->nama_prodi }}">{{ $prodi->nama_prodi }}</option>
+                                                                <option value="{{ $prodi->name }}">{{ $prodi->name }}</option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
