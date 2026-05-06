@@ -22,7 +22,7 @@ new #[Layout('layouts.guest')] class extends Component
     public function register(): void
     {
         $validated = $this->validate([
-            'name' => ['required', 'string', 'uppercase', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'nomor_hp' => ['required', 'numeric', 'digits_between:10,15'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
