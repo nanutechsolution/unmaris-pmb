@@ -630,7 +630,7 @@
                             </span>
                         @endif
 
-                        <p class="text-[10px] text-gray-500 mt-2">Format: JPG/PNG. Max: 2MB. Wajah harus terlihat
+                        <p class="text-[10px] text-gray-500 mt-2">Format: JPG/PNG. Max: 500KB. Wajah harus terlihat
                             jelas.</p>
                     </div>
 
@@ -665,7 +665,7 @@
                             <span
                                 class="validation-error text-red-600 font-bold text-xs block mt-2 bg-red-50 p-1 border border-red-200 rounded">{{ $message }}</span>
                         @enderror
-                        <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG. Max: 2MB.</p>
+                        <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG. Max: 500KB.</p>
                     </div>
 
                     <div
@@ -695,7 +695,7 @@
                             <span
                                 class="validation-error text-red-600 font-bold text-xs block mt-2">{{ $message }}</span>
                         @enderror
-                        <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG/PNG. Max: 2MB.</p>
+                        <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG/PNG. Max: 500KB.</p>
                     </div>
 
                     <!-- Dokumen Kelulusan -->
@@ -737,7 +737,7 @@
                                     <span
                                         class="validation-error text-red-600 font-bold text-xs block mt-1 bg-red-50 p-1 border border-red-200 rounded relative z-10">{{ $message }}</span>
                                 @enderror
-                                <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG/PNG. Max: 2MB.</p>
+                                <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG/PNG. Max: 500KB.</p>
                             </div>
 
                             @if ($jenis_dokumen == 'ijazah')
@@ -760,7 +760,7 @@
                                         <span
                                             class="validation-error text-red-600 font-bold text-xs block mt-1 bg-red-100 p-1 border border-red-300 rounded relative z-10">{{ $message }}</span>
                                     @enderror
-                                    <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG/PNG. Max: 2MB.</p>
+                                    <p class="text-[10px] text-gray-500 mt-2">Format: PDF/JPG/PNG. Max: 500KB.</p>
                                 </div>
                             @endif
                         </div>
