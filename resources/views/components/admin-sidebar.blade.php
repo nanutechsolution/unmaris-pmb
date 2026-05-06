@@ -199,8 +199,8 @@
             <span class="text-lg mr-3 group-hover:rotate-90 transition-transform duration-500">⚙️</span>
             Web Settings
         </a>
-
-        <!-- Dropdown Menu Lainnya -->
+        @endif
+        @if (in_array(Auth::user()->role, ['admin', 'akademik', 'keuangan']))
         <div x-data="{ open: false }"
             class="mt-2 border-2 border-black rounded-xl bg-unmaris-blue/50 overflow-hidden">
             <button @click="open = !open"
@@ -216,10 +216,14 @@
                 x-transition:enter-start="opacity-0 -translate-y-2"
                 x-transition:enter-end="opacity-100 translate-y-0" class="space-y-1 p-2 bg-black/20">
 
+                <!-- User Management bisa diakses Admin, Akademik & Keuangan -->
                 <a href="{{ route('admin.users.index') }}"
                     class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
                     <span>👥</span> User Management
                 </a>
+
+                <!-- Sub-menu ini HANYA KHUSUS Admin -->
+                @if (Auth::user()->role === 'admin')
                 <a href="{{ route('admin.helpdesk.index') }}"
                     class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
                     <span>💬</span> Helpdesk
@@ -240,6 +244,7 @@
                     class="block px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded flex items-center gap-2 transition">
                     <span>🕵️‍♂️</span> Log Aktivitas
                 </a>
+                @endif
             </div>
         </div>
         @endif
@@ -261,7 +266,7 @@
     <!-- Footer Info -->
     <div class="p-3 text-center border-t-4 border-black bg-black">
         <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">
-            UNMARIS SYSTEM v2.0
+            UNMARIS SYSTEM v1.0
         </p>
         <p class="text-[8px] text-white/20 mt-1">&copy; {{ date('Y') }} IT Dev Team</p>
     </div>
