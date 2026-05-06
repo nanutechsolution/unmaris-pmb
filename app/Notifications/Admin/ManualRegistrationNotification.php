@@ -5,7 +5,7 @@ namespace App\Notifications\Admin;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use App\Notifications\Channels\WhatsAppChannel; // Import channel buatan Anda
+use App\Notifications\Channels\WhatsAppChannel; 
 use Illuminate\Notifications\Messages\MailMessage;
 
 class ManualRegistrationNotification extends Notification implements ShouldQueue

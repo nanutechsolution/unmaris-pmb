@@ -26,7 +26,7 @@ class PendaftaranWizard extends Component
     #[Url(keep: true)]
 
     public $currentStep = 1;
-    public $totalSteps = 3;
+    public $totalSteps = 4;
 
     // STEP 1: Biodata
     public $jalur_pendaftaran = 'reguler';
@@ -103,8 +103,10 @@ class PendaftaranWizard extends Component
 
             // FITUR SMART RESUME: Cek user sudah sampai tahap mana saat refresh
             if (!empty($pendaftar->nama_ayah) && $pendaftar->nama_ayah !== '-') {
-                $this->currentStep = 3;
+                $this->currentStep = 4;
             } elseif (!empty($pendaftar->asal_sekolah) && $pendaftar->asal_sekolah !== '-') {
+                $this->currentStep = 3;
+            } elseif (!empty($pendaftar->tempat_lahir)) {
                 $this->currentStep = 2;
             } else {
                 $this->currentStep = 1;
@@ -195,13 +197,12 @@ class PendaftaranWizard extends Component
         $this->currentStep = 3;
     }
 
-    public function submit()
+    public function validateStep3()
     {
         $this->nik_ayah = preg_replace('/[^0-9]/', '', (string) $this->nik_ayah);
         $this->nik_ibu = preg_replace('/[^0-9]/', '', (string) $this->nik_ibu);
 
         $rules = [
-            'jenis_dokumen' => 'required|in:ijazah,skl',
             'nama_ayah' => 'required|string',
             'status_ayah' => 'required|in:Hidup,Meninggal',
             'nama_ibu' => 'required|string',
@@ -220,6 +221,21 @@ class PendaftaranWizard extends Component
             $rules['pekerjaan_ibu'] = 'required|string';
         }
 
+        $this->validate($rules, [
+            'nik_ayah.digits' => 'NIK Ayah wajib 16 digit.',
+            'nik_ibu.digits' => 'NIK Ibu wajib 16 digit.',
+        ]);
+
+        $this->saveDraft();
+        $this->currentStep = 4;
+    }
+
+    public function submit()
+    {
+        $rules = [
+            'jenis_dokumen' => 'required|in:ijazah,skl',
+        ];
+
         if (!$this->existingFotoPath) $rules['foto'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
         if (!$this->existingKtpPath) $rules['file_ktp'] = 'required|mimes:pdf,jpg,jpeg,png|max:2048';
         if ($this->file_akta) $rules['file_akta'] = 'mimes:pdf,jpg,jpeg,png|max:2048';
@@ -231,10 +247,7 @@ class PendaftaranWizard extends Component
             $rules['file_beasiswa'] = 'required|mimes:pdf,jpg,png|max:5120';
         }
 
-        $this->validate($rules, [
-            'nik_ayah.digits' => 'NIK Ayah wajib 16 digit.',
-            'nik_ibu.digits' => 'NIK Ibu wajib 16 digit.',
-        ]);
+        $this->validate($rules);
 
         DB::beginTransaction();
         try {

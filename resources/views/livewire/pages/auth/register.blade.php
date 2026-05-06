@@ -22,9 +22,9 @@ new #[Layout('layouts.guest')] class extends Component
     public function register(): void
     {
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'nomor_hp' => ['required', 'numeric', 'digits_between:10,15'], // Validasi No HP
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'name' => ['required', 'string', 'uppercase', 'max:255'],
+            'nomor_hp' => ['required', 'numeric', 'digits_between:10,15'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -51,15 +51,15 @@ new #[Layout('layouts.guest')] class extends Component
     </div>
 
     <form wire:submit="register" class="space-y-5">
-        
+
         <!-- Nama Lengkap -->
         <div>
             <label for="name" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">
                 Nama Lengkap <span class="text-red-500">*</span>
             </label>
-            <input wire:model="name" id="name" type="text" 
-                   class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400 uppercase" 
-                   placeholder="SESUAI IJAZAH TERAKHIR" required autofocus autocomplete="name" />
+            <input wire:model="name" id="name" type="text"
+                class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400 uppercase"
+                placeholder="SESUAI IJAZAH TERAKHIR" required autofocus autocomplete="name" />
             <p class="text-[10px] font-bold text-gray-500 mt-1">⚠️ Wajib sama persis dengan ijazah SMA/SMK.</p>
             <x-input-error :messages="$errors->get('name')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
@@ -69,9 +69,9 @@ new #[Layout('layouts.guest')] class extends Component
             <label for="nomor_hp" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">
                 No.WhatsApp (Aktif) <span class="text-red-500">*</span>
             </label>
-            <input wire:model="nomor_hp" id="nomor_hp" type="tel" inputmode="numeric" 
-                   class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
-                   placeholder="Contoh: 081234567890" required />
+            <input wire:model="nomor_hp" id="nomor_hp" type="tel" inputmode="numeric"
+                class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400"
+                placeholder="Contoh: 081234567890" required />
             <p class="text-[10px] font-bold text-gray-500 mt-1">Digunakan untuk info jadwal ujian & kelulusan.</p>
             <x-input-error :messages="$errors->get('nomor_hp')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
@@ -81,9 +81,9 @@ new #[Layout('layouts.guest')] class extends Component
             <label for="email" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">
                 Alamat Email <span class="text-red-500">*</span>
             </label>
-            <input wire:model="email" id="email" type="email" 
-                   class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
-                   placeholder="email.kamu@gmail.com" required autocomplete="username" />
+            <input wire:model="email" id="email" type="email"
+                class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400"
+                placeholder="email.kamu@gmail.com" required autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
 
@@ -94,9 +94,9 @@ new #[Layout('layouts.guest')] class extends Component
             </label>
             <div class="relative">
                 <input wire:model="password" id="password" :type="show ? 'text' : 'password'"
-                       class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400 pr-10" 
-                       placeholder="Minimal 8 karakter" required autocomplete="new-password" />
-                
+                    class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400 pr-10"
+                    placeholder="Minimal 8 karakter" required autocomplete="new-password" />
+
                 <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-unmaris-blue focus:outline-none">
                     <!-- Icon Mata Terbuka (Show) -->
                     <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,9 +119,9 @@ new #[Layout('layouts.guest')] class extends Component
             </label>
             <div class="relative">
                 <input wire:model="password_confirmation" id="password_confirmation" :type="show ? 'text' : 'password'"
-                       class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400 pr-10" 
-                       placeholder="Ketik ulang password di atas" required autocomplete="new-password" />
-                
+                    class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400 pr-10"
+                    placeholder="Ketik ulang password di atas" required autocomplete="new-password" />
+
                 <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-unmaris-blue focus:outline-none">
                     <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -137,10 +137,10 @@ new #[Layout('layouts.guest')] class extends Component
 
         <!-- Tombol Aksi -->
         <div class="pt-4">
-            <button type="submit" 
-                    wire:loading.attr="disabled"
-                    class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-4 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg flex justify-center items-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none">
-                
+            <button type="submit"
+                wire:loading.attr="disabled"
+                class="w-full bg-unmaris-yellow hover:bg-yellow-400 text-unmaris-blue font-black py-4 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg flex justify-center items-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none">
+
                 <span wire:loading.remove>DAFTAR SEKARANG</span>
                 <span wire:loading.remove class="group-hover:translate-x-1 transition-transform">👉</span>
 
