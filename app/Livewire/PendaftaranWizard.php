@@ -179,19 +179,60 @@ class PendaftaranWizard extends Component
             $rules['scholarship_id'] = 'required|exists:scholarships,id';
         }
 
-        $this->validate($rules);
+        $messages = [
+            'jalur_pendaftaran.required' => 'Mohon pilih jalur pendaftaran Anda.',
+            'nisn.numeric' => 'NISN hanya boleh berisi angka.',
+            'nisn.unique' => 'NISN ini sudah dipakai mendaftar oleh orang lain.',
+            'nik.required' => 'Nomor KTP (NIK) wajib diisi.',
+            'nik.numeric' => 'Nomor KTP (NIK) hanya boleh berisi angka.',
+            'nik.digits' => 'Nomor KTP (NIK) harus berjumlah tepat 16 angka.',
+            'nik.unique' => 'Nomor KTP (NIK) ini sudah dipakai mendaftar.',
+            'nomor_hp.required' => 'Nomor HP / WA wajib diisi agar kami bisa menghubungi Anda.',
+            'nomor_hp.numeric' => 'Nomor HP / WA hanya boleh berisi angka.',
+            'nomor_hp.digits_between' => 'Nomor HP / WA tidak valid (harus 10-15 angka).',
+            'tempat_lahir.required' => 'Tempat lahir sesuai ijazah wajib diisi.',
+            'tgl_lahir.required' => 'Tanggal lahir wajib diisi.',
+            'tgl_lahir.before' => 'Maaf, usia Anda belum mencukupi (minimal 15 tahun).',
+            'tgl_lahir.after' => 'Maaf, batas usia maksimal pendaftar adalah 60 tahun.',
+            'jenis_kelamin.required' => 'Mohon pilih jenis kelamin Anda.',
+            'agama.required' => 'Mohon pilih agama Anda.',
+            'alamat.required' => 'Alamat lengkap wajib diisi.',
+            'alamat.min' => 'Alamat terlalu singkat, mohon tulis lebih detail.',
+            'sumber_informasi.required' => 'Mohon beritahu kami dari mana Anda mengetahui kampus ini.',
+            'nama_referensi.required' => 'Nama pemberi rekomendasi wajib diisi.',
+            'nama_referensi.min' => 'Nama pemberi rekomendasi terlalu singkat.',
+            'nomor_hp_referensi.required' => 'Nomor WA pemberi rekomendasi wajib diisi.',
+            'nomor_hp_referensi.numeric' => 'Nomor WA pemberi rekomendasi hanya boleh berisi angka.',
+            'scholarship_id.required' => 'Mohon pilih jenis beasiswa yang ingin Anda lamar.',
+        ];
+        $this->validate($rules, $messages);
         $this->saveDraft();
         $this->currentStep = 2;
     }
 
     public function validateStep2()
     {
-        $this->validate([
+        $rules = [
             'asal_sekolah' => 'required|string|min:5',
             'tahun_lulus' => 'required|numeric|digits:4|min:2000|max:' . (date('Y') + 1),
             'pilihan_prodi_1' => 'required',
             'pilihan_prodi_2' => 'required|different:pilihan_prodi_1',
-        ]);
+        ];
+
+        $messages = [
+            'asal_sekolah.required' => 'Nama sekolah asal wajib diisi.',
+            'asal_sekolah.min' => 'Nama sekolah terlalu pendek. Ketik nama lengkap sekolah.',
+            'tahun_lulus.required' => 'Tahun lulus wajib diisi.',
+            'tahun_lulus.numeric' => 'Tahun lulus hanya boleh berupa angka.',
+            'tahun_lulus.digits' => 'Tahun lulus harus berupa 4 angka (contoh: 2024).',
+            'tahun_lulus.min' => 'Tahun lulus yang Anda masukkan terlalu lama.',
+            'tahun_lulus.max' => 'Tahun lulus tidak boleh melebihi tahun depan.',
+            'pilihan_prodi_1.required' => 'Silakan pilih Program Studi utama Anda.',
+            'pilihan_prodi_2.required' => 'Silakan pilih Program Studi alternatif (pilihan 2).',
+            'pilihan_prodi_2.different' => 'Pilihan ke-2 tidak boleh sama dengan Pilihan Utama.',
+        ];
+
+        $this->validate($rules, $messages);
 
         $this->saveDraft();
         $this->currentStep = 3;
@@ -221,10 +262,23 @@ class PendaftaranWizard extends Component
             $rules['pekerjaan_ibu'] = 'required|string';
         }
 
-        $this->validate($rules, [
-            'nik_ayah.digits' => 'NIK Ayah wajib 16 digit.',
-            'nik_ibu.digits' => 'NIK Ibu wajib 16 digit.',
-        ]);
+        $messages = [
+            'nama_ayah.required' => 'Nama ayah wajib diisi.',
+            'status_ayah.required' => 'Silakan pilih status ayah saat ini.',
+            'nik_ayah.required' => 'NIK KTP ayah wajib diisi.',
+            'nik_ayah.digits' => 'NIK KTP ayah harus berjumlah tepat 16 angka.',
+            'pendidikan_ayah.required' => 'Pendidikan terakhir ayah wajib dipilih.',
+            'pekerjaan_ayah.required' => 'Pekerjaan utama ayah wajib diisi.',
+
+            'nama_ibu.required' => 'Nama ibu kandung wajib diisi.',
+            'status_ibu.required' => 'Silakan pilih status ibu saat ini.',
+            'nik_ibu.required' => 'NIK KTP ibu wajib diisi.',
+            'nik_ibu.digits' => 'NIK KTP ibu harus berjumlah tepat 16 angka.',
+            'pendidikan_ibu.required' => 'Pendidikan terakhir ibu wajib dipilih.',
+            'pekerjaan_ibu.required' => 'Pekerjaan utama ibu wajib diisi.',
+        ];
+
+        $this->validate($rules, $messages);
 
         $this->saveDraft();
         $this->currentStep = 4;
@@ -247,7 +301,33 @@ class PendaftaranWizard extends Component
             $rules['file_beasiswa'] = 'required|mimes:pdf,jpg,png|max:5120';
         }
 
-        $this->validate($rules);
+        $messages = [
+            'jenis_dokumen.required' => 'Tentukan jenis dokumen kelulusan yang Anda gunakan.',
+            'foto.required' => 'Pas foto resmi wajib diunggah.',
+            'foto.mimes' => 'Format foto harus berupa JPG atau PNG.',
+            'foto.max' => 'Ukuran foto maksimal adalah 5MB.',
+
+            'file_ktp.required' => 'Scan KTP/KK wajib diunggah.',
+            'file_ktp.mimes' => 'File KTP/KK harus berformat PDF, JPG, atau PNG.',
+            'file_ktp.max' => 'Ukuran file KTP/KK maksimal 5MB.',
+
+            'file_akta.mimes' => 'File Akta Kelahiran harus berformat PDF, JPG, atau PNG.',
+            'file_akta.max' => 'Ukuran Akta Kelahiran maksimal 5MB.',
+
+            'ijazah.required' => 'Scan dokumen Ijazah / SKL wajib diunggah.',
+            'ijazah.mimes' => 'File Ijazah / SKL harus berformat PDF, JPG, atau PNG.',
+            'ijazah.max' => 'Ukuran file Ijazah / SKL maksimal 5MB.',
+
+            'transkrip.required' => 'Scan nilai (Transkrip/Belakang Ijazah) wajib diunggah.',
+            'transkrip.mimes' => 'File nilai harus berformat PDF, JPG, atau PNG.',
+            'transkrip.max' => 'Ukuran file nilai maksimal 5MB.',
+
+            'file_beasiswa.required' => 'Dokumen pendukung beasiswa wajib diunggah.',
+            'file_beasiswa.mimes' => 'Dokumen beasiswa harus berformat PDF, JPG, atau PNG.',
+            'file_beasiswa.max' => 'Ukuran dokumen beasiswa maksimal 5MB.',
+        ];
+
+        $this->validate($rules, $messages);
 
         DB::beginTransaction();
         try {
