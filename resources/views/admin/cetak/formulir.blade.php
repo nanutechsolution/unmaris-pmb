@@ -379,16 +379,16 @@
             <tr>
                 <td width="50%">
                     <span class="checkbox">{!! !empty($p->ijazah_path) ? '&#10003;' : '' !!}</span> 1. Fotocopy Ijazah/SKL<br>
-                    <span class="checkbox">{!! !empty($p->kk_path) ? '&#10003;' : '' !!}</span> 2. Kartu Keluarga (KK)<br>
-                    <span class="checkbox">{!! !empty($p->ktp_path) ? '&#10003;' : '' !!}</span> 3. Fotocopy KTP
+                    <!-- Centang jika KTP atau KK sudah diunggah -->
+                    <span class="checkbox">{!! (!empty($p->ktp_path) || !empty($p->kk_path)) ? '&#10003;' : '' !!}</span> 2. Fotocopy KTP / KK
                 </td>
                 <td width="50%">
-                    <span class="checkbox">{!! !empty($p->akta_path) ? '&#10003;' : '' !!}</span> 4. Akta Kelahiran<br>
-                    <span class="checkbox">{!! !empty($p->foto_path) ? '&#10003;' : '' !!}</span> 5. Pas Foto 4x6 (Berwarna)
+                    <!-- Akta Kelahiran berdiri sendiri -->
+                    <span class="checkbox">{!! !empty($p->akta_path) ? '&#10003;' : '' !!}</span> 3. Akta Kelahiran<br>
+                    <span class="checkbox">{!! !empty($p->foto_path) ? '&#10003;' : '' !!}</span> 4. Pas Foto 4x6 (Berwarna)
                 </td>
             </tr>
         </table>
-
         <!-- AREA TANDA TANGAN & FOTO -->
         <div style="text-align: right; margin-top: 15px; font-size: 9pt;">
             Tambolaka, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
