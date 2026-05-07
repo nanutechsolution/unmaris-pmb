@@ -20,13 +20,13 @@ class PendaftarIndex extends Component
     public $search = '';
 
     #[Url(history: true)]
-    public $filterStatus = '';
+    public $filterStatus = 'submit';
 
     #[Url(history: true)]
     public $filterPembayaran = '';
 
     #[Url(history: true)]
-    public $filterSync = ''; // Filter Baru: Status Sync SIAKAD
+    public $filterSync = ''; 
 
     // --- BULK ACTION ---
     public $selected = [];
