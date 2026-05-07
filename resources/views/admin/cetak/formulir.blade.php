@@ -390,15 +390,14 @@
 
         <!-- AREA TANDA TANGAN & FOTO -->
         <div style="text-align: right; margin-top: 15px; font-size: 9pt;">
-            Tambolaka, ......................................... 20....
+            Tambolaka, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
         </div>
-
         <table class="ttd-area" width="100%">
             <tr>
                 <td width="35%" style="padding-bottom: 0;">
-                    <p style="margin-bottom: 50px; font-size: 9pt; color: #4b5563;">Petugas Pendaftaran</p>
+                    <p style="margin-bottom: 50px; font-size: 9pt; color: #4b5563;">Panitia Pendaftaran</p>
                     <div style="border-bottom: 1px solid #1f2937; width: 80%; margin: 0 auto;"></div>
-                    <p style="font-size: 8pt; color: #6b7280; margin-top: 3px;">Nama & Tanda Tangan</p>
+                    <p style="font-size: 8pt; color: #6b7280; margin-top: 3px;">Soleman Renda Bili, S.Sos., M.A.P</p>
                 </td>
 
                 <td width="30%" style="vertical-align: middle;">
