@@ -125,26 +125,16 @@
 
         .checkbox {
             display: inline-block;
-            width: 18px;
-            /* Perbesar lebar kotak */
-            height: 18px;
-            /* Perbesar tinggi kotak */
-            border: 1.5px solid #1f2937;
-            /* Garis ditebalkan sedikit agar tegas */
+            width: 12px;
+            height: 12px;
+            border: 1px solid #6b7280;
             text-align: center;
-            line-height: 18px;
-            /* Samakan dengan height agar centang persis di tengah */
+            line-height: 12px;
             font-size: 14px;
-            /* Perbesar ukuran tanda centangnya */
-            margin-right: 6px;
-            /* Jarak kotak dengan teks */
+            margin-right: 4px;
             font-weight: bold;
             font-family: 'DejaVu Sans', sans-serif;
-            /* Wajib untuk simbol Unicode */
-            vertical-align: middle;
-            /* Agar kotak sejajar rapi dengan teks di sebelahnya */
-            color: #000;
-            /* Warna centang hitam pekat */
+            /* Wajib pakai ini agar ✓ terbaca DOMPDF */
         }
 
         /* DATA ORANG TUA (SIDE BY SIDE) */
