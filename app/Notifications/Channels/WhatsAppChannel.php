@@ -28,11 +28,11 @@ class WhatsAppChannel
         // 3. Ambil Data
         $data = $notification->toWhatsApp($notifiable);
         $message = $data['message'] ?? '';
-        
+
         // Prioritas target: Route testing > Config notifikasi
-        $target = $notifiable->routeNotificationFor('whatsapp') 
-               ?? $data['target'] 
-               ?? null;
+        $target = $notifiable->routeNotificationFor('whatsapp')
+            ?? $data['target']
+            ?? null;
 
         if (empty($target)) {
             // Warning saja, jangan fail job
@@ -58,20 +58,20 @@ class WhatsAppChannel
             if (isset($responseData['status']) && $responseData['status'] == false) {
                 $reason = $responseData['reason'] ?? 'Unknown reason';
                 // Lempar error agar muncul di terminal queue
-                throw new \Exception("FONNTE MENOLAK: $reason");
+                Log::warning("FONNTE FAIL: $reason");
+                return;
             }
 
             // Jika request HTTP gagal total (404, 500, dll)
             if ($response->failed()) {
-                throw new \Exception("HTTP ERROR: " . $response->body());
+                Log::error("HTTP ERROR WA: " . $response->body());
+                return;
             }
-
             Log::info("WA SUKSES: " . $response->body());
-
         } catch (\Exception $e) {
             // Catat log lalu lempar ulang errornya agar worker tahu ini gagal
             Log::error('WA EXCEPTION: ' . $e->getMessage());
-            throw $e; 
+            throw $e;
         }
     }
 }
