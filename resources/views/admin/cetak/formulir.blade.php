@@ -373,17 +373,18 @@
             </tr>
         </table>
 
+        <!-- LAMPIRAN -->
         <div class="section-title">D. LAMPIRAN PENDAFTARAN</div>
         <table width="100%" style="font-size: 8.5pt;">
             <tr>
                 <td width="50%">
                     <span class="checkbox">{!! !empty($p->ijazah_path) ? '&#10003;' : '' !!}</span> 1. Fotocopy Ijazah/SKL<br>
-                    <span class="checkbox">{!! !empty($p->kk_path) ? '&#10003;' : '' !!}</span> 2. Fotocopy Kartu Keluarga (KK)
+                    <span class="checkbox">{!! !empty($p->kk_path) ? '&#10003;' : '' !!}</span> 2. Kartu Keluarga (KK)<br>
+                    <span class="checkbox">{!! !empty($p->ktp_path) ? '&#10003;' : '' !!}</span> 3. Fotocopy KTP
                 </td>
                 <td width="50%">
-                    <!-- Centang jika Akta ATAU KTP sudah diunggah salah satu/keduanya -->
-                    <span class="checkbox">{!! (!empty($p->akta_path) || !empty($p->ktp_path)) ? '&#10003;' : '' !!}</span> 3. Akta Kelahiran & KTP<br>
-                    <span class="checkbox">{!! !empty($p->foto_path) ? '&#10003;' : '' !!}</span> 4. Pas Foto 4x6 (Berwarna)
+                    <span class="checkbox">{!! !empty($p->akta_path) ? '&#10003;' : '' !!}</span> 4. Akta Kelahiran<br>
+                    <span class="checkbox">{!! !empty($p->foto_path) ? '&#10003;' : '' !!}</span> 5. Pas Foto 4x6 (Berwarna)
                 </td>
             </tr>
         </table>
