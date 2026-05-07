@@ -125,9 +125,9 @@
 
         .checkbox {
             display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 1px solid #6b7280;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #6b7280;
             text-align: center;
             line-height: 12px;
             font-size: 10px;
