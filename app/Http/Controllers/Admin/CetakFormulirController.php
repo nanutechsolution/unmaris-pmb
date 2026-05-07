@@ -33,7 +33,10 @@ class CetakFormulirController extends Controller
      */
     public function cetakMassal(Request $request)
     {
-        $ids = $request->query('ids'); // Format: 1,2,3,4
+
+        ini_set('max_execution_time', 300); 
+        ini_set('memory_limit', '1024M');
+        $ids = $request->query('ids');
 
         if (empty($ids)) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dicetak.');
