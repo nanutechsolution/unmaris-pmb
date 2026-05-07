@@ -285,7 +285,7 @@
                         <!-- MOBILE COMPACT HEADER -->
                         <div class="lg:hidden p-4 flex items-center justify-between cursor-pointer bg-white active:bg-gray-50 transition" @click="expandedProfile = !expandedProfile">
                             <div class="flex items-center gap-3">
-                                <div class="relative shrink-0">
+                                <div class="relative shrink-0 group">
                                     @if ($pendaftar->foto_path)
                                     <img src="{{ asset('storage/' . $pendaftar->foto_path) }}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-100 shadow-sm">
                                     @else
@@ -317,20 +317,33 @@
                                 <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 16px 16px;"></div>
                             </div>
                             <div class="relative px-5 sm:px-6 pb-6 text-center lg:-mt-14 pt-4 lg:pt-0 border-t border-gray-100 lg:border-t-0 bg-gray-50/50 lg:bg-white">
-                                <div class="relative inline-block mb-4 hidden lg:block">
+
+                                <!-- FOTO PROFIL DESKTOP DENGAN TOMBOL UBAH -->
+                                <div class="relative inline-block mb-4 hidden lg:block group">
                                     @if ($pendaftar->foto_path)
-                                    <div class="relative w-28 h-36 mx-auto rounded-xl shadow-lg overflow-hidden border-4 border-white bg-gray-200 cursor-pointer hover:scale-105 transition duration-300" @click="openPreviewModal('{{ asset('storage/' . $pendaftar->foto_path) }}')">
-                                        <img src="{{ asset('storage/' . $pendaftar->foto_path) }}" class="w-full h-full object-cover">
+                                    <div class="relative w-28 h-36 mx-auto rounded-xl shadow-lg overflow-hidden border-4 border-white bg-gray-200 cursor-pointer transition duration-300">
+                                        <img src="{{ asset('storage/' . $pendaftar->foto_path) }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" @click="openPreviewModal('{{ asset('storage/' . $pendaftar->foto_path) }}')">
+
+                                        <!-- Overlay Ubah Foto (Desktop) -->
+                                        <div class="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-center pb-2">
+                                            <button wire:click="openUploadModal('foto', 'Pas Foto')" class="text-[10px] text-white font-bold bg-white/20 hover:bg-white/40 border border-white/30 backdrop-blur-md px-3 py-1 rounded-full transition shadow-sm">Ubah Foto</button>
+                                        </div>
                                     </div>
                                     @else
-                                    <div class="w-28 h-36 mx-auto rounded-xl shadow-lg border-4 border-white bg-gray-100 flex flex-col items-center justify-center text-gray-400">
+                                    <div class="relative w-28 h-36 mx-auto rounded-xl shadow-lg border-4 border-white bg-gray-100 flex flex-col items-center justify-center text-gray-400 overflow-hidden">
                                         <svg class="h-10 w-10 mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                         </svg>
+
+                                        <!-- Overlay Upload Foto (Desktop) -->
+                                        <div class="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-center pb-2">
+                                            <button wire:click="openUploadModal('foto', 'Pas Foto')" class="text-[10px] text-white font-bold bg-white/20 hover:bg-white/40 border border-white/30 backdrop-blur-md px-3 py-1 rounded-full transition shadow-sm">Upload Foto</button>
+                                        </div>
                                     </div>
                                     @endif
                                     <span class="absolute -bottom-2 -right-2 bg-indigo-600 text-white text-[9px] font-bold px-2 py-1 rounded-md shadow-sm border-2 border-white uppercase hidden lg:inline-block">Calon Mhs</span>
                                 </div>
+
                                 <h3 class="text-xl font-black text-gray-900 leading-tight hidden lg:block">{{ $pendaftar->user->name }}</h3>
                                 <p class="text-xs text-gray-500 font-semibold mt-1 hidden lg:block">{{ $pendaftar->user->email }}</p>
 
@@ -358,13 +371,17 @@
                                         </div>
                                     </div>
 
-                                    @if ($pendaftar->foto_path)
-                                    <div class="mt-4 pt-4 border-t border-gray-100 lg:hidden">
-                                        <button type="button" @click="openPreviewModal('{{ asset('storage/' . $pendaftar->foto_path) }}')" class="w-full flex justify-center items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black text-xs py-3 rounded-xl border border-indigo-100 transition shadow-sm">
-                                            👁️ Pratinjau Pas Foto
+                                    <!-- FOTO PROFIL MOBILE DENGAN TOMBOL UBAH -->
+                                    <div class="mt-4 pt-4 border-t border-gray-100 lg:hidden flex gap-2">
+                                        @if ($pendaftar->foto_path)
+                                        <button type="button" @click="openPreviewModal('{{ asset('storage/' . $pendaftar->foto_path) }}')" class="flex-1 flex justify-center items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black text-xs py-3 rounded-xl border border-indigo-100 transition shadow-sm">
+                                            👁️ Pratinjau
+                                        </button>
+                                        @endif
+                                        <button type="button" wire:click="openUploadModal('foto', 'Pas Foto')" class="flex-1 flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-black text-xs py-3 rounded-xl border border-blue-100 transition shadow-sm">
+                                            ✏️ {{ $pendaftar->foto_path ? 'Ubah Foto' : 'Upload Foto' }}
                                         </button>
                                     </div>
-                                    @endif
                                 </div>
                             </div>
                         </div>

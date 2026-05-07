@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PmbNotification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http; // <-- WAJIB DITAMBAHKAN
+use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\Layout;
 use Carbon\Carbon;
 
@@ -228,6 +228,7 @@ class PendaftarDetail extends Component
             'ijazah' => 'ijazah_path',
             'transkrip' => 'transkrip_path',
             'beasiswa' => 'file_beasiswa',
+            'foto' => 'foto_path', // <-- Tambahan mapping foto
         ];
 
         if (!array_key_exists($this->upload_tipe, $map)) return;
@@ -239,17 +240,23 @@ class PendaftarDetail extends Component
             Storage::disk('public')->delete($pendaftar->$field);
         }
 
-        $path = $this->upload_file->store('uploads/dokumen_pendaftar', 'public');
+        // Tentukan folder: pisahkan pas foto agar lebih rapih di direktori
+        $folder = $this->upload_tipe === 'foto' ? 'uploads/foto_pendaftar' : 'uploads/dokumen_pendaftar';
+        $path = $this->upload_file->store($folder, 'public');
         $pendaftar->$field = $path;
 
-        $currentStatus = $pendaftar->doc_status ?? [];
-        $currentStatus[$this->upload_tipe] = [
-            'status' => 'approved',
-            'reason' => 'Diunggah dan divalidasi langsung oleh Admin',
-            'date' => now()->toDateTimeString()
-        ];
+        // Hanya tambahkan ke "doc_status" jika bukan foto
+        // (agar sistem validasi persentase verifikasi berkas tidak ikut tertimpa foto)
+        if ($this->upload_tipe !== 'foto') {
+            $currentStatus = $pendaftar->doc_status ?? [];
+            $currentStatus[$this->upload_tipe] = [
+                'status' => 'approved',
+                'reason' => 'Diunggah dan divalidasi langsung oleh Admin',
+                'date' => now()->toDateTimeString()
+            ];
+            $pendaftar->doc_status = $currentStatus;
+        }
 
-        $pendaftar->doc_status = $currentStatus;
         $pendaftar->save();
 
         Logger::record('UPDATE', 'Ganti Berkas Admin', "Admin mengganti berkas {$this->upload_tipe} milik #{$pendaftar->id}");
