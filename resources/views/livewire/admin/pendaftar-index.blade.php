@@ -301,8 +301,8 @@
                 alert('Pilih minimal satu data untuk dicetak.');
                 return;
             }
-            if (selectedIds.length > 20) {
-                alert('Peringatan: Maksimal hanya boleh 20 data dalam sekali cetak agar server tidak error!');
+            if (selectedIds.length > 100) {
+                alert('Peringatan: Maksimal hanya boleh 100 data dalam sekali cetak agar server tidak error!');
                 return;
             }
             // Buka tab baru
