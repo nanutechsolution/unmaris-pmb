@@ -1,135 +1,171 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <title>Cetak Formulir PMB - {{ config('app.name') }}</title>
+    <title>Formulir PMB - {{ config('app.name') }}</title>
     <style>
+        /* SETTING KERTAS 1 HALAMAN PAS */
         @page {
             margin: 10mm 15mm;
+            /* Margin dikecilkan agar area cetak lebih luas */
         }
+
         body {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 11pt;
-            color: #000;
-            line-height: 1.2;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 9.5pt;
+            /* Ukuran font dioptimalkan */
+            color: #1f2937;
+            /* Abu-abu sangat gelap (Modern) */
+            line-height: 1.3;
         }
+
         .page-break {
             page-break-after: always;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        
-        /* Kop Surat */
+
+        /* KOP SURAT MINIMALIS */
         .kop-surat {
-            border-bottom: 3px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
         }
-        .kop-surat td {
-            vertical-align: middle;
-        }
+
         .kop-logo {
-            width: 90px;
-            text-align: center;
+            width: 70px;
+            text-align: left;
         }
+
         .kop-logo img {
-            width: 80px;
+            width: 65px;
         }
+
         .kop-text {
-            text-align: center;
+            text-align: left;
+            padding-left: 10px;
         }
+
         .kop-text h1 {
-            font-size: 16pt;
+            font-size: 14pt;
             margin: 0;
-            font-weight: bold;
+            font-weight: 800;
+            letter-spacing: 0.5px;
         }
+
         .kop-text p {
             margin: 2px 0;
-            font-size: 9pt;
+            font-size: 8.5pt;
+            color: #4b5563;
         }
 
-        /* Judul */
-        .judul {
+        /* JUDUL FORMULIR */
+        .judul-area {
             text-align: center;
-            margin-bottom: 20px;
-        }
-        .judul h2 {
-            font-size: 13pt;
-            text-decoration: underline;
-            margin: 0;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .judul h3 {
-            font-size: 11pt;
-            margin: 3px 0 0 0;
+            margin-bottom: 15px;
         }
 
-        /* Form Layout */
-        .form-table td {
-            padding: 4px 0;
-            vertical-align: bottom;
-        }
-        .col-label {
-            width: 190px;
-        }
-        .col-titik {
-            width: 15px;
-            text-align: center;
-        }
-        .col-isian {
-            border-bottom: 1.5px dotted #000;
-        }
-        
-        .isian-data {
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            font-size: 11pt;
-            text-transform: uppercase;
-        }
-        
-        .sub-title {
+        .judul-area h2 {
+            font-size: 12pt;
+            margin: 0 0 3px 0;
             font-weight: bold;
             text-transform: uppercase;
-            margin-top: 15px;
-            margin-bottom: 5px;
+            letter-spacing: 1px;
         }
 
-        /* Checkbox */
-        .kotak-ceklis {
+        .no-pendaftaran {
             display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 1px solid #000;
+            background-color: #f3f4f6;
+            padding: 4px 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12pt;
+            font-weight: bold;
+            border: 1px solid #d1d5db;
+            letter-spacing: 2px;
+        }
+
+        /* SECTION TITLE */
+        .section-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 9pt;
+            background-color: #f3f4f6;
+            padding: 5px 8px;
+            margin-top: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid #2563eb;
+            /* Aksen biru kecil (akan dicetak abu-abu jika B&W) */
+        }
+
+        /* TABEL ISIAN DATA */
+        .form-table td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        .col-label {
+            width: 160px;
+            color: #4b5563;
+        }
+
+        .col-titik {
+            width: 10px;
             text-align: center;
-            line-height: 12px;
-            font-size: 10px;
-            margin-right: 5px;
+        }
+
+        .col-value {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .checkbox {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border: 1px solid #6b7280;
+            text-align: center;
+            line-height: 10px;
+            font-size: 9px;
+            margin-right: 4px;
             font-weight: bold;
         }
 
-        /* Tanda Tangan & Foto */
-        .tgl-ttd {
-            text-align: right;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-weight: bold;
+        /* DATA ORANG TUA (SIDE BY SIDE) */
+        .ortu-table td {
+            padding: 2px 0;
         }
+
+        .ortu-label {
+            width: 90px;
+            color: #4b5563;
+            font-size: 8.5pt;
+        }
+
+        /* AREA TANDA TANGAN & FOTO */
+        .ttd-area {
+            margin-top: 15px;
+        }
+
         .ttd-area td {
             text-align: center;
             vertical-align: bottom;
-            width: 33.33%;
         }
+
         .box-foto {
-            width: 3cm;
-            height: 4cm;
-            border: 1px solid #000;
+            width: 2.5cm;
+            /* Diperkecil sedikit agar presisi 1 halaman */
+            height: 3.5cm;
+            border: 1px solid #9ca3af;
+            background-color: #f9fafb;
             margin: 0 auto;
-            text-align: center;
             position: relative;
         }
+
         .box-foto img {
             width: 100%;
             height: 100%;
@@ -137,303 +173,297 @@
             filter: grayscale(100%);
         }
 
-        /* Potongan Prospek */
+        /* POTONGAN PROSPEK MINIMALIS */
         .potongan-area {
-            margin-top: 30px;
-            border-top: 2px dashed #000;
-            padding-top: 20px;
-            position: relative;
+            margin-top: 15px;
+            border-top: 1px dashed #9ca3af;
+            padding-top: 10px;
         }
+
         .label-gunting {
-            position: absolute;
-            top: -10px;
-            right: 20px;
-            background: #fff;
-            padding: 0 10px;
-            font-size: 9pt;
+            font-size: 8pt;
             font-style: italic;
-            font-weight: bold;
+            color: #6b7280;
+            margin-bottom: 5px;
         }
+
         .box-prospek {
-            border: 1.5px solid #000;
-            padding: 10px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        .prospek-table td {
+            padding: 2px 0;
+            font-size: 8.5pt;
         }
     </style>
 </head>
+
 <body>
 
     @foreach($pendaftars as $index => $p)
     <div class="{{ !$loop->last ? 'page-break' : '' }}">
-        
+
         <!-- KOP SURAT -->
         <table class="kop-surat">
             <tr>
                 <td class="kop-logo">
-                    {{-- Gunakan public_path agar DOMPDF bisa membaca gambar lokal --}}
                     @php
-                        $logoPath = public_path('images/logo.png');
-                        $logoData = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+                    $logoPath = public_path('images/logo.png');
+                    $logoData = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
                     @endphp
                     @if($logoData)
-                        <img src="{{ $logoData }}" alt="Logo">
+                    <img src="{{ $logoData }}" alt="Logo">
                     @endif
                 </td>
                 <td class="kop-text">
                     <h1>{{ config('app.name', 'UNIVERSITAS STELLA MARIS SUMBA') }}</h1>
-                    <p style="font-weight: bold;">SK.MENDIKBUDRISTEK NO.985/E/O/2023</p>
-                    <p>Alamat: Jln. Karya Kasih No. 5 Tambolaka, Desa Payola Umbu, Kecamatan Loura,</p>
-                    <p>Kabupaten Sumba Barat Daya, Provinsi Nusa Tenggara Timur</p>
-                    <p><i>Telp. (0387) 24016 - Fax: (0387) 24016, Website: www.unmaris.ac.id</i></p>
+                    <p style="font-weight: bold; color: #1f2937;">SK.MENDIKBUDRISTEK NO.985/E/O/2023</p>
+                    <p>Jln. Karya Kasih No. 5 Tambolaka, Desa Payola Umbu, Kec. Loura, Kab. Sumba Barat Daya, NTT</p>
+                    <p>Telp/Fax: (0387) 24016 | Web: www.unmaris.ac.id | Sistem PMB: pmb.unmaris.ac.id</p>
                 </td>
             </tr>
         </table>
 
-        <!-- JUDUL -->
-        <div class="judul">
+        <!-- JUDUL & NO PENDAFTARAN -->
+        <div class="judul-area">
             <h2>Formulir Pendaftaran Mahasiswa Baru</h2>
-            <h3>Tahun Akademik {{ $p->gelombang->tahun_akademik ?? date('Y').'/'.(date('Y')+1) }}</h3>
+            <div style="font-size: 9.5pt; margin-bottom: 8px;">Tahun Akademik {{ $p->gelombang->tahun_akademik ?? date('Y').'/'.(date('Y')+1) }}</div>
+            <div class="no-pendaftaran">NO: {{ str_pad($p->id, 6, '0', STR_PAD_LEFT) }}</div>
         </div>
 
-        <!-- BAGIAN A -->
+        <!-- PILIHAN KELAS & PRODI -->
+        <div class="section-title">A. PILIHAN PROGRAM STUDI & KELAS</div>
         <table class="form-table">
             <tr>
-                <td class="col-label">1. Form Pendaftaran Online</td>
+                <td class="col-label" style="width: 140px;">Pilihan Kelas</td>
                 <td class="col-titik">:</td>
-                <td><b>https://pmb.unmaris.ac.id</b></td>
+                <td class="col-value">
+                    <span class="checkbox">{{ strtolower($p->jalur_pendaftaran) == 'reguler' ? '✓' : '' }}</span> Reguler
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="checkbox">{{ strtolower($p->jalur_pendaftaran) == 'karyawan' ? '✓' : '' }}</span> Non Reguler/Ext
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="checkbox">{{ strtolower($p->jalur_pendaftaran) == 'pindahan' ? '✓' : '' }}</span> Transfer
+                </td>
             </tr>
             <tr>
-                <td class="col-label">2. Form Pendaftaran Offline</td>
+                <td class="col-label" style="width: 140px;">Program Studi Pilihan 1</td>
                 <td class="col-titik">:</td>
-                <td class="col-isian"></td>
+                <td class="col-value">{{ $p->pilihan_prodi_1 }}</td>
+            </tr>
+            <tr>
+                <td class="col-label" style="width: 140px;">Program Studi Pilihan 2</td>
+                <td class="col-titik">:</td>
+                <td class="col-value">{{ $p->pilihan_prodi_2 ?? '-' }}</td>
             </tr>
         </table>
 
-        <div class="sub-title">A. NO. PENDAFTARAN</div>
+        <!-- DATA CALON MAHASISWA -->
+        <div class="section-title">B. DATA CALON MAHASISWA</div>
         <table class="form-table">
             <tr>
-                <td class="col-label"></td>
+                <td class="col-label">Nama Lengkap</td>
                 <td class="col-titik">:</td>
-                <td>
-                    <span style="border: 1.5px solid #000; padding: 3px 15px; font-family: monospace; font-size: 14pt; font-weight: bold; letter-spacing: 2px;">
-                        {{ str_pad($p->id, 6, '0', STR_PAD_LEFT) }}
-                    </span>
-                    <i style="font-size: 9pt; color: #666; margin-left: 10px;">(Diisi Panitia)</i>
+                <td class="col-value">{{ $p->user->name }}</td>
+            </tr>
+            <tr>
+                <td class="col-label">NIK</td>
+                <td class="col-titik">:</td>
+                <td class="col-value" style="letter-spacing: 1px;">{{ $p->nik }}</td>
+            </tr>
+            <tr>
+                <td class="col-label">Tempat, Tanggal Lahir</td>
+                <td class="col-titik">:</td>
+                <td class="col-value">{{ $p->tempat_lahir }}, {{ $p->tgl_lahir instanceof \DateTime ? $p->tgl_lahir->format('d/m/Y') : date('d/m/Y', strtotime($p->tgl_lahir)) }}</td>
+            </tr>
+            <tr>
+                <td class="col-label">Jenis Kelamin</td>
+                <td class="col-titik">:</td>
+                <td class="col-value">
+                    <span class="checkbox">{{ $p->jenis_kelamin == 'L' ? '✓' : '' }}</span> Laki-laki
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="checkbox">{{ $p->jenis_kelamin == 'P' ? '✓' : '' }}</span> Perempuan
                 </td>
             </tr>
             <tr>
-                <td class="col-label" style="padding-top: 15px;">PILIHAN KELAS</td>
-                <td class="col-titik" style="padding-top: 15px;">:</td>
-                <td style="padding-top: 15px;">
-                    <span class="kotak-ceklis">{{ strtolower($p->jalur_pendaftaran) == 'reguler' ? '✓' : '' }}</span> 1) Reguler 
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <span class="kotak-ceklis">{{ strtolower($p->jalur_pendaftaran) == 'karyawan' ? '✓' : '' }}</span> 2) Non Reguler/Ext 
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <span class="kotak-ceklis">{{ strtolower($p->jalur_pendaftaran) == 'pindahan' ? '✓' : '' }}</span> 3) Transfer
+                <td class="col-label">Alamat Lengkap</td>
+                <td class="col-titik">:</td>
+                <td class="col-value">{{ $p->alamat }}</td>
+            </tr>
+            <tr>
+                <td class="col-label">Nomor HP / Email</td>
+                <td class="col-titik">:</td>
+                <td class="col-value">{{ $p->nomor_hp }} / <span style="text-transform: none; font-weight: normal;">{{ strtolower($p->user->email) }}</span></td>
+            </tr>
+            <tr>
+                <td class="col-label">Asal Sekolah</td>
+                <td class="col-titik">:</td>
+                <td class="col-value">{{ $p->asal_sekolah }}</td>
+            </tr>
+            <tr>
+                <td class="col-label">NISN</td>
+                <td class="col-titik">:</td>
+                <td class="col-value">{{ $p->nisn ?? '-' }}</td>
+            </tr>
+        </table>
+
+        <!-- DATA ORANG TUA (DIBUAT SEJAJAR KIRI-KANAN UNTUK HEMAT TEMPAT) -->
+        <div class="section-title">C. DATA ORANG TUA</div>
+        <table width="100%">
+            <tr>
+                <!-- KIRI: DATA AYAH -->
+                <td width="48%" valign="top">
+                    <div style="font-weight: bold; margin-bottom: 5px; font-size: 8.5pt; color: #4b5563;">DATA AYAH:</div>
+                    <table class="ortu-table">
+                        <tr>
+                            <td class="ortu-label">Nama</td>
+                            <td width="10">:</td>
+                            <td class="col-value">{{ $p->nama_ayah }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ortu-label">NIK</td>
+                            <td>:</td>
+                            <td class="col-value">{{ $p->nik_ayah ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ortu-label">Pendidikan</td>
+                            <td>:</td>
+                            <td class="col-value">{{ $p->pendidikan_ayah ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ortu-label">Pekerjaan</td>
+                            <td>:</td>
+                            <td class="col-value">{{ $p->pekerjaan_ayah ?? '-' }}</td>
+                        </tr>
+                    </table>
+                </td>
+
+                <td width="4%"></td> <!-- Spacer -->
+
+                <!-- KANAN: DATA IBU -->
+                <td width="48%" valign="top">
+                    <div style="font-weight: bold; margin-bottom: 5px; font-size: 8.5pt; color: #4b5563;">DATA IBU:</div>
+                    <table class="ortu-table">
+                        <tr>
+                            <td class="ortu-label">Nama</td>
+                            <td width="10">:</td>
+                            <td class="col-value">{{ $p->nama_ibu }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ortu-label">NIK</td>
+                            <td>:</td>
+                            <td class="col-value">{{ $p->nik_ibu ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ortu-label">Pendidikan</td>
+                            <td>:</td>
+                            <td class="col-value">{{ $p->pendidikan_ibu ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ortu-label">Pekerjaan</td>
+                            <td>:</td>
+                            <td class="col-value">{{ $p->pekerjaan_ibu ?? '-' }}</td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </table>
 
-        <!-- BAGIAN B -->
-        <div class="sub-title" style="margin-top: 20px;">B. DATA CALON MAHASISWA</div>
-        <table class="form-table" style="margin-left: 15px; width: calc(100% - 15px);">
+        <!-- LAMPIRAN (Dibikin sejajar agar ringkas) -->
+        <div class="section-title">D. LAMPIRAN PENDAFTARAN</div>
+        <table width="100%" style="font-size: 8.5pt;">
             <tr>
-                <td class="col-label">1. Nama Lengkap</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->user->name }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">2. NIK</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data" style="letter-spacing: 2px;">{{ $p->nik }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">3. Tempat / Tgl. Lahir</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->tempat_lahir }}, {{ $p->tgl_lahir instanceof \DateTime ? $p->tgl_lahir->format('d/m/Y') : date('d/m/Y', strtotime($p->tgl_lahir)) }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">4. Jenis Kelamin</td>
-                <td class="col-titik">:</td>
-                <td>
-                    <span class="kotak-ceklis">{{ $p->jenis_kelamin == 'L' ? '✓' : '' }}</span> Laki-laki 
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <span class="kotak-ceklis">{{ $p->jenis_kelamin == 'P' ? '✓' : '' }}</span> Perempuan
+                <td width="50%">
+                    <span class="checkbox"></span> 1. Fotocopy Ijazah/SKL<br>
+                    <span class="checkbox"></span> 2. Fotocopy Kartu Keluarga (KK)
+                </td>
+                <td width="50%">
+                    <span class="checkbox"></span> 3. Akta Kelahiran & KTP<br>
+                    <span class="checkbox"></span> 4. Pas Foto 4x6 (Berwarna)
                 </td>
             </tr>
-            <tr>
-                <td class="col-label">5. Alamat</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->alamat }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">6. RT/RW & Kode Pos</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">...... / ......</span></td>
-            </tr>
-            <tr>
-                <td class="col-label" style="padding-left: 15px;">Kota/Kabupaten</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data"></span></td>
-            </tr>
-            <tr>
-                <td class="col-label" style="padding-left: 15px;">No. HP / Email</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->nomor_hp }} / {{ strtolower($p->user->email) }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">7. Asal Sekolah/NPSN</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->asal_sekolah }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">8. NISN</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->nisn ?? '-' }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">9. Alamat Sekolah</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"></td>
-            </tr>
-            <tr>
-                <td class="col-label">10. Program Studi Pilihan 1</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->pilihan_prodi_1 }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label" style="color: transparent;">10. <span style="color: black;">Program Studi Pilihan 2</span></td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->pilihan_prodi_2 ?? '-' }}</span></td>
-            </tr>
         </table>
 
-        <!-- BAGIAN 11 -->
-        <div class="sub-title" style="margin-top: 15px;">11. DATA ORANG TUA</div>
-        <table class="form-table" style="margin-left: 15px; width: calc(100% - 15px);">
-            <tr>
-                <td class="col-label">1. Nama Ayah</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->nama_ayah }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">2. NIK Ayah</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->nik_ayah ?? '-' }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">3. Pekerjaan Ayah</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->pekerjaan_ayah ?? '-' }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">4. Pendidikan Ayah</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->pendidikan_ayah ?? '-' }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">5. Nama Ibu</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->nama_ibu }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">6. NIK Ibu</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->nik_ibu ?? '-' }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">7. Pekerjaan Ibu</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->pekerjaan_ibu ?? '-' }}</span></td>
-            </tr>
-            <tr>
-                <td class="col-label">8. Pendidikan Ibu</td>
-                <td class="col-titik">:</td>
-                <td class="col-isian"><span class="isian-data">{{ $p->pendidikan_ibu ?? '-' }}</span></td>
-            </tr>
-        </table>
-
-        <!-- TTD & FOTO -->
-        <div class="tgl-ttd">
+        <!-- AREA TANDA TANGAN & FOTO -->
+        <div style="text-align: right; margin-top: 15px; font-size: 9pt;">
             Tambolaka, ......................................... 20....
         </div>
 
-        <table class="ttd-area">
+        <table class="ttd-area" width="100%">
             <tr>
-                <!-- TTD PETUGAS -->
-                <td style="padding-bottom: 0;">
-                    <p style="margin-bottom: 60px;">Petugas</p>
-                    <div style="border-bottom: 1.5px solid #000; width: 80%; margin: 0 auto;"></div>
-                    <p style="font-size: 9pt; font-style: italic; margin-top: 5px;">(Nama Terang & Tanda Tangan)</p>
+                <td width="35%" style="padding-bottom: 0;">
+                    <p style="margin-bottom: 50px; font-size: 9pt; color: #4b5563;">Petugas Pendaftaran</p>
+                    <div style="border-bottom: 1px solid #1f2937; width: 80%; margin: 0 auto;"></div>
+                    <p style="font-size: 8pt; color: #6b7280; margin-top: 3px;">Nama & Tanda Tangan</p>
                 </td>
-                
-                <!-- FOTO -->
-                <td style="vertical-align: middle;">
+
+                <td width="30%" style="vertical-align: middle;">
                     <div class="box-foto">
                         @if($p->foto_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($p->foto_path))
-                            @php
-                                $fotoData = base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($p->foto_path));
-                                $mime = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($p->foto_path);
-                            @endphp
-                            <img src="data:{{ $mime }};base64,{{ $fotoData }}">
+                        @php
+                        $fotoData = base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($p->foto_path));
+                        $mime = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($p->foto_path);
+                        @endphp
+                        <img src="data:{{ $mime }};base64,{{ $fotoData }}">
                         @else
-                            <span style="display: block; margin-top: 40%; line-height: 1.2;">Pas Foto<br>4 x 6</span>
+                        <span style="display: block; margin-top: 35%; font-size: 8pt; color: #9ca3af;">Foto<br>3x4 / 4x6</span>
                         @endif
                     </div>
                 </td>
 
-                <!-- TTD MABA -->
-                <td style="padding-bottom: 0;">
-                    <p style="margin-bottom: 60px;">Calon Mahasiswa</p>
-                    <div style="font-family: monospace; font-weight: bold; font-size: 12pt; text-decoration: underline; text-transform: uppercase;">
+                <td width="35%" style="padding-bottom: 0;">
+                    <p style="margin-bottom: 50px; font-size: 9pt; color: #4b5563;">Calon Mahasiswa</p>
+                    <div style="font-weight: bold; text-decoration: underline; text-transform: uppercase;">
                         {{ $p->user->name }}
                     </div>
                 </td>
             </tr>
         </table>
 
-        <!-- LAMPIRAN -->
-        <div style="font-size: 9pt; margin-top: 20px; padding-left: 15px;">
-            <p style="font-weight: bold; margin-bottom: 5px;">Lampiran Syarat Pendaftaran:</p>
-            <ol style="margin-top: 0; padding-left: 20px;">
-                <li>Fotocopy Ijazah terakhir/ Surat Tanda Lulus</li>
-                <li>Fotocopy Kartu Keluarga</li>
-                <li>Akta Kelahiran</li>
-                <li>KTP</li>
-                <li>Pas Foto 4x6 Berwarna 4 Lembar</li>
-            </ol>
-        </div>
-
-        <!-- POTONGAN PROSPEK -->
+        <!-- POTONGAN PROSPEK (DIBIKIN COMPACT DI BAWAH) -->
         <div class="potongan-area">
-            <span class="label-gunting">✂️ Gunting Disini</span>
+            <div class="label-gunting">✂️ Gunting disini (Data Referral/Prospek)</div>
             <div class="box-prospek">
-                <table class="form-table" style="width: 100%;">
+                <table width="100%">
                     <tr>
-                        <td style="width: 170px;">Nama Prospek (Referral)</td>
-                        <td class="col-titik">:</td>
-                        <td class="col-isian"><span class="isian-data">{{ $p->nama_referensi ?? '-' }}</span></td>
-                    </tr>
-                    <tr>
-                        <td>No. HP Prospek</td>
-                        <td class="col-titik">:</td>
-                        <td class="col-isian"><span class="isian-data">{{ $p->nomor_hp_referensi ?? '-' }}</span></td>
-                    </tr>
-                    <tr>
-                        <td>Nama Yang Diprospek</td>
-                        <td class="col-titik">:</td>
-                        <td class="col-isian"><span class="isian-data">{{ $p->user->name }}</span></td>
-                    </tr>
-                    <tr>
-                        <td>No. HP Diprospek</td>
-                        <td class="col-titik">:</td>
-                        <td class="col-isian"><span class="isian-data">{{ $p->nomor_hp }}</span></td>
+                        <td width="50%" valign="top">
+                            <table class="prospek-table" width="100%">
+                                <tr>
+                                    <td width="100" style="color:#4b5563;">Nama Prospek</td>
+                                    <td width="5">:</td>
+                                    <td class="col-value">{{ $p->nama_referensi ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="color:#4b5563;">No. HP Prospek</td>
+                                    <td>:</td>
+                                    <td class="col-value">{{ $p->nomor_hp_referensi ?? '-' }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td width="50%" valign="top">
+                            <table class="prospek-table" width="100%">
+                                <tr>
+                                    <td width="120" style="color:#4b5563;">Maba yang diajak</td>
+                                    <td width="5">:</td>
+                                    <td class="col-value">{{ $p->user->name }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="color:#4b5563;">No. HP Maba</td>
+                                    <td>:</td>
+                                    <td class="col-value">{{ $p->nomor_hp }}</td>
+                                </tr>
+                            </table>
+                        </td>
                     </tr>
                 </table>
             </div>
         </div>
-        
+
     </div>
     @endforeach
 
 </body>
+
 </html>
