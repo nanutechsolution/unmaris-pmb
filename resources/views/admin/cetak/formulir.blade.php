@@ -125,14 +125,16 @@
 
         .checkbox {
             display: inline-block;
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border: 1px solid #6b7280;
             text-align: center;
-            line-height: 10px;
-            font-size: 9px;
+            line-height: 12px;
+            font-size: 10px;
             margin-right: 4px;
             font-weight: bold;
+            font-family: 'DejaVu Sans', sans-serif;
+            /* Wajib pakai ini agar ✓ terbaca DOMPDF */
         }
 
         /* DATA ORANG TUA (SIDE BY SIDE) */
@@ -282,9 +284,9 @@
                 <td class="col-label">Jenis Kelamin</td>
                 <td class="col-titik">:</td>
                 <td class="col-value">
-                    <span class="checkbox">{{ $p->jenis_kelamin == 'L' ? '✓' : '' }}</span> Laki-laki
+                    <span class="checkbox">{!! (strtoupper($p->jenis_kelamin) == 'L' || strtoupper($p->jenis_kelamin) == 'LAKI-LAKI') ? '&#10003;' : '' !!}</span> Laki-laki
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <span class="checkbox">{{ $p->jenis_kelamin == 'P' ? '✓' : '' }}</span> Perempuan
+                    <span class="checkbox">{!! (strtoupper($p->jenis_kelamin) == 'P' || strtoupper($p->jenis_kelamin) == 'PEREMPUAN') ? '&#10003;' : '' !!}</span> Perempuan
                 </td>
             </tr>
             <tr>
