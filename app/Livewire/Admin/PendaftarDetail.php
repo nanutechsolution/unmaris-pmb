@@ -46,6 +46,15 @@ class PendaftarDetail extends Component
 
     public function mount($id)
     {
+
+        $user = auth()->user();
+
+        $allowedRoles = ['admin', 'akademik', 'keuangan'];
+
+        if (!in_array($user->role, $allowedRoles)) {
+            abort(403, 'Unauthorized');
+        }
+
         $this->pendaftar_id = $id;
         $pendaftar = Pendaftar::findOrFail($id);
 
