@@ -58,7 +58,7 @@ new #[Layout('layouts.guest')] class extends Component
                 Nama Lengkap <span class="text-red-500">*</span>
             </label>
             <input wire:model="name" id="name" type="text"
-                class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400 uppercase"
+                class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400"
                 placeholder="SESUAI IJAZAH TERAKHIR" required autofocus autocomplete="name" />
             <p class="text-[10px] font-bold text-gray-500 mt-1">⚠️ Wajib sama persis dengan ijazah SMA/SMK.</p>
             <x-input-error :messages="$errors->get('name')" class="mt-1 font-bold text-red-500 text-xs" />
