@@ -11,6 +11,7 @@ use App\Livewire\Camaba\Dashboard as CamabaDashboard;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\PendaftarCreate;
 use App\Livewire\Admin\PendaftarDetail;
+use App\Livewire\Camaba\Helpdesk;
 use App\Models\FacilitySlide;
 use App\Models\Gelombang;
 use App\Models\SiteSetting;
@@ -51,7 +52,7 @@ Route::middleware(['auth', 'verified', 'role:camaba'])
         Route::view('/formulir', 'camaba.formulir')->name('formulir');
         Route::get('/pembayaran', Pembayaran::class)->name('pembayaran');
         Route::get('/cetak-kartu', [CetakKartuController::class, 'cetak'])->name('cetak-kartu');
-        Route::get('/pengumuman', [PengumumanController::class, 'index'])->name('pengumuman');
+        Route::get('/pengumuman', App\Livewire\Camaba\Pengumuman::class)->name('pengumuman');
         Route::get('/pengumuman/cetak', [PengumumanController::class, 'cetak'])->name('pengumuman.cetak');
         Route::get('/bantuan', App\Livewire\Camaba\Helpdesk::class)->name('helpdesk');
     });
