@@ -1,4 +1,3 @@
-<x-camaba-layout>
     <div class="py-12 font-sans">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             <!-- CASE 1: LULUS (THE HAPPY PATH) -->
@@ -72,4 +71,3 @@
 
         </div>
     </div>
-</x-camaba-layout>
