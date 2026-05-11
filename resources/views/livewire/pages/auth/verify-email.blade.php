@@ -39,34 +39,68 @@ new #[Layout('layouts.guest')] class extends Component
     }
 
     /**
-     * Mengambil dan memformat array nomor WhatsApp Admin dari database.
-     * Mendukung multi-admin jika dipisahkan dengan koma (,) atau (/)
+     * Mengambil dan memformat kontak WhatsApp Admin dari database.
+     * Mengutamakan kolom JSON `admin_contacts`, dengan fallback ke `no_wa_admin`.
      */
-    public function getAdminWaListProperty(): array
+    public function getAdminContactsProperty(): array
     {
         $setting = SiteSetting::first();
-        $rawWa = $setting ? $setting->no_wa_admin : '6281216156883'; // Fallback default
-        
-        // Memisahkan string berdasarkan koma, titik koma, atau garis miring
-        $waArray = preg_split('/[,;\/]+/', $rawWa);
-        $formattedNumbers = [];
+        $contacts = [];
 
-        foreach ($waArray as $noWa) {
-            // Bersihkan karakter non-angka
-            $cleanWa = preg_replace('/[^0-9]/', '', $noWa);
+        // 1. Coba ambil dari kolom JSON admin_contacts
+        if ($setting && !empty($setting->admin_contacts)) {
+            // Laravel otomatis cast ke array jika di Model di-set $casts = ['admin_contacts' => 'array']
+            // Jika tidak, kita decode manual:
+            $rawContacts = is_string($setting->admin_contacts) ? json_decode($setting->admin_contacts, true) : $setting->admin_contacts;
             
-            if (empty($cleanWa)) continue;
-            
-            // Ubah awalan 0 menjadi 62 agar sesuai standar API WhatsApp
-            if (str_starts_with($cleanWa, '0')) {
-                $cleanWa = '62' . substr($cleanWa, 1);
+            if (is_array($rawContacts)) {
+                foreach ($rawContacts as $index => $contact) {
+                    // Menangani format array yang isinya string nomor, atau array object dengan nama & nomor
+                    if (is_string($contact)) {
+                        $name = 'Admin ' . ($index + 1);
+                        $phone = $contact;
+                    } else {
+                        // Fleksibel mengambil key nama dan nomor
+                        $name = $contact['nama'] ?? $contact['name'] ?? ('Admin ' . ($index + 1));
+                        $phone = $contact['nomor'] ?? $contact['phone'] ?? $contact['wa'] ?? $contact['no_wa'] ?? '';
+                    }
+                    
+                    $cleanWa = preg_replace('/[^0-9]/', '', $phone);
+                    if (!empty($cleanWa)) {
+                        if (str_starts_with($cleanWa, '0')) {
+                            $cleanWa = '62' . substr($cleanWa, 1);
+                        }
+                        $contacts[] = ['name' => $name, 'phone' => $cleanWa];
+                    }
+                }
             }
+        }
+
+        // 2. Fallback: Jika admin_contacts JSON kosong/tidak valid, gunakan kolom no_wa_admin (split koma/garis miring)
+        if (empty($contacts)) {
+            $rawWa = $setting ? $setting->no_wa_admin : '6281234567890';
+            $waArray = preg_split('/[,;\/]+/', $rawWa);
             
-            $formattedNumbers[] = $cleanWa;
+            foreach ($waArray as $index => $noWa) {
+                $cleanWa = preg_replace('/[^0-9]/', '', $noWa);
+                if (!empty($cleanWa)) {
+                    if (str_starts_with($cleanWa, '0')) {
+                        $cleanWa = '62' . substr($cleanWa, 1);
+                    }
+                    $contacts[] = [
+                        'name' => count($waArray) > 1 ? 'Admin ' . ($index + 1) : 'Admin PMB', 
+                        'phone' => $cleanWa
+                    ];
+                }
+            }
         }
         
-        // Jika kosong setelah dibersihkan, kembalikan nomor default
-        return count($formattedNumbers) > 0 ? $formattedNumbers : ['6281234567890'];
+        // 3. Default absolut jika semuanya kosong
+        if (empty($contacts)) {
+            $contacts[] = ['name' => 'Admin PMB', 'phone' => '6281234567890'];
+        }
+
+        return $contacts;
     }
 }; ?>
 
@@ -145,14 +179,14 @@ new #[Layout('layouts.guest')] class extends Component
         <p class="text-sm font-bold text-gray-600 text-center mb-3">Punya kendala? Hubungi Admin PMB</p>
         
         <div class="flex flex-col gap-3">
-            @foreach($this->adminWaList as $index => $waNumber)
-                <a href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Admin PMB UNMARIS, saya butuh bantuan terkait verifikasi akun. Email yang saya daftarkan adalah: ' . Auth::user()->email) }}" 
+            @foreach($this->adminContacts as $contact)
+                <a href="https://wa.me/{{ $contact['phone'] }}?text={{ urlencode('Halo ' . $contact['name'] . ', saya butuh bantuan terkait verifikasi akun. Email yang saya daftarkan adalah: ' . Auth::user()->email) }}" 
                    target="_blank"
                    class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase text-sm flex justify-center items-center gap-2 group">
                     <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                     </svg>
-                    Bantuan via WhatsApp {{ count($this->adminWaList) > 1 ? 'Admin ' . ($index + 1) : '' }}
+                    Bantuan via WhatsApp ({{ $contact['name'] }})
                 </a>
             @endforeach
         </div>
