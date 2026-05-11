@@ -42,13 +42,13 @@ class PaymentStatusNotification extends Notification implements ShouldQueue
 
         if ($this->status === 'lunas') {
             $mail->line('Pembayaran pendaftaran Anda telah BERHASIL diverifikasi.')
-                 ->line('Status Anda sekarang: LUNAS.')
-                 ->action('Lengkapi Berkas Sekarang', route('camaba.formulir'));
+                ->line('Status Anda sekarang: LUNAS.')
+                ->action('Lengkapi Berkas Sekarang', route('camaba.formulir'));
         } else {
             $mail->error()
-                 ->line('Mohon maaf, bukti pembayaran Anda ditolak.')
-                 ->line('Alasan: ' . ($this->reason ?? 'Bukti tidak terbaca/salah.'))
-                 ->action('Upload Ulang Bukti', route('camaba.pembayaran'));
+                ->line('Mohon maaf, bukti pembayaran Anda ditolak.')
+                ->line('Alasan: ' . ($this->reason ?? 'Bukti tidak terbaca/salah.'))
+                ->action('Upload Ulang Bukti', route('camaba.pembayaran'));
         }
 
         return $mail;
@@ -57,23 +57,46 @@ class PaymentStatusNotification extends Notification implements ShouldQueue
     public function toWhatsApp(object $notifiable): array
     {
         $appName = config('app.name', 'UNMARIS');
-        
+
         if ($this->status === 'lunas') {
-            $message = "*PEMBAYARAN DIVERIFIKASI* ✅\n\n" .
-                       "Halo *{$this->name}*,\n" .
-                       "Pembayaran pendaftaran Anda di *{$appName}* telah dinyatakan *LUNAS*.\n\n" .
-                       "Langkah selanjutnya:\n" .
-                       "Silakan login ke portal dan lengkapi berkas pendaftaran Anda untuk masuk ke tahap seleksi.\n\n" .
-                       route('login');
+
+            $message = "*PEMBAYARAN PMB UNMARIS BERHASIL DIVERIFIKASI* ✅\n\n" .
+                "Halo *{$this->name}*,\n\n" .
+
+                "Panitia PMB Universitas Stella Maris Sumba (*{$appName}*) menginformasikan bahwa pembayaran pendaftaran Anda telah berhasil diverifikasi dan dinyatakan *LUNAS*.\n\n" .
+
+                "*Status pendaftaran Anda saat ini:*\n" .
+                "✅ Pembayaran: Lunas\n" .
+                "✅ Upload Berkas: Selesai\n" .
+                "⏳ Verifikasi Administrasi: Sedang Diproses Panitia PMB\n" .
+                "⏳ Tahap Seleksi/Pengumuman: Menunggu Tahap Berikutnya\n\n" .
+
+                "Selanjutnya, panitia PMB akan melakukan pemeriksaan data dan berkas pendaftaran Anda.\n\n" .
+
+                "Apabila terdapat berkas yang belum sesuai, kurang lengkap, atau perlu diperbaiki, informasi revisi akan disampaikan melalui Portal PMB {$appName}.\n\n" .
+
+                "Silakan memantau akun PMB Anda secara berkala untuk melihat perkembangan status pendaftaran.\n\n" .
+
+                "*Login Portal PMB:*\n" .
+                route('login');
         } else {
-            $message = "*PEMBAYARAN DITOLAK* ⚠️\n\n" .
-                       "Halo *{$this->name}*,\n" .
-                       "Bukti pembayaran yang Anda unggah ditolak oleh admin keuangan.\n\n" .
-                       "*Alasan:* " . ($this->reason ?? 'Bukti tidak sesuai/tidak terbaca.') . "\n\n" .
-                       "Silakan unggah kembali bukti transfer yang sah melalui tautan berikut:\n" .
-                       route('camaba.pembayaran');
+
+            $message = "*PEMBAYARAN PMB UNMARIS DITOLAK* ⚠️\n\n" .
+                "Halo *{$this->name}*,\n\n" .
+
+                "Bukti pembayaran pendaftaran yang Anda unggah belum dapat diverifikasi oleh admin keuangan PMB {$appName}.\n\n" .
+
+                "*Alasan penolakan:*\n" .
+                ($this->reason ?? 'Bukti pembayaran tidak sesuai, tidak jelas, atau tidak terbaca.') . "\n\n" .
+
+                "Silakan melakukan upload ulang bukti pembayaran yang valid dan dapat terbaca dengan jelas melalui Portal PMB.\n\n" .
+
+                "*Upload Bukti Pembayaran:*\n" .
+                route('camaba.pembayaran');
         }
 
-        return ['message' => $message];
+        return [
+            'message' => $message,
+        ];
     }
 }

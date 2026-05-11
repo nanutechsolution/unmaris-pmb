@@ -459,8 +459,6 @@ class PendaftaranWizard extends Component
                     'alamat' => $this->alamat,
                     'agama' => $this->agama ?: null,
                     'nomor_hp' => $this->nomor_hp,
-
-                    // FALLBACK: Mencegah error NOT NULL di database saat draft disimpan di Step 1
                     'asal_sekolah' => $this->asal_sekolah ?? '-',
                     'tahun_lulus' => $this->tahun_lulus ?? date('Y'),
                     'pilihan_prodi_1' => $this->pilihan_prodi_1 ?? '-',

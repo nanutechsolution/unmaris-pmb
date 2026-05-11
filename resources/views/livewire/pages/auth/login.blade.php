@@ -39,22 +39,22 @@ new #[Layout('layouts.guest')] class extends Component
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <form wire:submit="login" class="space-y-5">
-        
+
         <!-- Email Address -->
         <div>
             <label for="email" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">Alamat Email</label>
-            <input wire:model="form.email" id="email" type="email" 
-                   class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
-                   placeholder="email.kamu@gmail.com" required autofocus autocomplete="username" />
+            <input wire:model="form.email" id="email" type="email"
+                class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400"
+                placeholder="email.kamu@gmail.com" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('form.email')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
 
         <!-- Password -->
         <div>
             <label for="password" class="block font-black text-sm text-unmaris-blue mb-1 uppercase">Password</label>
-            <input wire:model="form.password" id="password" type="password" 
-                   class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400" 
-                   placeholder="Masukkan password akun" required autocomplete="current-password" />
+            <input wire:model="form.password" id="password" type="password"
+                class="w-full bg-gray-50 border-2 border-black rounded-lg px-4 py-3 font-bold text-gray-800 focus:bg-white focus:outline-none focus:shadow-neo transition-all placeholder-gray-400"
+                placeholder="Masukkan password akun" required autocomplete="current-password" />
             <x-input-error :messages="$errors->get('form.password')" class="mt-1 font-bold text-red-500 text-xs" />
         </div>
 
@@ -66,30 +66,32 @@ new #[Layout('layouts.guest')] class extends Component
             </label>
 
             @if (Route::has('password.request'))
-                <a class="text-sm font-black text-unmaris-blue hover:text-blue-600 underline decoration-2 underline-offset-4" href="{{ route('password.request') }}" wire:navigate>
-                    Lupa Password?
-                </a>
+            <a class="text-sm font-black text-unmaris-blue hover:text-blue-600 underline decoration-2 underline-offset-4" href="{{ route('password.request') }}" wire:navigate>
+                Lupa Password?
+            </a>
             @endif
         </div>
 
         <!-- Tombol Aksi dengan Loading State -->
         <div class="pt-4">
-            <button type="submit" 
-                    wire:loading.attr="disabled"
-                    class="w-full bg-unmaris-blue hover:bg-blue-900 text-white font-black py-4 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg flex justify-center items-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-x-[2px] disabled:translate-y-[2px]">
-                
+            <button type="submit"
+                wire:loading.attr="disabled"
+                class="w-full bg-unmaris-blue hover:bg-blue-900 text-white font-black py-4 rounded-xl border-2 border-black shadow-neo hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider text-lg flex justify-center items-center group disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-x-[2px] disabled:translate-y-[2px] min-h-[64px]">
+
                 <!-- Tampil Saat Normal -->
-                <span wire:loading.remove>MASUK / LOGIN</span>
-                <span wire:loading.remove class="group-hover:translate-x-1 transition-transform">🚀</span>
+                <div wire:loading.remove class="flex items-center gap-2">
+                    <span>MASUK / LOGIN</span>
+                    <span class="group-hover:translate-x-1 transition-transform">🚀</span>
+                </div>
 
                 <!-- Tampil Saat Loading -->
-                <span wire:loading class="flex items-center gap-2">
-                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <div wire:loading.flex class="items-center gap-2">
+                    <svg class="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    MEMPROSES...
-                </span>
+                    <span>MEMPROSES...</span>
+                </div>
             </button>
         </div>
 

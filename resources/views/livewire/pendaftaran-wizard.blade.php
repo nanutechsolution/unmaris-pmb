@@ -548,8 +548,10 @@
 
         <!-- ==================== STEP 4: UNGGAH BERKAS ==================== -->
         @if ($currentStep == 4)
-        <div x-data="{ agreed: false, uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true; progress = 0"
-            x-on:livewire-upload-finish="uploading = false" x-on:livewire-upload-error="uploading = false"
+        <div x-data="{ agreed: false, uploading: false, progress: 0 }"
+            x-on:livewire-upload-start="uploading = true; progress = 0"
+            x-on:livewire-upload-finish="uploading = false; progress = 100"
+            x-on:livewire-upload-error="uploading = false; alert('Gagal mengunggah. Coba simpan file ke memori internal HP terlebih dahulu, pastikan sinyal stabil, atau gunakan Laptop.')"
             x-on:livewire-upload-progress="progress = $event.detail.progress"
             class="animate-fade-in-up space-y-6">
 
