@@ -37,6 +37,7 @@
 
         <!-- Formulir -->
         <a href="{{ route('camaba.formulir') }}"
+            @click="sidebarOpen = false"
             class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
            {{ request()->routeIs('camaba.formulir')
                ? 'bg-unmaris-yellow text-unmaris-blue shadow-neo translate-x-1'
@@ -47,6 +48,7 @@
 
         <!-- Pembayaran -->
         <a href="{{ route('camaba.pembayaran') }}"
+            @click="sidebarOpen = false"
             class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
            {{ request()->routeIs('camaba.pembayaran')
                ? 'bg-unmaris-yellow text-unmaris-blue shadow-neo translate-x-1'
@@ -57,11 +59,12 @@
 
         <!-- Cetak Kartu -->
         @php
-            // Cek sederhana apakah user bisa cetak kartu (sudah bayar & jadwal ada)
-            $p = auth()->user()->pendaftar;
-            $bisaCetak = $p && $p->status_pembayaran == 'lunas' && $p->jadwal_ujian;
+        // Cek sederhana apakah user bisa cetak kartu (sudah bayar & jadwal ada)
+        $p = auth()->user()->pendaftar;
+        $bisaCetak = $p && $p->status_pembayaran == 'lunas' && $p->jadwal_ujian;
         @endphp
         <a href="{{ $bisaCetak ? route('camaba.cetak-kartu') : '#' }}" target="{{ $bisaCetak ? '_blank' : '_self' }}"
+            @click="sidebarOpen = false"
             class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
            {{ $bisaCetak ? 'bg-white text-unmaris-blue hover:bg-blue-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-400' }}">
             <span class="text-xl mr-3">🎫</span>
@@ -70,6 +73,7 @@
 
         <!-- Pengumuman -->
         <a href="{{ route('camaba.pengumuman') }}"
+            @click="sidebarOpen = false"
             class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
            {{ request()->routeIs('camaba.pengumuman')
                ? 'bg-unmaris-yellow text-unmaris-blue shadow-neo translate-x-1'
@@ -80,6 +84,7 @@
 
 
         <a href="{{ route('camaba.helpdesk') }}"
+            @click="sidebarOpen = false"
             class="flex items-center px-4 py-3 font-black border-2 border-black rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-neo
    {{ request()->routeIs('camaba.helpdesk') ? 'bg-unmaris-yellow text-unmaris-blue shadow-neo translate-x-1' : 'bg-white text-unmaris-blue hover:bg-blue-50' }}">
             <span class="text-xl mr-3">💬</span>
@@ -103,6 +108,6 @@
     <!-- Footer -->
     <div
         class="p-4 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest border-t-4 border-black bg-gray-50">
-        © 2025 Portal Mahasiswa
+        © 2025 Camaba
     </div>
 </div>
