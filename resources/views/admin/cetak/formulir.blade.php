@@ -224,7 +224,7 @@
                     <h1>{{ config('app.name', 'UNIVERSITAS STELLA MARIS SUMBA') }}</h1>
                     <p style="font-weight: bold; color: #1f2937;">SK.MENDIKBUDRISTEK NO.985/E/O/2023</p>
                     <p>Jln. Karya Kasih No. 5 Tambolaka, Desa Payola Umbu, Kec. Loura, Kab. Sumba Barat Daya, NTT</p>
-                    <p>Telp/Fax: (0387) 24016 | Web: www.unmaris.ac.id | Sistem PMB: pmb.unmaris.ac.id</p>
+                    <p>Telp/Fax: (0387) 24016 | Web: www.unmarissumba.ac.id | Sistem PMB: pmb.unmarissumba.ac.id</p>
                 </td>
             </tr>
         </table>
