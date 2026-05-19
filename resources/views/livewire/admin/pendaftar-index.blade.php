@@ -152,7 +152,7 @@
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-bold text-gray-900">{{ $p->user->name }}</div>
-                                            <div class="text-xs text-gray-500">{{ $p->jalur_pendaftaran }} • NISN: {{ $p->nisn ?? '-' }} • Email: {{ $p->user->email }}</div>
+                                            <div class="text-xs text-gray-500">{{ $p->jalur_pendaftaran }} • NISN: {{ $p->nisn ?? '-' }} </div>
                                         </div>
                                     </div>
                                 </td>
