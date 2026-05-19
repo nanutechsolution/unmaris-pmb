@@ -183,7 +183,7 @@ class UserManager extends Component
             'name' => $this->name,
             'email' => $this->email,
             'nomor_hp' => $this->nomor_hp,
-            'role' => $this->role,
+            'role' => 'camaba',
             'password' => Hash::make($this->password),
             'email_verified_at' => now(), // Admin create auto-verified
         ]);
