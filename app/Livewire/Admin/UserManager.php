@@ -218,7 +218,7 @@ class UserManager extends Component
             'name' => $this->name,
             'email' => $this->email,
             'nomor_hp' => $this->nomor_hp,
-            'role' => $this->role,
+            'role' => 'camaba', // Role tetap camaba saat update
         ]);
 
         Logger::record('UPDATE', 'Manajemen User', "Update user #{$user->id}");
