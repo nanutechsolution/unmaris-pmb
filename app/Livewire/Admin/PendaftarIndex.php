@@ -26,7 +26,7 @@ class PendaftarIndex extends Component
     public $filterPembayaran = '';
 
     #[Url(history: true)]
-    public $filterSync = ''; 
+    public $filterSync = '';
 
     // --- BULK ACTION ---
     public $selected = [];
@@ -89,7 +89,15 @@ class PendaftarIndex extends Component
 
     private function getPendaftarQuery()
     {
-        $query = Pendaftar::with('user')->latest();
+        $query = Pendaftar::with('user')
+            ->orderByRaw("
+            CASE
+                WHEN status_pendaftaran = 'draft' THEN 1
+                WHEN status_pendaftaran = 'submit' THEN 2
+                ELSE 3
+            END
+        ")
+            ->latest();
 
         if ($this->search) {
             $query->where(function ($q) {
