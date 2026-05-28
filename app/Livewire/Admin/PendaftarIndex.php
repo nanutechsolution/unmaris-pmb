@@ -20,7 +20,7 @@ class PendaftarIndex extends Component
     public $search = '';
 
     #[Url(history: true)]
-    public $filterStatus = 'submit';
+    public $filterStatus = '';
 
     #[Url(history: true)]
     public $filterPembayaran = '';
