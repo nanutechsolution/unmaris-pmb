@@ -290,7 +290,7 @@ class PendaftaranWizard extends Component
             'jenis_dokumen' => 'required|in:ijazah,skl',
         ];
 
-        if (!$this->existingFotoPath) $rules['foto'] = 'required|mimes:pdf,jpg,jpeg,png|max:5048';
+        if (!$this->existingFotoPath) $rules['foto'] = 'required|mimes:jpg,jpeg,png|max:5048';
         if (!$this->existingKtpPath) $rules['file_ktp'] = 'required|mimes:pdf,jpg,jpeg,png|max:5048';
         if ($this->file_akta) $rules['file_akta'] = 'mimes:pdf,jpg,jpeg,png|max:5048';
         if (!$this->existingIjazahPath) $rules['ijazah'] = 'required|mimes:pdf,jpg,jpeg,png|max:5048';
