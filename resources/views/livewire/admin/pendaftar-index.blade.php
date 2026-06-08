@@ -80,6 +80,14 @@
 
                 <!-- Filters -->
                 <div class="md:col-span-8 flex flex-col sm:flex-row gap-2 justify-end">
+
+                    <select wire:model.live="filterProdi" class="rounded-lg border-0 py-2.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                        <option value="">🎓 Semua Prodi</option>
+                        <option value="Teknik Informatika">Teknik Informatika</option>
+                        <option value="Sistem Informasi">Sistem Informasi</option>
+                        <option value="Manajemen">Manajemen</option>
+                        <option value="Akuntansi">Akuntansi</option>
+                    </select>
                     <select wire:model.live="filterStatus" class="rounded-lg border-0 py-2.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                         <option value="">📂 Semua Status</option>
                         <option value="draft">📝 Draft</option>

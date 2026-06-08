@@ -28,6 +28,10 @@ class PendaftarIndex extends Component
     #[Url(history: true)]
     public $filterSync = '';
 
+
+    #[Url(history: true)]
+    public $filterProdi = '';
+
     // --- BULK ACTION ---
     public $selected = [];
     public $selectAll = false;
@@ -49,6 +53,12 @@ class PendaftarIndex extends Component
         $this->resetSelection();
     }
     public function updatingFilterSync()
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+
+    public function updatingFilterProdi()
     {
         $this->resetPage();
         $this->resetSelection();
@@ -118,6 +128,13 @@ class PendaftarIndex extends Component
 
         if ($this->filterSync !== '') {
             $query->where('is_synced', $this->filterSync);
+        }
+
+        if (!empty($this->filterProdi)) {
+            $query->where(function ($q) {
+                $q->where('pilihan_prodi_1', $this->filterProdi)
+                    ->orWhere('pilihan_prodi_2', $this->filterProdi);
+            });
         }
 
         return $query;
