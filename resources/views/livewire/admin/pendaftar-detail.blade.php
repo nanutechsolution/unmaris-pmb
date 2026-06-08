@@ -763,17 +763,59 @@
 
                                     <form wire:submit.prevent="simpanAkademik" class="p-0">
                                         <!-- Pilihan Prodi Readonly -->
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 sm:p-6 bg-white border-b border-gray-100">
-                                            <div class="p-4 border-2 border-indigo-100 rounded-xl bg-indigo-50 shadow-sm relative overflow-hidden">
-                                                <div class="absolute top-0 right-0 bg-indigo-200 w-16 h-16 rounded-bl-full opacity-50 -mr-4 -mt-4"></div>
-                                                <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-white px-2 py-0.5 rounded-md border border-indigo-100 shadow-sm">Pilihan 1 (Prioritas)</span>
-                                                <p class="font-black text-indigo-950 text-base sm:text-lg mt-3">{{ $pendaftar->pilihan_prodi_1 }}</p>
+                                       <div class="p-5 sm:p-6 bg-white border-b border-gray-100">
+                                            <div class="flex justify-between items-center mb-4">
+                                                <h4 class="text-sm font-black text-indigo-700 uppercase tracking-wide">Pilihan Program Studi</h4>
+                                                @if(!$isEditingProdi && !$pendaftar->is_locked)
+                                                    <button type="button" wire:click="editProdi" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition border border-indigo-100 shadow-sm flex items-center gap-1.5">
+                                                        <span>✏️</span> Ubah Pilihan
+                                                    </button>
+                                                @endif
                                             </div>
-                                            @if($pendaftar->pilihan_prodi_2)
-                                            <div class="p-4 border-2 border-gray-200 rounded-xl bg-gray-50 shadow-sm relative overflow-hidden">
-                                                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-white px-2 py-0.5 rounded-md border border-gray-200 shadow-sm">Pilihan 2 (Alternatif)</span>
-                                                <p class="font-black text-gray-800 text-base sm:text-lg mt-3">{{ $pendaftar->pilihan_prodi_2 }}</p>
-                                            </div>
+
+                                            @if($isEditingProdi)
+                                                <div class="bg-indigo-50/50 p-4 sm:p-5 rounded-2xl border border-indigo-100 shadow-inner">
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                                                        <div>
+                                                            <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1.5">Pilihan 1 (Prioritas) <span class="text-red-500">*</span></label>
+                                                            <select wire:model="edit_pilihan_prodi_1" class="w-full text-sm font-medium rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm">
+                                                                <option value="">-- Pilih Prodi 1 --</option>
+                                                                @foreach($prodiList as $prodi)
+                                                                    <option value="{{ $prodi->name }}">{{ $prodi->name }} ({{ $prodi->degree }})</option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('edit_pilihan_prodi_1') <span class="text-[10px] font-bold text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1.5">Pilihan 2 (Alternatif)</label>
+                                                            <select wire:model="edit_pilihan_prodi_2" class="w-full text-sm font-medium rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm">
+                                                                <option value="">-- Pilih Prodi 2 --</option>
+                                                                @foreach($prodiList as $prodi)
+                                                                    <option value="{{ $prodi->name }}">{{ $prodi->name }} ({{ $prodi->degree }})</option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('edit_pilihan_prodi_2') <span class="text-[10px] font-bold text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex justify-end gap-2 sm:gap-3 flex-col-reverse sm:flex-row">
+                                                        <button wire:click="batalEditProdi" type="button" class="w-full sm:w-auto px-5 py-2.5 text-xs font-black text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-sm">Batal</button>
+                                                        <button wire:click="simpanProdi" type="button" class="w-full sm:w-auto px-5 py-2.5 text-xs font-black text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-sm border border-indigo-700 flex items-center justify-center gap-2">
+                                                            Simpan Perubahan Prodi
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div class="p-4 border-2 border-indigo-100 rounded-xl bg-indigo-50 shadow-sm relative overflow-hidden">
+                                                        <div class="absolute top-0 right-0 bg-indigo-200 w-16 h-16 rounded-bl-full opacity-50 -mr-4 -mt-4"></div>
+                                                        <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-white px-2 py-0.5 rounded-md border border-indigo-100 shadow-sm relative z-10">Pilihan 1 (Prioritas)</span>
+                                                        <p class="font-black text-indigo-950 text-base sm:text-lg mt-3 relative z-10">{{ $pendaftar->pilihan_prodi_1 ?: '-' }}</p>
+                                                    </div>
+                                                    <div class="p-4 border-2 border-gray-200 rounded-xl bg-gray-50 shadow-sm relative overflow-hidden">
+                                                        <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-white px-2 py-0.5 rounded-md border border-gray-200 shadow-sm relative z-10">Pilihan 2 (Alternatif)</span>
+                                                        <p class="font-black text-gray-800 text-base sm:text-lg mt-3 relative z-10">{{ $pendaftar->pilihan_prodi_2 ?: '-' }}</p>
+                                                    </div>
+                                                </div>
                                             @endif
                                         </div>
 

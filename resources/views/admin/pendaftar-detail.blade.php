@@ -449,7 +449,8 @@
                                 <div class="mb-8">
                                     <div class="flex justify-between items-center mb-4">
                                         <h3 class="text-base font-semibold text-gray-900">Pilihan Program Studi</h3>
-                                        @if(!$isEditingProdi && !$pendaftar->is_locked)
+                                        <!-- @if(!$isEditingProdi && !$pendaftar->is_locked) -->
+                                        @if(!$isEditingProdi)
                                         <button wire:click="editProdi" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition border border-indigo-100 flex items-center gap-1">
                                             ✏️ Ubah Pilihan Prodi
                                         </button>
