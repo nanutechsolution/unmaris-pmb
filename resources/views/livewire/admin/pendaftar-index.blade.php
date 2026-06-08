@@ -84,9 +84,12 @@
                     <select wire:model.live="filterProdi" class="rounded-lg border-0 py-2.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                         <option value="">🎓 Semua Prodi</option>
                         <option value="Teknik Informatika">Teknik Informatika</option>
-                        <option value="Sistem Informasi">Sistem Informasi</option>
-                        <option value="Manajemen">Manajemen</option>
-                        <option value="Akuntansi">Akuntansi</option>
+                        <option value="Teknik Lingkungan">Teknik Lingkungan</option>
+                        <option value="Manajemen Informatika">Manajemen Informatika</option>
+                        <option value="Bisnis Digital">Bisnis Digital</option>
+                        <option value="Administrasi Rumah Sakit">Administrasi Rumah Sakit</option>
+                        <option value="Keselamatan dan Kesehatan Kerja">Keselamatan dan Kesehatan Kerja</option>
+                        <option value="Pendidikan Teknologi Informasi">Pendidikan Teknologi Informasi</option>
                     </select>
                     <select wire:model.live="filterStatus" class="rounded-lg border-0 py-2.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                         <option value="">📂 Semua Status</option>

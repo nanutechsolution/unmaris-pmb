@@ -131,10 +131,7 @@ class PendaftarIndex extends Component
         }
 
         if (!empty($this->filterProdi)) {
-            $query->where(function ($q) {
-                $q->where('pilihan_prodi_1', $this->filterProdi)
-                    ->orWhere('pilihan_prodi_2', $this->filterProdi);
-            });
+            $query->where('pilihan_prodi_1', $this->filterProdi);
         }
 
         return $query;
