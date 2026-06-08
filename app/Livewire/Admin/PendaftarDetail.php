@@ -44,6 +44,12 @@ class PendaftarDetail extends Component
     public $upload_label;
     public $upload_file;
 
+
+
+    // --- PROPERTI UBAH PRODI PILIHAN ---
+    public $isEditingProdi = false;
+    public $edit_pilihan_prodi_1;
+    public $edit_pilihan_prodi_2;
     public function mount($id)
     {
 
@@ -68,6 +74,46 @@ class PendaftarDetail extends Component
         $this->jadwal_wawancara = $pendaftar->jadwal_wawancara ? Carbon::parse($pendaftar->jadwal_wawancara)->format('Y-m-d\TH:i') : null;
     }
 
+
+    // ==========================================
+    // FITUR UBAH PRODI PILIHAN
+    // ==========================================
+    public function editProdi()
+    {
+        $this->edit_pilihan_prodi_1 = $this->pendaftar->pilihan_prodi_1;
+        $this->edit_pilihan_prodi_2 = $this->pendaftar->pilihan_prodi_2;
+        $this->isEditingProdi = true;
+    }
+
+    public function batalEditProdi()
+    {
+        $this->isEditingProdi = false;
+        $this->resetValidation();
+    }
+
+    public function simpanProdi()
+    {
+        // Validasi input
+        $this->validate([
+            'edit_pilihan_prodi_1' => 'required|string|max:255',
+            'edit_pilihan_prodi_2' => 'nullable|string|max:255',
+        ]);
+
+        $pendaftar = $this->pendaftar;
+
+        // Simpan pembaruan ke database
+        $pendaftar->update([
+            'pilihan_prodi_1' => $this->edit_pilihan_prodi_1,
+            'pilihan_prodi_2' => $this->edit_pilihan_prodi_2,
+        ]);
+
+        $this->isEditingProdi = false;
+
+        // Catat ke log aktivitas
+        Logger::record('UPDATE', 'Ubah Prodi Pilihan', "Admin merubah pilihan prodi untuk pendaftar #{$pendaftar->id}");
+
+        session()->flash('success', 'Pilihan Program Studi berhasil diperbarui!');
+    }
     public function getPendaftarProperty()
     {
         return Pendaftar::with('user')->findOrFail($this->pendaftar_id);
