@@ -222,6 +222,26 @@ CREATE TABLE `pendaftars` (
   CONSTRAINT `pendaftars_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `personal_access_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `personal_access_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `tokenable_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tokenable_id` bigint unsigned NOT NULL,
+  `name` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abilities` text COLLATE utf8mb4_unicode_ci,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`),
+  KEY `personal_access_tokens_expires_at_index` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `referral_rewards`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -359,6 +379,87 @@ CREATE TABLE `tickets` (
   CONSTRAINT `tickets_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `ujian_jawabans`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ujian_jawabans` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `ujian_peserta_id` bigint unsigned NOT NULL,
+  `ujian_soal_id` bigint unsigned NOT NULL,
+  `ujian_pilihan_id` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ujian_jawabans_ujian_peserta_id_foreign` (`ujian_peserta_id`),
+  KEY `ujian_jawabans_ujian_soal_id_foreign` (`ujian_soal_id`),
+  KEY `ujian_jawabans_ujian_pilihan_id_foreign` (`ujian_pilihan_id`),
+  CONSTRAINT `ujian_jawabans_ujian_peserta_id_foreign` FOREIGN KEY (`ujian_peserta_id`) REFERENCES `ujian_pesertas` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `ujian_jawabans_ujian_pilihan_id_foreign` FOREIGN KEY (`ujian_pilihan_id`) REFERENCES `ujian_pilihans` (`id`),
+  CONSTRAINT `ujian_jawabans_ujian_soal_id_foreign` FOREIGN KEY (`ujian_soal_id`) REFERENCES `ujian_soals` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `ujian_pakets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ujian_pakets` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `nama_ujian` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `durasi_menit` int NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `ujian_pesertas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ujian_pesertas` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `pendaftar_id` bigint unsigned NOT NULL,
+  `ujian_paket_id` bigint unsigned NOT NULL,
+  `waktu_mulai` timestamp NULL DEFAULT NULL,
+  `waktu_selesai` timestamp NULL DEFAULT NULL,
+  `status` enum('belum','mengerjakan','selesai') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'belum',
+  `skor_akhir` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ujian_pesertas_pendaftar_id_foreign` (`pendaftar_id`),
+  KEY `ujian_pesertas_ujian_paket_id_foreign` (`ujian_paket_id`),
+  CONSTRAINT `ujian_pesertas_pendaftar_id_foreign` FOREIGN KEY (`pendaftar_id`) REFERENCES `pendaftars` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `ujian_pesertas_ujian_paket_id_foreign` FOREIGN KEY (`ujian_paket_id`) REFERENCES `ujian_pakets` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `ujian_pilihans`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ujian_pilihans` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `ujian_soal_id` bigint unsigned NOT NULL,
+  `teks_pilihan` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_benar` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ujian_pilihans_ujian_soal_id_foreign` (`ujian_soal_id`),
+  CONSTRAINT `ujian_pilihans_ujian_soal_id_foreign` FOREIGN KEY (`ujian_soal_id`) REFERENCES `ujian_soals` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `ujian_soals`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ujian_soals` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `ujian_paket_id` bigint unsigned NOT NULL,
+  `pertanyaan` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ujian_soals_ujian_paket_id_foreign` (`ujian_paket_id`),
+  CONSTRAINT `ujian_soals_ujian_paket_id_foreign` FOREIGN KEY (`ujian_paket_id`) REFERENCES `ujian_pakets` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -419,3 +520,5 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (32,'2026_02_15_210
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (33,'2026_04_15_113317_add_ortu_details_to_pendaftars_table',2);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (34,'2026_04_15_123352_add_is_active_to_study_programs_table',3);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (35,'2026_05_06_105814_alter_pendaftars_make_columns_nullable',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (36,'2026_06_15_030444_create_personal_access_tokens_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (37,'2026_06_15_030549_create_cbt_tables',6);

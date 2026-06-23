@@ -57,4 +57,9 @@ class Pendaftar extends Model
     {
         return $this->belongsTo(Gelombang::class, 'gelombang_id');
     }
+
+    public function ujianPesertas()
+    {
+        return $this->hasMany(UjianPeserta::class, 'pendaftar_id');
+    }
 }

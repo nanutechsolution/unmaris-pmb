@@ -129,11 +129,11 @@ class WawancaraManager extends Component
 
             $count = count($this->selected);
 
-            Logger::record(
-                'UPDATE',
-                'Wawancara Massal',
-                "Menjadwalkan wawancara massal untuk {$count} peserta. Jadwal: {$this->bulk_jadwal_wawancara}, Pewawancara: {$this->bulk_pewawancara}"
-            );
+            // Logger::record(
+            //     'UPDATE',
+            //     'Wawancara Massal',
+            //     "Menjadwalkan wawancara massal untuk {$count} peserta. Jadwal: {$this->bulk_jadwal_wawancara}, Pewawancara: {$this->bulk_pewawancara}"
+            // );
 
             $this->resetSelection();
             $this->reset(['bulk_jadwal_wawancara', 'bulk_pewawancara']);
@@ -194,11 +194,11 @@ class WawancaraManager extends Component
                 }
             }
 
-            Logger::record(
-                'UPDATE',
-                'Data Wawancara',
-                "Update data wawancara Pendaftar #{$p->id} ({$p->user->name}). Nilai: {$this->nilai_wawancara}, Pewawancara: {$this->pewawancara}"
-            );
+            // Logger::record(
+            //     'UPDATE',
+            //     'Data Wawancara',
+            //     "Update data wawancara Pendaftar #{$p->id} ({$p->user->name}). Nilai: {$this->nilai_wawancara}, Pewawancara: {$this->pewawancara}"
+            // );
 
             $this->isModalOpen = false;
             session()->flash('message', 'Data wawancara berhasil disimpan' . (($isScheduleChanged || $isScoreChanged) && $this->send_wa_notification ? ' & notifikasi terkirim.' : '.'));

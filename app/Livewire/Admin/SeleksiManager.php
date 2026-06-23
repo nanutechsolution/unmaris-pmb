@@ -133,7 +133,7 @@ class SeleksiManager extends Component
             });
 
             $count = count($this->selected);
-            Logger::record('UPDATE', 'Jadwal Massal', "Menetapkan jadwal ujian untuk $count peserta.");
+            // Logger::record('UPDATE', 'Jadwal Massal', "Menetapkan jadwal ujian untuk $count peserta.");
 
             $this->resetSelection();
             $this->reset(['bulk_jadwal_ujian', 'bulk_lokasi_ujian']);
@@ -196,7 +196,7 @@ class SeleksiManager extends Component
                 }
             }
 
-            Logger::record('UPDATE', 'Data Seleksi', "Memperbarui data ujian {$p->user->name}");
+            // Logger::record('UPDATE', 'Data Seleksi', "Memperbarui data ujian {$p->user->name}");
 
             $this->isModalOpen = false;
             session()->flash('message', 'Data seleksi berhasil diperbarui' . (($isScheduleChanged || $isScoreChanged) && $this->send_wa_notification ? ' & notifikasi terkirim.' : '.'));
