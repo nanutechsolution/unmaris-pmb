@@ -23,20 +23,23 @@ class RekapLulusSeeder extends Seeder
 
         $fileHandle = fopen($csvFile, 'r');
         
-        // Melewati baris pertama (header: EMAIL, PILIHAN PRODI 1, PILIHAN PRODI 2, KET)
+        // Melewati baris pertama (header)
         fgetcsv($fileHandle); 
 
         DB::beginTransaction();
 
         try {
             $count = 0;
+            $emailTidakDitemukan = []; // Array untuk menampung email yang gagal
             
             while (($row = fgetcsv($fileHandle, 1000, ',')) !== FALSE) {
-                $email   = trim($row[0]);
-                $prodi1  = trim($row[1]);
-                $prodi2  = trim($row[2]);
-                $ket     = strtoupper(trim($row[3]));
+                // Pastikan indeks baris ada untuk menghindari error offset
+                $email   = isset($row[0]) ? trim($row[0]) : '';
+                $prodi1  = isset($row[1]) ? trim($row[1]) : '';
+                $prodi2  = isset($row[2]) ? trim($row[2]) : '';
+                $ket     = isset($row[3]) ? strtoupper(trim($row[3])) : '';
                 
+                // Lewati jika email benar-benar kosong (biasanya baris kosong di akhir excel)
                 if (empty($email)) continue;
 
                 // Cari data user berdasarkan email
@@ -47,7 +50,6 @@ class RekapLulusSeeder extends Seeder
                     $statusPilihan1 = 'pending';
                     $statusPilihan2 = 'pending';
 
-                    // Menentukan status kelulusan berdasarkan kolom KET
                     if ($ket === 'LULUS') {
                         $prodiDiterima  = $prodi1;
                         $statusPilihan1 = 'lulus';
@@ -58,7 +60,6 @@ class RekapLulusSeeder extends Seeder
                         $statusPilihan2 = 'lulus';
                     }
 
-                    // Update data pendaftar
                     Pendaftar::where('user_id', $user->id)->update([
                         'pilihan_prodi_1'    => $prodi1,
                         'pilihan_prodi_2'    => $prodi2,
@@ -73,11 +74,22 @@ class RekapLulusSeeder extends Seeder
                     ]);
 
                     $count++;
+                } else {
+                    // Jika email ada isinya tapi tidak ditemukan di database, catat di sini
+                    $emailTidakDitemukan[] = $email;
                 }
             }
 
             DB::commit();
             $this->command->info("Pembaruan selesai! Berhasil memperbarui data untuk {$count} pendaftar.");
+
+            // Tampilkan daftar email yang tidak ditemukan jika ada
+            if (count($emailTidakDitemukan) > 0) {
+                $this->command->warn("PERHATIAN: Ada " . count($emailTidakDitemukan) . " data yang dilewati karena email tidak ditemukan di database:");
+                foreach ($emailTidakDitemukan as $emailGagal) {
+                    $this->command->line("- " . $emailGagal);
+                }
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();
