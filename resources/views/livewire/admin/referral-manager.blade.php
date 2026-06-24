@@ -174,13 +174,28 @@
                     {{-- Input: Camaba --}}
                     <div class="mb-4">
                         <label class="block text-sm font-bold uppercase mb-2">Pilih Pendaftar (Camaba)</label>
-                        <select wire:model="pendaftar_id" class="w-full border-2 border-black rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        <!-- Pastikan memakai wire:model.live agar reaktif memanggil updatedPendaftarId -->
+                        <select wire:model.live="pendaftar_id" class="w-full border-2 border-black rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400">
                             <option value="">-- Pilih Camaba --</option>
                             @foreach($pendaftars as $p)
                                 <option value="{{ $p->id }}">{{ $p->name }}</option>
                             @endforeach
                         </select>
                         @error('pendaftar_id') <span class="text-red-500 text-xs font-bold">{{ $message }}</span> @enderror
+                    </div>
+
+                    {{-- GRID UNTUK REFERENSI (Yang Bisa Diedit) --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-gray-50 p-3 border-2 border-dashed border-gray-300 rounded-lg">
+                        <div>
+                            <label class="block text-sm font-bold uppercase mb-2">Nama Referensi (Orang)</label>
+                            <input type="text" wire:model="nama_referensi" placeholder="Nama yang mereferensikan..." class="w-full border-2 border-black rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                            @error('nama_referensi') <span class="text-red-500 text-xs font-bold">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold uppercase mb-2">No. HP Referensi</label>
+                            <input type="text" wire:model="nomor_hp_referensi" placeholder="08123456..." class="w-full border-2 border-black rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                            @error('nomor_hp_referensi') <span class="text-red-500 text-xs font-bold">{{ $message }}</span> @enderror
+                        </div>
                     </div>
 
                     {{-- Input: Skema --}}

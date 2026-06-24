@@ -25,6 +25,8 @@ class ReferralManager extends Component
     // Form Properties
     public $rewardId;
     public $pendaftar_id;
+    public $nama_referensi; // Properti baru
+    public $nomor_hp_referensi; // Properti baru
     public $referral_scheme_id;
     public $reward_amount;
     public $status = 'eligible';
@@ -37,6 +39,8 @@ class ReferralManager extends Component
     {
         return [
             'pendaftar_id' => 'required|exists:pendaftars,id',
+            'nama_referensi' => 'required|string|max:255',
+            'nomor_hp_referensi' => 'nullable|string|max:20',
             'referral_scheme_id' => 'required|exists:referral_schemes,id',
             'reward_amount' => 'required|numeric|min:0',
             'status' => 'required|in:eligible,paid,cancelled',
@@ -58,6 +62,19 @@ class ReferralManager extends Component
     public function updatingFilterStatus()
     {
         $this->resetPage();
+    }
+
+    // Auto-fill nama dan no HP referensi ketika pendaftar dipilih di dropdown
+    public function updatedPendaftarId($id)
+    {
+        if ($id) {
+            $pendaftar = Pendaftar::find($id);
+            $this->nama_referensi = $pendaftar->nama_referensi;
+            $this->nomor_hp_referensi = $pendaftar->nomor_hp_referensi;
+        } else {
+            $this->nama_referensi = null;
+            $this->nomor_hp_referensi = null;
+        }
     }
 
     public function render()
@@ -99,7 +116,7 @@ class ReferralManager extends Component
 
     public function resetForm()
     {
-        $this->reset(['rewardId', 'pendaftar_id', 'referral_scheme_id', 'reward_amount', 'status']);
+        $this->reset(['rewardId', 'pendaftar_id', 'nama_referensi', 'nomor_hp_referensi', 'referral_scheme_id', 'reward_amount', 'status']);
         $this->status = 'eligible';
         $this->resetValidation();
     }
@@ -113,13 +130,19 @@ class ReferralManager extends Component
 
     public function edit($id)
     {
-        $reward = ReferralReward::findOrFail($id);
+        $reward = ReferralReward::with('pendaftar')->findOrFail($id);
 
         $this->rewardId = $reward->id;
         $this->pendaftar_id = $reward->pendaftar_id;
         $this->referral_scheme_id = $reward->referral_scheme_id;
         $this->reward_amount = $reward->reward_amount;
         $this->status = $reward->status;
+
+        // Isi referensi dari data pendaftar terkait
+        if ($reward->pendaftar) {
+            $this->nama_referensi = $reward->pendaftar->nama_referensi;
+            $this->nomor_hp_referensi = $reward->pendaftar->nomor_hp_referensi;
+        }
 
         $this->isEdit = true;
         $this->showModal = true;
@@ -133,6 +156,14 @@ class ReferralManager extends Component
             $action = $this->rewardId ? 'UPDATE' : 'CREATE';
             $actor = Auth::user()->name;
 
+            // 1. Update/Ganti Orang Referensinya di tabel Pendaftars
+            $pendaftar = Pendaftar::findOrFail($this->pendaftar_id);
+            $pendaftar->update([
+                'nama_referensi' => $this->nama_referensi,
+                'nomor_hp_referensi' => $this->nomor_hp_referensi,
+            ]);
+
+            // 2. Simpan Reward
             $reward = ReferralReward::updateOrCreate(
                 ['id' => $this->rewardId],
                 [
@@ -146,11 +177,11 @@ class ReferralManager extends Component
             );
 
             // LOGGING DENGAN NAMA USER
-            Logger::record($action, 'Manajemen Reward', "User ($actor) menyimpan Reward #{$reward->id} untuk Pendaftar #{$this->pendaftar_id} dengan status: {$this->status}");
+            Logger::record($action, 'Manajemen Reward', "User ($actor) menyimpan Reward #{$reward->id} untuk Pendaftar #{$this->pendaftar_id} dengan status: {$this->status}. Referensi diubah ke: {$this->nama_referensi}");
         });
 
         $this->showModal = false;
-        session()->flash('success', 'Data Reward berhasil disimpan.');
+        session()->flash('success', 'Data Reward dan Informasi Referensi berhasil disimpan.');
     }
 
     public function markAsPaid($id)
