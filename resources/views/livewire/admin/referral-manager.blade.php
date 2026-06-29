@@ -113,13 +113,6 @@
                             
                             <td class="px-4 py-3 text-center space-x-1 whitespace-nowrap">
                                 
-                                {{-- HANYA ADMIN YANG BISA EDIT --}}
-                                @if(auth()->user()->role === 'admin')
-                                    <button wire:click="edit({{ $reward->id }})" 
-                                        class="px-2 py-1 border border-black rounded bg-white hover:bg-gray-100 text-xs font-bold transition">
-                                        Edit
-                                    </button>
-                                @endif
                                 
                                 {{-- TOMBOL PAY TETAP MUNCUL UNTUK SEMUA YG PUNYA AKSES HALAMAN INI (MISAL: KEUANGAN) --}}
                                 @if($reward->status !== 'paid')
@@ -174,7 +167,6 @@
                     {{-- Input: Camaba --}}
                     <div class="mb-4">
                         <label class="block text-sm font-bold uppercase mb-2">Pilih Pendaftar (Camaba)</label>
-                        <!-- Pastikan memakai wire:model.live agar reaktif memanggil updatedPendaftarId -->
                         <select wire:model.live="pendaftar_id" class="w-full border-2 border-black rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400">
                             <option value="">-- Pilih Camaba --</option>
                             @foreach($pendaftars as $p)
