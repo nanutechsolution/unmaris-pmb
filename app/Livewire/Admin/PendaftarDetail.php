@@ -513,7 +513,10 @@ class PendaftarDetail extends Component
             // Tembak API SIAKAD. Gunakan env() agar domain tujuan bisa diganti
             $apiUrl = config('services.siakad.url');
             $token  = config('services.siakad.token'); // API Key untuk verifikasi
-
+            dd([
+                'url' => $apiUrl,
+                'token' => config('services.siakad.token'),
+            ]);
             $response = Http::timeout(15)
                 ->withToken($token)
                 ->acceptJson()
