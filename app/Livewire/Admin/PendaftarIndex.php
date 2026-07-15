@@ -232,7 +232,6 @@ class PendaftarIndex extends Component
         $targets = Pendaftar::with('user')
             ->whereIn('id', $this->selected)
             ->where('status_pendaftaran', 'lulus')
-            ->where('is_synced', false)
             ->get();
 
         if ($targets->isEmpty()) {
