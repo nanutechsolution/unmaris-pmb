@@ -246,7 +246,7 @@ class PendaftarIndex extends Component
 
         // Ambil konfigurasi API dari .env
         $apiUrl = env('SIAKAD_API_URL');
-        $pmbKey = env('SIAKAD_API_SECRET', 'default-secret-key-123');
+        $token = env('SIAKAD_API_TOKEN');
 
         if (empty($apiUrl)) {
             session()->flash('error', 'URL API SIAKAD belum diatur di file .env sistem PMB.');
@@ -301,12 +301,9 @@ class PendaftarIndex extends Component
             try {
                 // Tembak API dengan timeout dan Header yang valid
                 $response = Http::timeout(15)
-                    ->withHeaders([
-                        'X-PMB-KEY' => $pmbKey,
-                        'Accept'    => 'application/json',
-                    ])
+                    ->withToken($token)
+                    ->acceptJson()
                     ->post($apiUrl, $payload);
-
                 $result = $response->json();
 
                 if ($response->successful() && ($result['status'] ?? '') === 'success') {
