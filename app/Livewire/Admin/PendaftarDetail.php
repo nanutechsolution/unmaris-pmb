@@ -283,7 +283,7 @@ class PendaftarDetail extends Component
             'ijazah' => 'ijazah_path',
             'transkrip' => 'transkrip_path',
             'beasiswa' => 'file_beasiswa',
-            'foto' => 'foto_path', // <-- Tambahan mapping foto
+            'foto' => 'foto_path',
         ];
 
         if (!array_key_exists($this->upload_tipe, $map)) return;
@@ -511,16 +511,13 @@ class PendaftarDetail extends Component
 
         try {
             // Tembak API SIAKAD. Gunakan env() agar domain tujuan bisa diganti
-            $apiUrl = env('SIAKAD_API_URL', 'http://127.0.0.1:8000/api/v1/pmb/receive-camaba');
-            $pmbKey = env('SIAKAD_API_SECRET', 'super_secret_kampus'); // API Key untuk verifikasi
+            $apiUrl = config('services.siakad.url');
+            $token  = config('services.siakad.token'); // API Key untuk verifikasi
 
             $response = Http::timeout(15)
-                ->withHeaders([
-                    'X-PMB-KEY' => $pmbKey,
-                    'Accept'    => 'application/json',
-                ])
+                ->withToken($token)
+                ->acceptJson()
                 ->post($apiUrl, $payload);
-
             if ($response->successful()) {
                 $pendaftar->is_synced = true;
                 $pendaftar->save();
